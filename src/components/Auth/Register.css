@@ -1,0 +1,25 @@
+@import './Login.css';
+
+.input-error {
+    border: 1.5px solid #F44336 !important;
+    background: #fff6f6 !important;
+}
+
+.auth-input {
+    padding: 0.75rem 1rem 0.75rem 1rem;
+    border: 1.5px solid #e0d7f3;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border 0.2s, box-shadow 0.2s;
+    background: #faf8ff;
+    color: #222;
+    box-shadow: none;
+    position: relative;
+    width: 100%;
+}
+
+.auth-input:focus {
+    border: 1.5px solid #F47C54;
+    box-shadow: 0 0 0 2px rgba(244, 124, 84, 0.08);
+}

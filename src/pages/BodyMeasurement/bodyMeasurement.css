@@ -1,0 +1,101 @@
+.body-measurement-container {
+    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%);
+    min-height: 100vh;
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+}
+
+.body-measurement-card {
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+    width: 100%;
+    background: #fff;
+}
+
+.body-measurement-card:hover {
+    transform: translateY(-4px);
+}
+
+.table-container {
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+.table-row:hover {
+    background: #e8f5e9;
+}
+
+.pagination {
+    margin-top: 16px;
+}
+
+.filter-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.filter-grid {
+    align-items: center;
+}
+
+.header-title {
+    color: #1976d3;
+    font-weight: 600;
+}
+
+.measurement-label {
+    color: #555;
+    font-weight: 500;
+}
+
+.measurement-value {
+    color: #333;
+    font-weight: 400;
+}
+
+.bmi-chip {
+    background-color: #e3f2fd;
+    color: #1976d3;
+}
+
+.category-chip {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.category-chip.healthy {
+    background-color: #e8f5e9;
+    color: #689f38;
+}
+
+.view-details-btn {
+    text-transform: none;
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .body-measurement-container {
+        padding: 8px;
+    }
+
+    .body-measurement-card {
+        margin-top: 8px;
+    }
+
+    .filter-card {
+        padding: 8px;
+    }
+
+    .table-container {
+        font-size: 14px;
+    }
+
+    .filter-grid>* {
+        margin-bottom: 8px;
+    }
+}

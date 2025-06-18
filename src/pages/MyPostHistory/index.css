@@ -1,0 +1,52 @@
+.my-post-history-container {
+    padding: 24px;
+    padding-top: 100px;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.my-post-history-table th,
+.my-post-history-table td {
+    vertical-align: middle;
+    padding: 8px;
+}
+
+.my-post-history-table img {
+    border-radius: 6px;
+}
+
+.MuiTablePagination-root div p {
+    margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+    .my-post-history-container {
+        padding: 16px;
+        padding-top: 80px;
+    }
+
+    .my-post-history-table th,
+    .my-post-history-table td {
+        padding: 6px;
+        font-size: 14px;
+    }
+
+    .my-post-history-table img {
+        width: 50px;
+        height: 34px;
+    }
+}
+
+@media (max-width: 400px) {
+
+    .my-post-history-table th,
+    .my-post-history-table td {
+        font-size: 12px;
+    }
+
+    .my-post-history-table img {
+        width: 40px;
+        height: 28px;
+    }
+}

@@ -1,0 +1,191 @@
+.service-package-container {
+    padding: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 100px;
+}
+
+.service-package-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.box-card {
+    width: 23.9%;
+}
+
+.service-package-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    min-height: 300px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.service-package-card:hover {
+    transform: translateY(-4px);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.card-title {
+    flex: 1;
+    overflow: hidden;
+}
+
+.card-title h6 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1rem;
+}
+
+.card-title .MuiTypography-body2 {
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.875rem;
+}
+
+.card-content {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.card-description {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    font-size: 0.875rem;
+}
+
+.card-chips {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.card-footer {
+    padding: 12px;
+    border-top: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.card-footer .MuiButton-root {
+    font-size: 0.875rem;
+}
+
+.no-packages {
+    text-align: center;
+    padding: 16px;
+    color: #666;
+    font-size: 1rem;
+}
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+    .service-package-container {
+        padding: 8px;
+        padding-top: 100px;
+    }
+
+    .service-package-header {
+        margin-bottom: 12px;
+    }
+
+    .box-card {
+        width: 48%;
+    }
+
+    .service-package-card {
+        min-height: 280px;
+    }
+
+    .card-header {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .card-content {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .card-footer {
+        padding: 8px;
+        gap: 6px;
+    }
+
+    .card-title h6 {
+        font-size: 0.9rem;
+    }
+
+    .card-title .MuiTypography-body2 {
+        font-size: 0.8rem;
+    }
+
+    .card-description {
+        font-size: 0.8rem;
+    }
+
+    .card-chips {
+        gap: 4px;
+    }
+
+    .card-footer .MuiButton-root {
+        font-size: 0.8rem;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 960px) {
+    .service-package-container {
+        padding: 12px;
+        padding-top: 70px;
+    }
+
+    .service-package-card {
+        min-height: 290px;
+    }
+
+    .card-header {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .card-content {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .card-footer {
+        padding: 10px;
+        gap: 8px;
+    }
+}

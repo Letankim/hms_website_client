@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "*": ["*"],
+      "components/*": ["components/*"],
+      "services/*": ["services/*"],
+      "pages/*": ["pages/*"],
+      "contexts/*": ["contexts/*"]
+    },
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ES6",
+    "jsx": "react-jsx",
+    "allowJs": true,
+    "checkJs": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.js"]
+}
