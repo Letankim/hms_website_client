@@ -1,0 +1,1 @@
+export function extractErrors(error) { if (error?.errors) { return Object.values(error.errors).flat().join('+'); } if (error?.response?.data?.errors) { return Object.values(error.response.data.errors).flat().join('\n'); } return (error?.response?.data?.message || error?.message || "An unexpected error occurred. Please try again."); }

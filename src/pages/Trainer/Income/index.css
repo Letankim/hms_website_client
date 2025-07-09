@@ -1,0 +1,30 @@
+/* src/index.css */
+.chart-container {
+    width: calc(50% -32px);
+    max-width: 640px;
+    margin: 0;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+    .chart-container {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+.card-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 200px;
+    box-sizing: border-box;
+}
+
+.card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}

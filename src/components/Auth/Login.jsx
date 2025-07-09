@@ -1,13 +1,52 @@
-import React, { useState, useContext } from "react";
-import AuthContext from "../../contexts/AuthContext";
+import { useState, useContext, useEffect } from "react";
 import { Eye, EyeSlash, Home2 } from "iconsax-react";
-import { Link, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import FacebookLogin from "@greatsumini/react-facebook-login";
+import AuthContext from "contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import {
+  showErrorFetchAPI,
+  showInfoMessage,
+} from "components/ErrorHandler/showStatusMessage";
 import "./Login.css";
 
 const GOOGLE_CLIENT_ID =
   "336337631794-cil4f7sd9oj7dcsqflf6u7buambcsukk.apps.googleusercontent.com";
+
+const ParticleBackground = () => {
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    const newParticles = Array.from({ length: 12 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 3 + 1,
+      duration: Math.random() * 20 + 10,
+      delay: Math.random() * 5,
+    }));
+    setParticles(newParticles);
+  }, []);
+
+  return (
+    <div className="particle-background">
+      {particles.map((particle) => (
+        <div
+          key={particle.id}
+          className="particle"
+          style={{
+            left: `${particle.x}%`,
+            top: `${particle.y}%`,
+            width: `${particle.size}px`,
+            height: `${particle.size}px`,
+            animationDuration: `${particle.duration}s`,
+            animationDelay: `${particle.delay}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const Login = () => {
   const { login, googleLogin, facebookLogin, loading, user } =
@@ -15,244 +54,348 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [snackbar, setSnackbar] = useState({ open: false, message: "" });
+  const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
 
-  React.useEffect(() => {
+  useEffect(() => {
+    // Animate in the login box
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+
+    // Redirect if user is already logged in
     if (user) {
+      showInfoMessage("Welcome back! Redirecting to dashboard...");
       navigate("/");
     }
+
+    return () => clearTimeout(timer);
   }, [user, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    const result = await login(email, password);
-    if (!result.success) {
-      showError(result.message || "Login failed");
+
+    if (!email || !password) {
+      showErrorFetchAPI({ message: "Please fill in all fields" });
+      return;
+    }
+
+    try {
+      const result = await login(email, password);
+      if (!result.success) {
+        showErrorFetchAPI(result);
+      } else {
+        showInfoMessage("Login successful! Welcome back!");
+      }
+    } catch (error) {
+      showErrorFetchAPI({ message: "An unexpected error occurred" });
     }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse.credential) return;
-    await googleLogin(credentialResponse.credential);
+    if (!credentialResponse.credential) {
+      showErrorFetchAPI({ message: "Google authentication failed" });
+      return;
+    }
+
+    try {
+      const result = await googleLogin(credentialResponse.credential);
+      if (result.success) {
+        showInfoMessage("Google login successful!");
+      }
+    } catch (error) {
+      showErrorFetchAPI({ message: "Google login failed" });
+    }
   };
+
   const handleGoogleFailure = () => {
-    showError("Google login failed");
+    showErrorFetchAPI({ message: "Google login was cancelled or failed" });
   };
 
   const handleFacebookSuccess = async (response) => {
-    if (!response.accessToken) return;
-    await facebookLogin(response.accessToken);
-  };
-  const handleFacebookFailure = () => {
-    showError("Facebook login failed");
+    if (!response.accessToken) {
+      showErrorFetchAPI({ message: "Facebook authentication failed" });
+      return;
+    }
+
+    try {
+      const result = await facebookLogin(response.accessToken);
+      if (result.success) {
+        showInfoMessage("Facebook login successful!");
+      }
+    } catch (error) {
+      showErrorFetchAPI({ message: "Facebook login failed" });
+    }
   };
 
-  const showError = (msg) => {
-    setSnackbar({ open: true, message: msg });
-    setTimeout(() => setSnackbar({ open: false, message: "" }), 3000);
+  const handleFacebookFailure = () => {
+    showErrorFetchAPI({ message: "Facebook login was cancelled or failed" });
+  };
+
+  const handleHomeClick = () => {
+    navigate("/");
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
+  };
+
+  const handleRegister = () => {
+    navigate("/register");
   };
 
   return (
     <div className="auth-container">
-      <div className="auth-box">
+      <ParticleBackground />
+
+      {/* Decorative Elements */}
+      <div className="auth-decorative-elements">
+        <div className="auth-decorative auth-decorative-1">
+          <img
+            src="https://cdn.prod.website-files.com/675931be48143bd8073dddc4/67597df37a4d2ed3e8663b94_lemon.webp"
+            alt="Healthy lemon decoration"
+            loading="lazy"
+          />
+        </div>
+        <div className="auth-decorative auth-decorative-2">
+          <img
+            src="https://cdn.prod.website-files.com/675931be48143bd8073dddc4/675983f20b549bc94731c2d5_strawberry.webp"
+            alt="Fresh strawberry decoration"
+            loading="lazy"
+          />
+        </div>
+        <div className="auth-decorative auth-decorative-3">
+          <img
+            src="https://cdn.prod.website-files.com/675931be48143bd8073dddc4/67598aa92c61e78ae0e8ceec_hero-eclipse-1.webp"
+            alt="Natural eclipse decoration"
+            loading="lazy"
+          />
+        </div>
+        <div className="auth-decorative auth-decorative-4">
+          <img
+            src="https://cdn.prod.website-files.com/675931be48143bd8073dddc4/6759864e5f6bae487081d4ef_top-view-frame-with-green-leaves%201.svg"
+            alt="Green leaves decoration"
+            loading="lazy"
+          />
+        </div>
+      </div>
+
+      <div className={`auth-box ${isVisible ? "animate-in" : ""}`}>
         <div className="auth-form-block">
-          <Link to="/" className="auth-home-btn">
-            <Home2 size="20" color="#FF8A65" />
+          <button
+            className="auth-home-btn"
+            onClick={handleHomeClick}
+            type="button"
+            aria-label="Go to homepage"
+          >
+            <Home2 size="20" color="#f47c54" />
             <span>Home</span>
-          </Link>
-          <h2 className="auth-title">
-            <span className="auth-title-dot"></span>Log In
-          </h2>
-          <p className="auth-desc">Welcome back! Please enter your details</p>
-          <form className="auth-form" onSubmit={handleSubmit}>
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
-              required
-            />
-            <label htmlFor="password">Password</label>
-            <div className="auth-password-wrap">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-              />
+          </button>
+
+          <div className="auth-header">
+            <h1 className="auth-title">
+              <span className="auth-title-dot" aria-hidden="true"></span>
+              Welcome Back
+            </h1>
+            <p className="auth-desc">
+              Sign in to continue your healthy journey and track your wellness
+              goals
+            </p>
+          </div>
+
+          <form className="auth-form" onSubmit={handleSubmit} noValidate>
+            <div className="form-group">
+              <label htmlFor="email">Email Address</label>
+              <div className="input-wrapper">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
+                  placeholder="Enter your email address"
+                  required
+                  aria-describedby="email-error"
+                  disabled={loading}
+                />
+                <div className="input-shine" aria-hidden="true"></div>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="password">Password</label>
+              <div className="input-wrapper password-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  required
+                  aria-describedby="password-error"
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  disabled={loading}
+                >
+                  {showPassword ? (
+                    <EyeSlash size={20} color="#f47c54" />
+                  ) : (
+                    <Eye size={20} color="#f47c54" />
+                  )}
+                </button>
+                <div className="input-shine" aria-hidden="true"></div>
+              </div>
+            </div>
+
+            <div className="auth-options">
               <button
                 type="button"
-                className="auth-eye-btn"
-                onClick={() => setShowPassword((v) => !v)}
-                aria-label="Show/Hide password"
+                className="forgot-link"
+                onClick={handleForgotPassword}
+                disabled={loading}
               >
-                <span className="auth-eye-icon">
-                  {showPassword ? (
-                    <EyeSlash size={22} color="#F47C54" />
-                  ) : (
-                    <Eye size={22} color="#F47C54" />
-                  )}
-                </span>
+                Forgot password?
               </button>
             </div>
-            <div className="auth-link-row">
-              <Link to="/forgot" className="auth-link">
-                Forgot password ?
-              </Link>
-            </div>
+
             <button
               className="auth-submit-btn"
               type="submit"
-              disabled={loading}
-              style={{ marginBottom: 18, marginTop: 8 }}
+              disabled={loading || !email || !password}
             >
-              {loading ? (
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 50 50"
-                    style={{ marginRight: 8 }}
-                  >
-                    <circle
-                      cx="25"
-                      cy="25"
-                      r="20"
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth="5"
-                      strokeDasharray="31.415, 31.415"
-                      transform="rotate(72.0001 25 25)"
+              <span className="button-text">
+                {loading ? (
+                  <>
+                    <svg
+                      className="loading-spinner"
+                      viewBox="0 0 50 50"
+                      aria-hidden="true"
                     >
-                      <animateTransform
-                        attributeName="transform"
-                        type="rotate"
-                        from="0 25 25"
-                        to="360 25 25"
-                        dur="1s"
-                        repeatCount="indefinite"
-                      />
-                    </circle>
-                  </svg>
-                  Logging in...
-                </span>
-              ) : (
-                "Log in"
-              )}
+                      <circle
+                        cx="25"
+                        cy="25"
+                        r="20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="5"
+                        strokeDasharray="31.415, 31.415"
+                      >
+                        <animateTransform
+                          attributeName="transform"
+                          type="rotate"
+                          from="0 25 25"
+                          to="360 25 25"
+                          dur="1s"
+                          repeatCount="indefinite"
+                        />
+                      </circle>
+                    </svg>
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
+              </span>
+              <div className="button-ripple" aria-hidden="true"></div>
             </button>
           </form>
-          <div className="auth-divider">
-            <span>Or Continue With</span>
+
+          <div
+            className="auth-divider"
+            role="separator"
+            aria-label="Or continue with social login"
+          >
+            <span>Or continue with</span>
           </div>
-          <div className="auth-social-row">
+
+          <div className="social-login-section">
             <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleFailure}
-                locale="en"
-                width="100%"
-                useOneTap={false}
-                theme="outline"
-                size="large"
-                text="continue_with"
-                shape="rectangular"
-                logo_alignment="left"
-              />
+              <div className="social-btn-wrapper">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleFailure}
+                  locale="en"
+                  width="100%"
+                  useOneTap={false}
+                  theme="outline"
+                  size="large"
+                  text="continue_with"
+                  shape="rectangular"
+                  logo_alignment="left"
+                  disabled={loading}
+                />
+              </div>
             </GoogleOAuthProvider>
+
             <FacebookLogin
               appId="1669047477285810"
               callback={handleFacebookSuccess}
               onFailure={handleFacebookFailure}
               autoLoad={false}
-              fields="name,email"
+              fields="name,email,picture"
               render={(renderProps) => (
                 <button
-                  className="auth-social-btn facebook"
+                  className="social-btn facebook-btn"
                   type="button"
                   onClick={renderProps.onClick}
-                  style={{
-                    backgroundColor: "#4267b2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "10px 20px",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                    width: "100%",
-                    marginTop: 8,
-                  }}
+                  disabled={loading || renderProps.disabled}
+                  aria-label="Continue with Facebook"
                 >
                   <img
                     src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
-                    alt="Facebook"
-                    style={{
-                      width: 22,
-                      marginRight: 8,
-                      verticalAlign: "middle",
-                    }}
-                  />{" "}
-                  Facebook
+                    alt=""
+                    className="social-icon"
+                    aria-hidden="true"
+                  />
+                  Continue with Facebook
                 </button>
               )}
             />
           </div>
-          <div className="auth-bottom-row">
-            Don't have account?{" "}
-            <Link to="/register" className="auth-link">
-              Sign up
-            </Link>
+
+          <div className="auth-footer">
+            <span>Don't have an account? </span>
+            <button
+              className="register-link"
+              onClick={handleRegister}
+              disabled={loading}
+              type="button"
+            >
+              Sign up for free
+            </button>
           </div>
         </div>
-        <div className="auth-image-block login-image"></div>
-      </div>
-      {/* Snackbar hiển thị lỗi */}
-      {snackbar.open && (
-        <div
-          style={{
-            position: "fixed",
-            right: 24,
-            top: 24,
-            background: "#F44336",
-            color: "#fff",
-            padding: "14px 32px 14px 20px",
-            borderRadius: 8,
-            fontWeight: 500,
-            fontSize: 16,
-            boxShadow: "0 4px 24px #0002",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-            minWidth: 220,
-            maxWidth: "90vw",
-          }}
-          role="alert"
-        >
-          <span style={{ flex: 1 }}>{snackbar.message}</span>
-          <button
-            onClick={() => setSnackbar({ open: false, message: "" })}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#fff",
-              fontWeight: 700,
-              fontSize: 18,
-              marginLeft: 16,
-              cursor: "pointer",
-              lineHeight: 1,
-            }}
-            aria-label="Close"
-          >
-            ×
-          </button>
+
+        <div className="auth-image-block" aria-hidden="true">
+          <div className="image-overlay"></div>
+          <div className="image-content">
+            <h2>Transform Your Wellness Today</h2>
+            <p>
+              Join a community of health-conscious individuals using AI-powered
+              insights to achieve their wellness goals and build lasting healthy
+              habits
+            </p>
+            <div className="health-stats">
+              <div className="stat-item">
+                <span className="stat-number">100K+</span>
+                <span className="stat-label">Lives Changed</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-number">4.9★</span>
+                <span className="stat-label">User Rating</span>
+              </div>
+            </div>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

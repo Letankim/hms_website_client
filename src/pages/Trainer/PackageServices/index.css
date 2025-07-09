@@ -1,0 +1,159 @@
+.services-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+    padding: 24px;
+    padding-top: 80px;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Title styling */
+.services-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table styling */
+.services-table {
+    background: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+/* Status pill button styling */
+.status-pill {
+    border-radius: 12px !important;
+    padding: 4px 12px !important;
+    min-width: 80px !important;
+    font-weight: bold !important;
+    text-transform: capitalize !important;
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+}
+
+.status-pill:hover {
+    opacity: 0.9 !important;
+    transform: scale(1.05) !important;
+}
+
+/* Empty state styling */
+.services-empty {
+    text-align: center;
+    padding: 32px 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+/* Additional Material-UI component styles */
+.MuiTableRow-root:hover {
+    background-color: var(--background-light);
+    transition: background-color 0.3s ease;
+}
+
+.MuiDialog-paper {
+    border-radius: 16px !important;
+    overflow: hidden;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: var(--accent-info) !important;
+}
+
+.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: var(--accent-info) !important;
+    border-width: 2px;
+}
+
+.MuiButton-outlined:hover {
+    background-color: var(--background-light);
+    transition: background-color 0.2s ease;
+}
+
+.MuiSnackbarContent-root {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+/* Animation for dialog entrance */
+.MuiDialog-paper {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .services-container {
+        padding: 16px;
+        padding-top: 70px;
+    }
+
+    .services-title {
+        font-size: 1.6rem !important;
+    }
+
+    .services-table {
+        padding: 12px;
+        overflow-x: auto;
+    }
+
+    .status-pill {
+        font-size: 0.7rem !important;
+        height: 20px !important;
+        padding: 2px 8px !important;
+        min-width: 60px !important;
+    }
+
+    .MuiTableCell-root {
+        padding: 8px;
+        font-size: 0.75rem;
+    }
+
+    .MuiTypography-h3 {
+        font-size: 1.5rem;
+    }
+
+    .MuiTypography-h6 {
+        font-size: 0.875rem;
+    }
+
+    .MuiButton-root {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 960px) {
+    .services-container {
+        padding: 20px;
+        padding-top: 80px;
+    }
+
+    .services-title {
+        font-size: 1.8rem !important;
+    }
+
+    .status-pill {
+        font-size: 0.7rem !important;
+        height: 22px !important;
+        padding: 3px 10px !important;
+        min-width: 70px !important;
+    }
+
+    .MuiTableCell-root {
+        font-size: 0.875rem;
+    }
+
+    .MuiTypography-h3 {
+        font-size: 2rem;
+    }
+}

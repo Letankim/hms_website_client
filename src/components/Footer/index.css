@@ -1,0 +1,347 @@
+/* Footer Main Container */
+.footer {
+    background: linear-gradient(135deg, #ffffff 0%, rgba(229, 240, 218, 0.2) 50%, rgba(229, 240, 218, 0.4) 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 4rem 0;
+}
+
+/* Background Pattern */
+.footer-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.05;
+    pointer-events: none;
+}
+
+.bg-circle-1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 16rem;
+    height: 16rem;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+    transform: translate(-8rem, -8rem);
+}
+
+.bg-circle-2 {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 24rem;
+    height: 24rem;
+    background-color: var(--secondary-color);
+    border-radius: 50%;
+    transform: translate(12rem, 12rem);
+}
+
+/* Container */
+.footer-container {
+    position: relative;
+    z-index: 10;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Grid Layout */
+.footer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.grid-item {
+    padding: 0;
+}
+
+/* Company Description */
+.company-description {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.footer-logo-link {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.footer-logo-link:hover {
+    transform: scale(1.05);
+}
+
+.footer-logo {
+    height: 3rem;
+    width: auto;
+    max-width: 150px;
+}
+
+.company-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 320px;
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Section Titles */
+.section-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    position: relative;
+    padding-bottom: 0.5rem;
+}
+
+.title-underline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 2rem;
+    height: 0.125rem;
+    background-color: var(--primary-color);
+}
+
+/* Contact Section */
+.contact-section {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.contact-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.contact-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    padding: 0.25rem 0;
+}
+
+.contact-item:hover {
+    color: var(--primary-color);
+}
+
+.address-item {
+    align-items: flex-start;
+}
+
+.contact-icon {
+    padding: 0.5rem;
+    background-color: var(--secondary-light);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    min-height: 2rem;
+}
+
+.contact-item:hover .contact-icon {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Company Menu */
+.company-menu {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.menu-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 0.25rem 0;
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.menu-link:hover {
+    color: var(--primary-color);
+    transform: translateX(0.25rem);
+}
+
+/* App Download */
+.app-download {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-description {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 1.5rem 0;
+    font-size: 1rem;
+}
+
+.app-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.app-link {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.app-link:hover {
+    transform: scale(1.05);
+}
+
+.app-image {
+    height: 3rem;
+    width: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px var(--shadow-color);
+    transition: box-shadow 0.3s ease;
+}
+
+.app-link:hover .app-image {
+    box-shadow: 0 4px 6px var(--shadow-hover);
+}
+
+/* Copyright Section */
+.copyright-section {
+    border-top: 1px solid var(--border-light);
+    padding-top: 2rem;
+    margin-top: 3rem;
+}
+
+.copyright-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.copyright-text {
+    text-align: center;
+}
+
+.copyright-text p {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    margin: 0.25rem 0;
+}
+
+.copyright-links {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.copyright-link {
+    color: var(--text-light);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.copyright-link:hover {
+    color: var(--primary-color);
+}
+
+.brand-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.brand-link:hover {
+    color: var(--primary-hover);
+}
+
+/* Responsive Design */
+@media (min-width: 576px) {
+    .app-links {
+        flex-direction: row;
+    }
+}
+
+@media (min-width: 768px) {
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 3rem;
+    }
+
+    .copyright-content {
+        flex-direction: row;
+        justify-content: space-between;
+    }
+
+    .copyright-text {
+        text-align: left;
+    }
+}
+
+@media (min-width: 1024px) {
+    .footer-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 3rem;
+    }
+
+    .footer {
+        padding: 5rem 0;
+    }
+}
+
+@media (min-width: 1200px) {
+    .footer-container {
+        padding: 0 2rem;
+    }
+}
+
+/* Smooth Animations */
+* {
+    box-sizing: border-box;
+}
+
+.footer * {
+    transition: all 0.3s ease;
+}
+
+/* Focus States for Accessibility */
+.footer a:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+/* Print Styles */
+@media print {
+    .footer {
+        background: white !important;
+        color: black !important;
+    }
+
+    .footer-background {
+        display: none;
+    }
+}

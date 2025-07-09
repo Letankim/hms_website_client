@@ -36,8 +36,12 @@ import { styled } from "@mui/material/styles";
 import apiServicePackageService from "services/apiServicePackageService";
 import apiUserPaymentService from "services/apiUserPaymentService";
 import { useNavigate, useParams } from "react-router-dom";
-import { DOMPurify } from "dompurify";
 import AuthContext from "contexts/AuthContext";
+import {
+  showErrorFetchAPI,
+  showErrorMessage,
+  showInfoMessage,
+} from "components/ErrorHandler/showStatusMessage";
 
 const QontoConnector = styled(StepConnector)(({ theme }) => ({
   "& .MuiStepConnector-line": {
@@ -83,7 +87,6 @@ const CheckoutPage = () => {
   const [pkg, setPkg] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showError, setShowError] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("BankTransfer");
 
@@ -94,12 +97,10 @@ const CheckoutPage = () => {
       if (response.statusCode === 200 && response.data) {
         setPkg(response.data);
       } else {
-        setError("Package not found.");
-        setShowError(true);
+        showErrorMessage("Package not found.");
       }
     } catch (e) {
-      setError("Failed to load package details.");
-      setShowError(true);
+      showErrorFetchAPI(e);
     } finally {
       setLoading(false);
     }
@@ -109,24 +110,19 @@ const CheckoutPage = () => {
     fetchPackage();
   }, [packageId]);
 
-  const handleCloseError = () => {
-    setShowError(false);
-  };
-
   const handleSubscribe = async () => {
     if (!isConfirmed) {
-      setError("Please confirm the subscription terms before proceeding.");
-      setShowError(true);
+      showErrorMessage(
+        "Please confirm the subscription terms before proceeding."
+      );
       return;
     }
     if (!paymentMethod) {
-      setError("Please select a payment method.");
-      setShowError(true);
+      showErrorMessage("Please select a payment method.");
       return;
     }
     if (!user) {
-      setError("Please login before subscribing.");
-      setShowError(true);
+      showInfoMessage("Please login before subscribing.");
       setTimeout(() => {
         navigate("/login");
       }, 1000);
@@ -143,15 +139,10 @@ const CheckoutPage = () => {
       if (response.statusCode === 201 && response.data.paymentLink) {
         window.location.href = response.data.paymentLink;
       } else {
-        setError("Failed to initiate payment. Please try again.");
-        setShowError(true);
+        showErrorMessage("Failed to initiate payment. Please try again.");
       }
     } catch (e) {
-      setError(
-        e?.message ||
-          "An error occurred during payment initiation. Please try again."
-      );
-      setShowError(true);
+      showErrorFetchAPI(e);
     }
   };
 
@@ -468,22 +459,6 @@ const CheckoutPage = () => {
           </CardContent>
         </Card>
       </Container>
-
-      {/* Error/Success Snackbar */}
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseError}
-          severity={error === "Subscription successful!" ? "success" : "error"}
-          sx={{ width: "100%" }}
-        >
-          {error}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

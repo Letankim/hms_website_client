@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Initialize Axios client with base configuration
 const apiClient = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL,
     headers: {
@@ -7,6 +8,7 @@ const apiClient = axios.create({
     },
 });
 
+// Add request interceptor to include Bearer token
 apiClient.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -15,9 +17,10 @@ apiClient.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
 );
 
+// Report reason service API methods
 const apiReportReasonService = {
     getAllActiveReportReasons: async (queryParams) => {
         try {
@@ -26,7 +29,7 @@ const apiReportReasonService = {
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch report reasons.' };
         }
-    }
+    },
 };
 
 export default apiReportReasonService;

@@ -1,21 +1,14 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
-import {
-  Box,
-  Container,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Stack,
-  Alert,
-  Snackbar,
-  Skeleton,
-  Paper,
-} from "@mui/material";
-import { Warning } from "@mui/icons-material";
+import { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import {
+  FileWarningIcon as Warning,
+  RefreshCwIcon as Refresh,
+  ArrowLeft,
+} from "lucide-react";
 import apiUserPaymentService from "services/apiUserPaymentService";
 import AuthContext from "contexts/AuthContext";
+import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
+import styles from "./CancelPage.module.css";
 
 const CancelPage = () => {
   const { user } = useContext(AuthContext);
@@ -57,9 +50,8 @@ const CancelPage = () => {
       }
     } catch (e) {
       if (e.name !== "AbortError" && isMounted.current) {
-        setError(
-          e.message || "An error occurred while checking payment status."
-        );
+        showErrorFetchAPI(e);
+        setError(e.message);
         setShowError(true);
       }
     } finally {
@@ -72,9 +64,8 @@ const CancelPage = () => {
   useEffect(() => {
     const abortController = new AbortController();
     isMounted.current = true;
-
     if (paymentCode && subscriptionId) {
-      fetchPaymentStatus("CANCELLED");
+      fetchPaymentStatus(abortController.signal);
     } else {
       setError("Invalid payment or subscription details.");
       setShowError(true);
@@ -92,204 +83,129 @@ const CancelPage = () => {
   };
 
   const LoadingSkeleton = () => (
-    <Box sx={{ minHeight: "100vh", bgcolor: "grey.50", p: 3 }}>
-      <Container maxWidth="lg">
-        <Card sx={{ borderRadius: 4, overflow: "hidden" }}>
-          <Skeleton variant="rectangular" height={200} />
-          <CardContent sx={{ p: 4 }}>
-            <Skeleton variant="text" sx={{ fontSize: "2rem", mb: 2 }} />
-            <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
-            <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
-            <Skeleton variant="text" height={20} width="50%" />
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+    <div className={styles["loading-container"]}>
+      <div className={styles["container"]}>
+        <div className={styles["loading-card"]}>
+          <div className={styles["skeleton-header"]}></div>
+          <div className={styles["skeleton-content"]}>
+            <div className={styles["skeleton-title"]}></div>
+            <div className={styles["skeleton-line"]}></div>
+            <div className={styles["skeleton-line"]}></div>
+            <div
+              className={
+                styles["skeleton-line"] + " " + styles["skeleton-line-short"]
+              }
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   if (loading) return <LoadingSkeleton />;
 
   if (error || !paymentDetails) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "error.light",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          p: 3,
-        }}
-      >
-        <Paper sx={{ textAlign: "center", p: 6, borderRadius: 4 }}>
-          <Typography variant="h4" gutterBottom fontWeight="bold">
-            Payment Error
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {error}
-          </Typography>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => navigate(`/booking-services/checkout/${packageId}`)}
-            size="large"
-            sx={{ borderRadius: 2, mr: 2 }}
-          >
-            Retry Payment
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={() => navigate("/services")}
-            size="large"
-            sx={{ borderRadius: 2 }}
-          >
-            Back to Services
-          </Button>
-        </Paper>
-        <Snackbar
-          open={showError}
-          autoHideDuration={6000}
-          onClose={handleCloseError}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-        >
-          <Alert
-            onClose={handleCloseError}
-            severity="error"
-            sx={{ width: "100%" }}
-          >
-            {error}
-          </Alert>
-        </Snackbar>
-      </Box>
+      <div className={styles["error-container"]}>
+        <div className={styles["error-paper"]}>
+          <div className={styles["error-icon-wrapper"]}>
+            <Warning className={styles["error-icon"]} />
+          </div>
+          <h1 className={styles["error-title"]}>Payment Error</h1>
+          <p className={styles["error-message"]}>{error}</p>
+          <div className={styles["error-actions"]}>
+            <button
+              className={styles["btn"] + " " + styles["btn-primary"]}
+              onClick={() =>
+                navigate(`/booking-services/checkout/${packageId}`)
+              }
+            >
+              <Refresh className={styles["btn-icon"]} />
+              Retry Payment
+            </button>
+            <button
+              className={styles["btn"] + " " + styles["btn-secondary"]}
+              onClick={() => navigate("/services")}
+            >
+              <ArrowLeft className={styles["btn-icon"]} />
+              Back to Services
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "grey.50" }}>
-      <Container maxWidth="lg" sx={{ py: 3, pt: "100px" }}>
-        <Card sx={{ borderRadius: 4, overflow: "hidden", mb: 4, boxShadow: 4 }}>
-          <Box
-            sx={{
-              height: 200,
-              background:
-                "linear-gradient(135deg, #d32f2f 0%, #b71c1c 50%, #ef5350 100%)",
-              position: "relative",
-              display: "flex",
-              alignItems: "flex-end",
-              p: 3,
-            }}
-          >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "end",
-                gap: 3,
-                width: "100%",
-                color: "white",
-              }}
-            >
-              <Warning
-                sx={{
-                  fontSize: 60,
-                  animation: "pulse 1.5s infinite",
-                  "@keyframes pulse": {
-                    "0%": { transform: "scale(1)", opacity: 1 },
-                    "50%": { transform: "scale(1.2)", opacity: 0.7 },
-                    "100%": { transform: "scale(1)", opacity: 1 },
-                  },
-                }}
-              />
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h3" fontWeight="bold" gutterBottom>
-                  Payment Canceled
-                </Typography>
-                <Typography variant="h6">
-                  Your payment for {paymentDetails.PackageName} was not
+    <div className={styles["cancel-page"]}>
+      <div className={styles["container"]}>
+        <div className={styles["cancel-card"]}>
+          <div className={styles["cancel-header"]}>
+            <div className={styles["header-content"]}>
+              <Warning className={styles["warning-icon"]} />
+              <div className={styles["header-text"]}>
+                <h1 className={styles["main-title"]}>Payment Canceled</h1>
+                <p className={styles["main-subtitle"]}>
+                  Your payment for {paymentDetails.packageName} was not
                   completed.
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <CardContent sx={{ p: 4 }}>
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              gutterBottom
-              color="#d32f2f"
-            >
-              Payment Details
-            </Typography>
-            <Paper sx={{ p: 3, bgcolor: "grey.50", borderRadius: 3, mb: 3 }}>
-              <Stack spacing={2}>
-                <Typography variant="body1">
+          <div className={styles["cancel-content"]}>
+            <h2 className={styles["section-title"]}>Payment Details</h2>
+            <div className={styles["details-paper"]}>
+              <div className={styles["details-stack"]}>
+                <div className={styles["detail-item"]}>
                   <strong>Payment ID:</strong> {paymentDetails.paymentId}
-                </Typography>
-                <Typography variant="body1">
+                </div>
+                <div className={styles["detail-item"]}>
                   <strong>Package:</strong> {paymentDetails.packageName}
-                </Typography>
-                <Typography variant="body1">
+                </div>
+                <div className={styles["detail-item"]}>
                   <strong>Amount:</strong>{" "}
                   {paymentDetails.amount.toLocaleString()} VND
-                </Typography>
-                <Typography variant="body1">
+                </div>
+                <div className={styles["detail-item"]}>
                   <strong>Payment Method:</strong>{" "}
                   {paymentDetails.paymentMethod || "Bank Transfer"}
-                </Typography>
-                <Typography variant="body1">
+                </div>
+                <div className={styles["detail-item"]}>
                   <strong>Status:</strong> {paymentDetails.status}
-                </Typography>
-                <Typography variant="body1">
+                </div>
+                <div className={styles["detail-item"]}>
                   <strong>Cancellation Reason:</strong>{" "}
                   {paymentDetails.cancellationReason || "No reason provided"}
-                </Typography>
-                <Typography variant="body1">
+                </div>
+                <div className={styles["detail-item"]}>
                   <strong>Trainer:</strong> {paymentDetails.trainerFullName} (
                   {paymentDetails.trainerEmail})
-                </Typography>
-              </Stack>
-            </Paper>
-
-            <Button
-              variant="contained"
-              color="error"
-              size="large"
-              onClick={() =>
-                navigate(`/booking-services/checkout/${packageId}`)
-              }
-              sx={{ borderRadius: 1, mr: 2 }}
-            >
-              Retry Payment
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              size="large"
-              onClick={() => navigate("/services")}
-              sx={{ borderRadius: 1 }}
-            >
-              Back to Services
-            </Button>
-          </CardContent>
-        </Card>
-      </Container>
-
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseError}
-          severity="error"
-          sx={{ width: "100%" }}
-        >
-          {error}
-        </Alert>
-      </Snackbar>
-    </Box>
+                </div>
+              </div>
+            </div>
+            <div className={styles["action-buttons"]}>
+              <button
+                className={styles["btn"] + " " + styles["btn-primary"]}
+                onClick={() =>
+                  navigate(`/booking-services/checkout/${packageId}`)
+                }
+              >
+                <Refresh className={styles["btn-icon"]} />
+                Retry Payment
+              </button>
+              <button
+                className={styles["btn"] + " " + styles["btn-secondary"]}
+                onClick={() => navigate("/services")}
+              >
+                <ArrowLeft className={styles["btn-icon"]} />
+                Back to Services
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

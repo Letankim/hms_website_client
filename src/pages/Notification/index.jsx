@@ -1,29 +1,41 @@
-import React, { useEffect, useState, useCallback } from "react";
+import styles from "./index.module.css";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
-  CheckCircle,
-  RadioButtonUnchecked,
-  Search as SearchIcon,
-} from "@mui/icons-material";
-import {
-  Snackbar,
-  Alert,
-  IconButton,
-  InputAdornment,
+  Box,
+  Container,
+  Typography,
+  Stack,
   TextField,
+  InputAdornment,
   Select,
   MenuItem,
   Button,
   CircularProgress,
-  Box,
-  Typography,
   Pagination,
   Checkbox,
   FormControlLabel,
+  Snackbar,
+  Alert,
+  IconButton,
+  Avatar,
 } from "@mui/material";
+import {
+  Notifications as NotificationsIcon,
+  Search as SearchIcon,
+  CheckCircle,
+  RadioButtonUnchecked,
+} from "@mui/icons-material";
+import DOMPurify from "dompurify";
 import apiNotificationService from "services/apiNotificationService";
-import "./index.css";
+import AuthContext from "contexts/AuthContext";
+import {
+  showErrorFetchAPI,
+  showInfoMessage,
+  showSuccessMessage,
+} from "components/ErrorHandler/showStatusMessage";
 
 const NotificationPage = () => {
+  const { user } = useContext(AuthContext);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -37,8 +49,7 @@ const NotificationPage = () => {
     message: "",
     severity: "success",
   });
-  const [selectedIds, setSelectedIds] = useState([]); // Track selected notifications
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const debounce = (func, delay) => {
     let timeoutId;
@@ -49,7 +60,10 @@ const NotificationPage = () => {
   };
 
   const fetchNotifications = useCallback(async () => {
-    if (!user?.userId) return;
+    if (!user?.userId) {
+      showInfoMessage("Please login to view notifications.");
+      return;
+    }
     setLoading(true);
     try {
       const params = {
@@ -58,7 +72,6 @@ const NotificationPage = () => {
         SortDescending: sortDescending,
         PageNumber: page,
         PageSize: pageSize,
-        ValidPageSize: pageSize,
       };
       const res = await apiNotificationService.getNotificationsByUserId(
         user.userId,
@@ -68,14 +81,10 @@ const NotificationPage = () => {
       const data = res.data || res;
       setNotifications(data.notifications || []);
       setTotalCount(data.totalCount || 0);
-      setSelectedIds([]); // Clear selections on new fetch
+      setSelectedIds([]);
     } catch (e) {
       setNotifications([]);
-      setSnackbar({
-        open: true,
-        message: e?.message || "Failed to fetch notifications.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
     } finally {
       setLoading(false);
     }
@@ -95,83 +104,66 @@ const NotificationPage = () => {
       const action = isRead
         ? apiNotificationService.markNotificationsUnread
         : apiNotificationService.markNotificationsRead;
-      await action({
-        notificationIds: [id],
-        isRead: !isRead,
-      });
-      setSnackbar({
-        open: true,
-        message: `Marked as ${isRead ? "unread" : "read"}!`,
-        severity: isRead ? "info" : "success",
-      });
+      await action({ notificationIds: [id], isRead: !isRead });
+      if (isRead) {
+        showInfoMessage(`Marked as ${isRead ? "unread" : "read"}!`);
+      } else {
+        showSuccessMessage(`Marked as ${isRead ? "unread" : "read"}!`);
+      }
       fetchNotifications();
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: e?.message || "Action failed.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
     }
   };
 
   const handleMarkSelected = async (markAsRead) => {
     if (selectedIds.length === 0) {
-      setSnackbar({
-        open: true,
-        message: "No notifications selected.",
-        severity: "warning",
-      });
+      showInfoMessage("No notifications selected.");
       return;
     }
     try {
       const action = markAsRead
         ? apiNotificationService.markNotificationsRead
         : apiNotificationService.markNotificationsUnread;
-      await action({
-        notificationIds: selectedIds,
-        isRead: markAsRead,
-      });
-      setSnackbar({
-        open: true,
-        message: `Selected notifications marked as ${
-          markAsRead ? "read" : "unread"
-        }!`,
-        severity: markAsRead ? "success" : "info",
-      });
+      await action({ notificationIds: selectedIds, isRead: markAsRead });
+      if (markAsRead) {
+        showSuccessMessage(
+          `Selected notifications marked as ${markAsRead ? "read" : "unread"}!`
+        );
+      } else {
+        showInfoMessage(
+          `Selected notifications marked as ${markAsRead ? "read" : "unread"}!`
+        );
+      }
       fetchNotifications();
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: e?.message || "Failed to update selected notifications.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
     }
   };
 
   const handleMarkAll = async (markAsRead) => {
+    if (notifications.length === 0) {
+      showInfoMessage("No notifications to update.");
+      return;
+    }
     try {
       const allIds = notifications.map((n) => n.notificationId);
       const action = markAsRead
         ? apiNotificationService.markNotificationsRead
         : apiNotificationService.markNotificationsUnread;
-      await action({
-        notificationIds: allIds,
-        isRead: markAsRead,
-      });
-      setSnackbar({
-        open: true,
-        message: `All notifications marked as ${
-          markAsRead ? "read" : "unread"
-        }!`,
-        severity: markAsRead ? "success" : "info",
-      });
+      await action({ notificationIds: allIds, isRead: markAsRead });
+      if (markAsRead) {
+        showSuccessMessage(
+          `All notifications marked as ${markAsRead ? "read" : "unread"}!`
+        );
+      } else {
+        showInfoMessage(
+          `All notifications marked as ${markAsRead ? "read" : "unread"}!`
+        );
+      }
       fetchNotifications();
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: e?.message || "Failed to update all notifications.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
     }
   };
 
@@ -182,11 +174,11 @@ const NotificationPage = () => {
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.length === notifications.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(notifications.map((n) => n.notificationId));
-    }
+    setSelectedIds(
+      selectedIds.length === notifications.length
+        ? []
+        : notifications.map((n) => n.notificationId)
+    );
   };
 
   const handleCloseSnackbar = () => {
@@ -196,196 +188,445 @@ const NotificationPage = () => {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <Box className="notification-modern-container">
-      <Box className="notification-modern-header">
-        <Typography variant="h4" color="#F47C54" fontWeight={800}>
-          Notifications
-        </Typography>
-        <Box className="notification-modern-controls">
-          <TextField
-            placeholder="Search..."
-            size="small"
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ minWidth: 200 }}
-          />
-          <Select
-            value={sortBy}
-            onChange={(e) => {
-              setSortBy(e.target.value);
-              setPage(1);
-            }}
-            size="small"
-            sx={{ minWidth: 120 }}
+    <Box
+      className={styles["notification-page-container"]}
+      sx={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%)",
+        py: 4,
+      }}
+    >
+      <Container maxWidth="lg">
+        {/* Header Section */}
+        <Box sx={{ textAlign: "center", mb: 6, pt: "100px" }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="center"
+            spacing={2}
+            sx={{ mb: 2 }}
           >
-            <MenuItem value="createdAt">Newest</MenuItem>
-            <MenuItem value="notificationType">Type</MenuItem>
-            <MenuItem value="message">Message</MenuItem>
-          </Select>
-          <IconButton
-            onClick={() => {
-              setSortDescending((d) => !d);
-              setPage(1);
-            }}
-            sx={{
-              width: "55px",
-              bgcolor: "#f7f7f7",
-              "&:hover": { bgcolor: "#e0e0e0" },
-            }}
-          >
-            {sortDescending ? "↓" : "↑"}
-          </IconButton>
-        </Box>
-      </Box>
-      <Box className="notification-modern-actions">
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={
-                selectedIds.length === notifications.length &&
-                notifications.length > 0
-              }
-              onChange={handleSelectAll}
-              color="primary"
+            <NotificationsIcon
+              sx={{ fontSize: 40, color: "var(--secondary-color)" }}
             />
-          }
-          label="Select All"
-        />
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => handleMarkSelected(true)}
-          disabled={selectedIds.length === 0}
-          sx={{ mr: 1 }}
-        >
-          Mark Selected as Read
-        </Button>
-        <Button
-          variant="outlined"
-          color="primary"
-          onClick={() => handleMarkSelected(false)}
-          disabled={selectedIds.length === 0}
-          sx={{ mr: 1 }}
-        >
-          Mark Selected as Unread
-        </Button>
-        <Button
-          variant="contained"
-          color="success"
-          onClick={() => handleMarkAll(true)}
-          disabled={notifications.length === 0}
-        >
-          Mark All as Read
-        </Button>
-        <Button
-          variant="contained"
-          color="info"
-          onClick={() => handleMarkAll(false)}
-          disabled={notifications.length === 0}
-          sx={{ ml: 1 }}
-        >
-          Mark All as Unread
-        </Button>
-      </Box>
-      {loading ? (
-        <Box className="notification-modern-loading">
-          <CircularProgress />
-        </Box>
-      ) : notifications.length === 0 ? (
-        <Typography className="notification-modern-empty" color="#888">
-          No notifications found.
-        </Typography>
-      ) : (
-        <Box className="notification-modern-list">
-          {notifications.map((n) => (
-            <Box
-              key={n.notificationId}
-              className={`notification-modern-card ${
-                n.isRead ? "read" : "unread"
-              }`}
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                background:
+                  "linear-gradient(45deg, var(--secondary-color), var(--primary-color))",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
             >
-              <Checkbox
-                checked={selectedIds.includes(n.notificationId)}
-                onChange={() => handleSelectNotification(n.notificationId)}
-                color="primary"
-              />
-              <Box className="notification-modern-avatar">
-                <img src={n.userAvatar} alt="avatar" />
-              </Box>
-              <Box className="notification-modern-content">
-                <Typography
-                  className="notification-modern-type"
-                  variant="subtitle1"
-                >
-                  {n.notificationType}
-                </Typography>
-                <Typography
-                  className="notification-modern-date"
-                  variant="caption"
-                >
-                  {new Date(n.createdAt).toLocaleString()}
-                </Typography>
-                <Typography
-                  className="notification-modern-message"
-                  dangerouslySetInnerHTML={{ __html: n.message }}
-                />
-              </Box>
-              <IconButton
-                className="notification-modern-action"
-                title={n.isRead ? "Mark as unread" : "Mark as read"}
-                onClick={() => handleMarkRead(n.notificationId, n.isRead)}
-                sx={{ color: "#F47C54" }}
-              >
-                {n.isRead ? <RadioButtonUnchecked /> : <CheckCircle />}
-              </IconButton>
-            </Box>
-          ))}
+              Notifications
+            </Typography>
+          </Stack>
+          <Typography
+            variant="h6"
+            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+          >
+            Stay updated with your latest notifications
+          </Typography>
         </Box>
-      )}
-      <Box className="notification-modern-pagination">
-        <Select
-          value={pageSize}
-          onChange={(e) => {
-            setPageSize(Number(e.target.value));
-            setPage(1);
-          }}
-          size="small"
-        >
-          <MenuItem value={10}>10 per page</MenuItem>
-          <MenuItem value={20}>20 per page</MenuItem>
-          <MenuItem value={50}>50 per page</MenuItem>
-        </Select>
-        <Pagination
-          count={totalPages}
-          page={page}
-          onChange={(e, value) => setPage(value)}
-          color="primary"
-          sx={{ mx: 2 }}
-        />
-      </Box>
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
+
+        {/* Filter Section */}
+        <Box className={styles["notification-page-controls"]} sx={{ mb: 4 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            sx={{
+              p: 2,
+              bgcolor: "var(--background-white)",
+              boxShadow: "0 2px 10px var(--shadow-color)",
+              borderRadius: 2,
+            }}
+          >
+            <TextField
+              placeholder="Search notifications..."
+              size="small"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "var(--accent-info)" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                minWidth: 200,
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            />
+            <Select
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setPage(1);
+              }}
+              size="small"
+              sx={{
+                minWidth: 120,
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            >
+              <MenuItem value="createdAt">Newest</MenuItem>
+              <MenuItem value="notificationType">Type</MenuItem>
+              <MenuItem value="message">Message</MenuItem>
+            </Select>
+            <IconButton
+              onClick={() => {
+                setSortDescending((d) => !d);
+                setPage(1);
+              }}
+              sx={{
+                width: 55,
+                bgcolor: "var(--background-light)",
+                color: "var(--accent-info)",
+                "&:hover": { bgcolor: "var(--background-white)" },
+              }}
+            >
+              {sortDescending ? "↓" : "↑"}
+            </IconButton>
+          </Stack>
+        </Box>
+
+        {/* Actions Section */}
+        <Box className={styles["notification-page-actions"]} sx={{ mb: 4 }}>
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={2}
+            sx={{
+              p: 2,
+              bgcolor: "var(--background-white)",
+              boxShadow: "0 2px 10px var(--shadow-color)",
+              borderRadius: 2,
+            }}
+          >
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={
+                    selectedIds.length === notifications.length &&
+                    notifications.length > 0
+                  }
+                  onChange={handleSelectAll}
+                  sx={{ color: "var(--accent-info)" }}
+                />
+              }
+              label="Select All"
+              sx={{ color: "var(--text-primary)" }}
+            />
+            <Button
+              variant="outlined"
+              onClick={() => handleMarkSelected(true)}
+              disabled={selectedIds.length === 0}
+              sx={{
+                fontWeight: "bold",
+                borderRadius: 1,
+                borderWidth: 2,
+                color: "var(--accent-info)",
+                borderColor: "var(--accent-info)",
+                "&:hover": {
+                  borderWidth: 2,
+                  bgcolor: "var(--background-light)",
+                },
+              }}
+            >
+              Mark Selected as Read
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => handleMarkSelected(false)}
+              disabled={selectedIds.length === 0}
+              sx={{
+                fontWeight: "bold",
+                borderRadius: 1,
+                borderWidth: 2,
+                color: "var(--accent-info)",
+                borderColor: "var(--accent-info)",
+                "&:hover": {
+                  borderWidth: 2,
+                  bgcolor: "var(--background-light)",
+                },
+              }}
+            >
+              Mark Selected as Unread
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handleMarkAll(true)}
+              disabled={notifications.length === 0}
+              sx={{
+                fontWeight: "bold",
+                bgcolor: "var(--accent-success)",
+                color: "var(--text-white)",
+                "&:hover": { bgcolor: "var(--primary-hover)" },
+                borderRadius: 1,
+              }}
+            >
+              Mark All as Read
+            </Button>
+            <Button
+              variant="contained"
+              onClick={() => handleMarkAll(false)}
+              disabled={notifications.length === 0}
+              sx={{
+                fontWeight: "bold",
+                bgcolor: "var(--accent-info)",
+                color: "var(--text-white)",
+                "&:hover": { bgcolor: "var(--primary-hover)" },
+                borderRadius: 1,
+              }}
+            >
+              Mark All as Unread
+            </Button>
+          </Stack>
+        </Box>
+
+        {/* Notifications List */}
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+            <CircularProgress sx={{ color: "var(--accent-info)" }} />
+          </Box>
+        ) : notifications.length === 0 ? (
+          <Box
+            sx={{
+              p: 8,
+              textAlign: "center",
+              borderRadius: 4,
+              bgcolor: "var(--background-white)",
+              boxShadow: "0 4px 12px var(--shadow-color)",
+            }}
+          >
+            <NotificationsIcon
+              sx={{ fontSize: 80, color: "var(--text-secondary)", mb: 2 }}
+            />
+            <Typography
+              variant="h5"
+              sx={{ mb: 1, color: "var(--text-secondary)" }}
+            >
+              No notifications found
+            </Typography>
+            <Typography variant="body1" sx={{ color: "var(--text-secondary)" }}>
+              Try adjusting your search or check back later
+            </Typography>
+          </Box>
+        ) : (
+          <Box className={styles["notification-page-list"]}>
+            {notifications.map((notification) => (
+              <Box
+                key={notification.notificationId}
+                className={`notification-page-card ${
+                  notification.isRead ? "read" : "unread"
+                }`}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  p: 2,
+                  mb: 2,
+                  bgcolor: notification.isRead
+                    ? "var(--background-white)"
+                    : "var(--background-light)",
+                  borderRadius: 2,
+                  boxShadow: "0 2px 8px var(--shadow-color)",
+                  borderLeft: notification.isRead
+                    ? "none"
+                    : `4px solid var(--accent-info)`,
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 4px 12px var(--shadow-hover)",
+                  },
+                }}
+              >
+                <Checkbox
+                  checked={selectedIds.includes(notification.notificationId)}
+                  onChange={() =>
+                    handleSelectNotification(notification.notificationId)
+                  }
+                  sx={{ color: "var(--accent-info)" }}
+                />
+                <Box
+                  className={styles["notification-page-avatar"]}
+                  sx={{ mr: 2 }}
+                >
+                  <Avatar
+                    src={notification.userAvatar || "/placeholder-avatar.jpg"}
+                    alt="User Avatar"
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      bgcolor: "var(--accent-info)",
+                    }}
+                  />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    className={styles["notification-page-type"]}
+                    variant="subtitle1"
+                    sx={{ fontWeight: "bold", color: "var(--text-primary)" }}
+                  >
+                    {notification.notificationType}
+                  </Typography>
+                  <Typography
+                    className={styles["notification-page-date"]}
+                    variant="caption"
+                    sx={{ color: "var(--text-secondary)", mb: 1 }}
+                  >
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </Typography>
+                  <Typography
+                    className={styles["notification-page-message"]}
+                    sx={{ color: "var(--text-primary)" }}
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(notification.message),
+                    }}
+                  />
+                </Box>
+                <IconButton
+                  className={styles["notification-page-action"]}
+                  title={
+                    notification.isRead ? "Mark as unread" : "Mark as read"
+                  }
+                  onClick={() =>
+                    handleMarkRead(
+                      notification.notificationId,
+                      notification.isRead
+                    )
+                  }
+                  sx={{
+                    color: notification.isRead
+                      ? "var(--accent-info)"
+                      : "var(--accent-success)",
+                  }}
+                >
+                  {notification.isRead ? (
+                    <RadioButtonUnchecked />
+                  ) : (
+                    <CheckCircle />
+                  )}
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <Box
+            className={styles["notification-page-pagination"]}
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: 2,
+              mt: 3,
+              mb: 2,
+            }}
+          >
+            <Select
+              value={pageSize}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value));
+                setPage(1);
+              }}
+              size="small"
+              sx={{
+                minWidth: 120,
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            >
+              <MenuItem value={10}>10 per page</MenuItem>
+              <MenuItem value={20}>20 per page</MenuItem>
+              <MenuItem value={50}>50 per page</MenuItem>
+            </Select>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(e, value) => setPage(value)}
+              color="primary"
+              sx={{
+                "& .MuiPaginationItem-root": {
+                  borderRadius: 20,
+                  fontWeight: 600,
+                  color: "var(--accent-info)",
+                  "&:hover": {
+                    bgcolor: "var(--background-light)",
+                    boxShadow: "0 0 0 2px rgba(25, 118, 210, 0.1)",
+                  },
+                  "&.Mui-selected": {
+                    bgcolor: "var(--accent-info)",
+                    color: "var(--text-white)",
+                    "&:hover": { bgcolor: "var(--primary-hover)" },
+                  },
+                  "&.MuiPaginationItem-ellipsis": {
+                    color: "var(--text-secondary)",
+                  },
+                },
+              }}
+            />
+            <Typography variant="body2" sx={{ color: "var(--text-secondary)" }}>
+              Showing {(page - 1) * pageSize + 1} to{" "}
+              {Math.min(page * pageSize, totalCount)} of {totalCount}{" "}
+              notifications
+            </Typography>
+          </Box>
+        )}
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
           onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-          elevation={6}
-          variant="filled"
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            sx={{
+              width: "100%",
+              bgcolor:
+                snackbar.severity === "success"
+                  ? "var(--accent-success)"
+                  : snackbar.severity === "error"
+                  ? "var(--accent-error)"
+                  : snackbar.severity === "info"
+                  ? "var(--accent-info)"
+                  : "#ff9800", // Warning color
+              color: "var(--text-white)",
+              elevation: 6,
+              variant: "filled",
+            }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
+      </Container>
     </Box>
   );
 };

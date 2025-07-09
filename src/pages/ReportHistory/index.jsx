@@ -1,434 +1,561 @@
-import React, { useEffect, useState } from "react";
-import "./index.css";
+import { useEffect, useState, useCallback } from "react";
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  Chip,
-  Avatar,
-  CircularProgress,
-  TextField,
-  Button,
-  Pagination,
-  Stack,
-  Tooltip,
-  IconButton,
-} from "@mui/material";
-import ReportIcon from "@mui/icons-material/Flag";
+  Eye,
+  SearchNormal1,
+  Filter,
+  CloseCircle,
+  Warning2,
+  DocumentText,
+  Calendar,
+  ArrowRight2,
+  ArrowLeft2,
+  Flag,
+} from "iconsax-react";
 import apiPostReportService from "services/apiPostReportService";
-import Skeleton from "@mui/material/Skeleton";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
+import "./MyReportHistory.css";
+import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
 
-const statusColors = {
-  pending: "warning",
-  approved: "success",
-  rejected: "error",
-  handled: "info",
-};
+const statusOptions = [
+  { value: "all", label: "All Statuses" },
+  { value: "pending", label: "Pending" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+  { value: "handled", label: "Handled" },
+];
+
+const pageSizeOptions = [5, 10, 20, 50];
 
 const MyReportHistory = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
 
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
         PageNumber: pageNumber,
         PageSize: pageSize,
         ValidPageSize: 10,
-        SearchTerm: search,
+        SearchTerm: search.trim(),
         Status: status === "all" ? "" : status,
       };
       const res = await apiPostReportService.getMyReports(params);
-      setReports(res.data?.reports || []);
-      setTotalPages(res.data?.totalPages || 1);
-      setTotalCount(res.data?.totalCount || 0);
+      if (res.data) {
+        setReports(res.data.reports || []);
+        setTotalPages(res.data.totalPages || 1);
+        setTotalCount(res.data.totalCount || 0);
+      } else {
+        setReports([]);
+        setTotalPages(1);
+        setTotalCount(0);
+      }
     } catch (e) {
+      showErrorFetchAPI(e);
       setReports([]);
+      setTotalPages(1);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }
-  };
+  }, [search, status, pageNumber, pageSize]);
 
   useEffect(() => {
     fetchReports();
-  }, [pageNumber, pageSize, status]);
+  }, [fetchReports]);
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPageNumber(1);
+  };
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+    setPageNumber(1);
+  };
+
+  const handlePageSizeChange = (e) => {
+    setPageSize(Number.parseInt(e.target.value, 10));
+    setPageNumber(1);
+  };
+
+  const handlePageChange = (newPage) => {
+    setPageNumber(Math.max(1, Math.min(newPage, totalPages)));
+  };
+
+  const handleViewDetails = (report) => {
+    setSelectedReport(report);
+    setDetailDialogOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const handleCloseDialog = () => {
+    setDetailDialogOpen(false);
+    setSelectedReport(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setStatus("all");
+    setPageNumber(1);
+  };
+
+  const handleCloseError = () => {
+    setShowError(false);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "N/A";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "var(--accent-warning)";
+      case "approved":
+        return "var(--accent-success)";
+      case "rejected":
+        return "var(--accent-error)";
+      case "handled":
+        return "var(--accent-info)";
+      default:
+        return "var(--text-light)";
+    }
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, pageNumber - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (pageNumber > 1) {
+      pages.push(
+        <button
+          key="prev"
+          className="report-pagination-btn"
+          onClick={() => handlePageChange(pageNumber - 1)}
+        >
+          <ArrowLeft2 size="16" />
+        </button>
+      );
+    }
+
+    // First page
+    if (startPage > 1) {
+      pages.push(
+        <button
+          key={1}
+          className="report-pagination-btn"
+          onClick={() => handlePageChange(1)}
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        pages.push(
+          <span key="dots1" className="report-pagination-dots">
+            ...
+          </span>
+        );
+      }
+    }
+
+    // Visible pages
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          className={`report-pagination-btn ${
+            i === pageNumber ? "active" : ""
+          }`}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    // Last page
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(
+          <span key="dots2" className="report-pagination-dots">
+            ...
+          </span>
+        );
+      }
+      pages.push(
+        <button
+          key={totalPages}
+          className="report-pagination-btn"
+          onClick={() => handlePageChange(totalPages)}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    // Next button
+    if (pageNumber < totalPages) {
+      pages.push(
+        <button
+          key="next"
+          className="report-pagination-btn"
+          onClick={() => handlePageChange(pageNumber + 1)}
+        >
+          <ArrowRight2 size="16" />
+        </button>
+      );
+    }
+
+    return <div className="report-pagination-container">{pages}</div>;
+  };
+
+  const renderSkeletonCard = (index) => (
+    <div key={index} className="report-card report-skeleton-card">
+      <div className="report-avatar report-skeleton report-skeleton-avatar"></div>
+      <div className="report-content">
+        <div className="report-skeleton report-skeleton-title"></div>
+        <div className="report-skeleton report-skeleton-description"></div>
+        <div className="report-skeleton report-skeleton-description short"></div>
+        <div className="report-meta">
+          <div className="report-skeleton report-skeleton-chip"></div>
+          <div className="report-skeleton report-skeleton-date"></div>
+        </div>
+      </div>
+      <div className="report-actions">
+        <div className="report-skeleton report-skeleton-action-btn"></div>
+      </div>
+    </div>
+  );
+
+  if (loading && reports.length === 0) {
+    return (
+      <div className="report-history-container">
+        <div className="report-container">
+          <div className="report-header-section">
+            <div className="report-skeleton report-skeleton-header-title"></div>
+            <div className="report-skeleton report-skeleton-header-desc"></div>
+          </div>
+          <div className="report-filter-section">
+            <div className="report-filter-grid">
+              {[...Array(6)].map((_, index) => (
+                <div
+                  key={index}
+                  className="report-skeleton report-skeleton-filter"
+                ></div>
+              ))}
+            </div>
+          </div>
+          <div className="report-list">
+            {[...Array(5)].map((_, i) => renderSkeletonCard(i))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Box
-      className="report-history-container"
-      sx={{
-        bgcolor: "linear-gradient(135deg, #fff 0%, #f9fafb 100%)",
-        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-      }}
-    >
-      <Typography
-        className="report-history-title"
-        sx={{
-          fontSize: { xs: "1.8rem", sm: "2.2rem" },
-          color: "#d32f2f",
-          fontWeight: 800,
-          mb: 3,
-          pl: 2,
-        }}
-      >
-        <ReportIcon sx={{ fontSize: 40, verticalAlign: "middle", mr: 1 }} />
-        My Report History
-      </Typography>
-      <Box className="report-history-filters">
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={2}
-          sx={{
-            p: 2,
-            bgcolor: "#fff",
-            boxShadow: "0 2px 10px rgba(211, 47, 47, 0.06)",
-          }}
-        >
-          <TextField
-            label="Search Reason/Details"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            size="small"
-            sx={{
-              minWidth: 220,
-              "& .MuiOutlinedInput-root": {
-                bgcolor: "#f9fafb",
-                borderRadius: 2,
-              },
-            }}
-          />
-          <TextField
-            select
-            label="Status"
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            size="small"
-            SelectProps={{ native: true }}
-            sx={{
-              minWidth: 140,
-              "& .MuiOutlinedInput-root": {
-                bgcolor: "#f9fafb",
-                borderRadius: 2,
-              },
-            }}
-          >
-            <option value="all">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </TextField>
-          <TextField
-            select
-            label="Reports per Page"
-            value={pageSize}
-            onChange={(e) => setPageSize(Number(e.target.value))}
-            size="small"
-            SelectProps={{ native: true }}
-            sx={{
-              minWidth: 120,
-              "& .MuiOutlinedInput-root": {
-                bgcolor: "#f9fafb",
-                borderRadius: 2,
-              },
-            }}
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-          </TextField>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              setPageNumber(1);
-              fetchReports();
-            }}
-            sx={{
-              fontWeight: 700,
-              px: 3,
-              boxShadow: "0 2px 6px rgba(211, 47, 47, 0.2)",
-              "&:hover": { bgcolor: "#b71c1c" },
-              borderRadius: 2,
-            }}
-          >
-            Search
-          </Button>
-        </Stack>
-      </Box>
-      {loading ? (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3, py: 6 }}>
-          {[...Array(pageSize > 5 ? 5 : pageSize)].map((_, i) => (
-            <Card
-              key={i}
-              className="report-history-card"
-              sx={{ bgcolor: "#fff" }}
-            >
-              <CardContent sx={{ p: 2 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  alignItems="flex-start"
+    <div className="report-history-container">
+      <div className="report-container">
+        {/* Header Section */}
+        <div className="report-header-section">
+          <div className="report-header-content">
+            <div className="report-header-icon">
+              <Flag size="40" color="var(--secondary-color)" variant="Bold" />
+            </div>
+            <h1 className="report-header-title">My Report History</h1>
+          </div>
+          <p className="report-header-description">
+            View and manage your submitted report history
+          </p>
+        </div>
+
+        {/* Filter Section */}
+        <div className="report-filter-section">
+          <div className="report-filter-header">
+            <div className="report-filter-title">
+              <Filter size="20" color="var(--accent-info)" variant="Bold" />
+              <span>Search & Filter</span>
+            </div>
+            <div className="report-filter-actions">
+              <button
+                className="report-mobile-filter-toggle"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                {showFilters ? "Hide" : "Show"} Filters
+              </button>
+            </div>
+          </div>
+          <div className={`report-filter-content ${showFilters ? "show" : ""}`}>
+            <div className="report-filter-grid">
+              <div className="report-search-input-container">
+                <div className="report-search-icon">
+                  <SearchNormal1 size="20" color="var(--accent-info)" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search reason/details..."
+                  value={search}
+                  onChange={handleSearchChange}
+                  className="report-search-input"
+                />
+              </div>
+              <div className="report-select-container">
+                <label>Status</label>
+                <select
+                  value={status}
+                  onChange={handleStatusChange}
+                  className="report-filter-select"
                 >
-                  <Skeleton
-                    variant="circular"
-                    width={56}
-                    height={56}
-                    sx={{ mr: 2 }}
-                  />
-                  <Box sx={{ flex: 1 }}>
-                    <Skeleton
-                      variant="text"
-                      width="40%"
-                      height={28}
-                      sx={{ mb: 1 }}
-                    />
-                    <Skeleton
-                      variant="text"
-                      width="80%"
-                      height={20}
-                      sx={{ mb: 1 }}
-                    />
-                    <Skeleton
-                      variant="rectangular"
-                      width="30%"
-                      height={28}
-                      sx={{ mb: 1, borderRadius: 2 }}
-                    />
-                    <Skeleton variant="text" width="60%" height={16} />
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
-        </Box>
-      ) : reports.length === 0 ? (
-        <Typography className="report-history-empty">
-          No reports found.
-        </Typography>
-      ) : (
-        <Box>
-          {reports.map((r) => (
-            <Card
-              key={r.reportId}
-              className="report-history-card"
-              sx={{ bgcolor: "linear-gradient(135deg, #fff 0%, #ffebee 100%)" }}
-            >
-              <CardContent sx={{ p: 2 }}>
-                <Stack
-                  direction={{ xs: "column", sm: "row" }}
-                  spacing={2}
-                  alignItems="flex-start"
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="report-select-container">
+                <label>Per Page</label>
+                <select
+                  value={pageSize}
+                  onChange={handlePageSizeChange}
+                  className="report-filter-select"
                 >
-                  <Avatar
-                    className="report-history-avatar"
-                    sx={{ bgcolor: "#d32f2f", width: 56, height: 56 }}
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button className="report-search-btn" onClick={fetchReports}>
+                Search
+              </button>
+              <button
+                className="report-clear-filters-btn"
+                onClick={handleClearFilters}
+              >
+                <CloseCircle size="16" color="#1976d2" />
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        {!error && (
+          <div className="report-results-summary">
+            Found <strong>{totalCount}</strong> report
+            {totalCount !== 1 ? "s" : ""}
+            {status !== "all" && ` with status "${status}"`}
+            {search && ` matching "${search}"`}
+          </div>
+        )}
+
+        {/* Reports List */}
+        {reports.length === 0 && !loading ? (
+          <div className="report-empty-state">
+            <div className="report-empty-icon">
+              <Flag size="80" color="var(--text-secondary)" />
+            </div>
+            <h3 className="report-empty-title">No reports found</h3>
+            <p className="report-empty-description">
+              Try adjusting your search criteria or submit a new report
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="report-list">
+              {loading
+                ? [...Array(pageSize > 5 ? 5 : pageSize)].map((_, i) =>
+                    renderSkeletonCard(i)
+                  )
+                : reports.map((report, index) => (
+                    <div key={report.reportId} className="report-card">
+                      <div className="report-avatar">
+                        <Flag size="24" color="white" variant="Bold" />
+                      </div>
+                      <div className="report-content">
+                        <div className="report-number">
+                          #{(pageNumber - 1) * pageSize + index + 1}
+                        </div>
+                        <h3 className="report-reason" title={report.reasonText}>
+                          {report.reasonText || "No reason provided"}
+                        </h3>
+                        <div className="report-details">
+                          {report.details ? (
+                            <span>{report.details}</span>
+                          ) : (
+                            <em>No details provided.</em>
+                          )}
+                        </div>
+                        <div className="report-ids">
+                          Report ID: #{report.reportId} | Post ID: #
+                          {report.postId}
+                        </div>
+                        <div className="report-meta">
+                          <span
+                            className="report-status-chip"
+                            style={{
+                              backgroundColor: getStatusColor(report.status),
+                            }}
+                            onClick={() => {
+                              setStatus(report.status);
+                              setPageNumber(1);
+                            }}
+                          >
+                            {report.status
+                              ? report.status.charAt(0).toUpperCase() +
+                                report.status.slice(1)
+                              : "N/A"}
+                          </span>
+                          <span
+                            className="report-date"
+                            title={formatDate(report.createdAt)}
+                          >
+                            <Calendar size="14" />
+                            {formatDate(report.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="report-actions">
+                        <button
+                          className="report-action-btn report-view-btn"
+                          onClick={() => handleViewDetails(report)}
+                          title="View Details"
+                        >
+                          <Eye size="16" color="#FFF" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="report-pagination-section">
+              <div className="report-page-size-selector">
+                <label>Items per page:</label>
+                <select value={pageSize} onChange={handlePageSizeChange}>
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {renderPagination()}
+              <div className="report-pagination-info">
+                Showing {(pageNumber - 1) * pageSize + 1} to{" "}
+                {Math.min(pageNumber * pageSize, totalCount)} of {totalCount}{" "}
+                reports
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Details Modal */}
+      {detailDialogOpen && selectedReport && (
+        <div className="report-modal-overlay" onClick={handleCloseDialog}>
+          <div
+            className="report-modal-container report-details-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="report-modal-header">
+              <div className="report-modal-header-content">
+                <DocumentText size="24" color="white" variant="Bold" />
+                <h2>Report Details</h2>
+              </div>
+              <button
+                className="report-modal-close-btn"
+                onClick={handleCloseDialog}
+              >
+                <CloseCircle size="24" color="white" />
+              </button>
+            </div>
+            <div className="report-modal-content">
+              <div className="report-details-grid">
+                <div className="report-detail-item">
+                  <label>Report ID</label>
+                  <span>#{selectedReport.reportId}</span>
+                </div>
+                <div className="report-detail-item">
+                  <label>Post ID</label>
+                  <span>#{selectedReport.postId}</span>
+                </div>
+                <div className="report-detail-item report-full-width">
+                  <label>Reason</label>
+                  <span>
+                    {selectedReport.reasonText || "No reason provided"}
+                  </span>
+                </div>
+                <div className="report-detail-item report-full-width">
+                  <label>Details</label>
+                  <span>{selectedReport.details || "No details provided"}</span>
+                </div>
+                <div className="report-detail-item report-full-width">
+                  <label>Note</label>
+                  <span>{selectedReport.note || "No note provided"}</span>
+                </div>
+                <div className="report-detail-item">
+                  <label>Status</label>
+                  <span
+                    className="report-status-chip"
+                    style={{
+                      backgroundColor: getStatusColor(selectedReport.status),
+                    }}
                   >
-                    <ReportIcon sx={{ fontSize: 30 }} />
-                  </Avatar>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography
-                      variant="subtitle1"
-                      fontWeight={700}
-                      color="#d32f2f"
-                      sx={{ mb: 1 }}
-                    >
-                      {r.reasonText}
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-                      <Typography
-                        variant="body2"
-                        color="#374151"
-                        sx={{
-                          mb: 0,
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          flex: 1,
-                          pr: 1,
-                        }}
-                      >
-                        {r.details || <i>No details provided.</i>}
-                      </Typography>
-                      <Tooltip title="View full details of this report">
-                        <IconButton
-                          size="small"
-                          aria-label="View details"
-                          onClick={() => {
-                            setSelectedReport(r);
-                            setDetailDialogOpen(true);
-                          }}
-                          sx={{ ml: 1 }}
-                        >
-                          <VisibilityIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                    <Box className="report-history-meta">
-                      <Chip
-                        className="report-history-status-chip"
-                        label={
-                          r.status.charAt(0).toUpperCase() + r.status.slice(1)
-                        }
-                        color={statusColors[r.status] || "default"}
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setStatus(r.status);
-                          setPageNumber(1);
-                        }}
-                      />
-                      <Tooltip
-                        title={
-                          r.createdAt
-                            ? new Date(r.createdAt).toLocaleString()
-                            : ""
-                        }
-                      >
-                        <Typography
-                          variant="caption"
-                          color="#6b7280"
-                          sx={{ ml: 1 }}
-                        >
-                          {r.createdAt
-                            ? new Date(r.createdAt).toLocaleString()
-                            : ""}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                    <Typography
-                      className="report-history-id"
-                      sx={{ mt: 1, color: "#9e9e9e" }}
-                    >
-                      Report ID: #{r.reportId} | Post ID: #{r.postId}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          ))}
-          {totalPages > 1 && (
-            <Box
-              sx={{ display: "flex", justifyContent: "center", mt: 3, mb: 2 }}
-            >
-              <Pagination
-                count={totalPages}
-                page={pageNumber}
-                onChange={(e, value) =>
-                  setPageNumber(Math.max(1, Math.min(value, totalPages)))
-                }
-                color="error"
-                variant="outlined"
-                shape="rounded"
-                sx={{
-                  "& .MuiPaginationItem-root": {
-                    borderRadius: 20,
-                    fontWeight: 600,
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      bgcolor: "#ffebee",
-                      boxShadow: "0 0 0 2px rgba(211, 47, 47, 0.1)",
-                    },
-                  },
-                  "& .Mui-selected": {
-                    bgcolor: "#d32f2f",
-                    color: "#fff",
-                    "&:hover": { bgcolor: "#b71c1c" },
-                  },
-                  "& .MuiPaginationItem-ellipsis": { color: "#9e9e9e" },
-                }}
-              />
-            </Box>
-          )}
-        </Box>
+                    {selectedReport.status
+                      ? selectedReport.status.charAt(0).toUpperCase() +
+                        selectedReport.status.slice(1)
+                      : "N/A"}
+                  </span>
+                </div>
+                <div className="report-detail-item">
+                  <label>Created At</label>
+                  <span>{formatDate(selectedReport.createdAt)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="report-modal-footer">
+              <button className="report-cancel-btn" onClick={handleCloseDialog}>
+                <CloseCircle size="18" color="#dc3545" />
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
       )}
-      {selectedReport && (
-        <Dialog
-          open={detailDialogOpen}
-          onClose={() => setDetailDialogOpen(false)}
-          fullWidth
-        >
-          <DialogTitle sx={{ fontWeight: 700, color: "#d32f2f" }}>
-            Report Details
-          </DialogTitle>
-          <DialogContent dividers sx={{ bgcolor: "#f9fafb" }}>
-            <TextField
-              label="Reason"
-              value={selectedReport.reasonText}
-              fullWidth
-              margin="dense"
-              InputProps={{ readOnly: true }}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Details"
-              value={selectedReport.details || ""}
-              fullWidth
-              margin="dense"
-              multiline
-              minRows={2}
-              maxRows={6}
-              InputProps={{ readOnly: true }}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Note"
-              value={selectedReport.note || ""}
-              fullWidth
-              margin="dense"
-              InputProps={{ readOnly: true }}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Status"
-              value={selectedReport.status}
-              fullWidth
-              margin="dense"
-              InputProps={{ readOnly: true }}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              label="Created At"
-              value={
-                selectedReport.createdAt
-                  ? new Date(selectedReport.createdAt).toLocaleString()
-                  : ""
-              }
-              fullWidth
-              margin="dense"
-              InputProps={{ readOnly: true }}
-              sx={{ mb: 2 }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button
-              onClick={() => setDetailDialogOpen(false)}
-              color="error"
-              variant="contained"
-            >
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
-    </Box>
+    </div>
   );
 };
 

@@ -215,8 +215,8 @@ const Navbar = () => {
       <div className="container">
         <NavLink className="navbar-brand" to="/" aria-label="home">
           <img
-            src="https://cdn.prod.website-files.com/675931be48143bd8073dddc4/676aa997883349b07ec15e80_header-logo.svg"
-            alt="Nutrizen Logo"
+            src="https://3docorp.id.vn/images/users/13/3docorp_hms_20250627160032_685e5db0b07e7.png"
+            alt="3DO Logo"
             loading="lazy"
           />
         </NavLink>
@@ -305,7 +305,7 @@ const Navbar = () => {
               </button>
             </div>
             {/* Hamburger toggle chỉ hiện khi menu đóng */}
-            {!menuOpen && (
+            {menuOpen == false && (
               <button
                 className="navbar-toggler mobile"
                 type="button"
@@ -324,7 +324,7 @@ const Navbar = () => {
                 onClick={() => setMenuOpen(true)}
               >
                 <span
-                  className="navbar-toggler-icon p-0 m-0"
+                  className="navbar-toggler-icon-custom p-0 m-0"
                   style={{ boxShadow: "none", border: "none" }}
                 >
                   {/* Hamburger icon */}
@@ -361,7 +361,7 @@ const Navbar = () => {
               </button>
             )}
             {/* X icon chỉ hiện khi menu mở */}
-            {menuOpen && (
+            {menuOpen == true && (
               <button
                 className="navbar-toggler mobile"
                 type="button"
@@ -380,7 +380,7 @@ const Navbar = () => {
                 onClick={() => setMenuOpen(false)}
               >
                 <span
-                  className="navbar-toggler-icon p-0 m-0"
+                  className="navbar-toggler-icon-custom p-0 m-0"
                   style={{ boxShadow: "none", border: "none" }}
                 >
                   {/* X icon */}
@@ -432,10 +432,10 @@ const Navbar = () => {
             onClick={() => setMenuOpen((open) => !open)}
           >
             <span
-              className="navbar-toggler-icon p-0 m-0"
+              className="navbar-toggler-icon-custom p-0 m-0"
               style={{ boxShadow: "none", border: "none" }}
             >
-              {menuOpen ? (
+              {menuOpen == true ? (
                 // X icon
                 <svg
                   width="30"
@@ -539,14 +539,26 @@ const Navbar = () => {
             </li>
             <li className="nav-item">
               <NavLink
-                to="/blog"
+                to="/foods"
                 className={({ isActive }) =>
                   isActive ? "nav-link active" : "nav-link"
                 }
               >
-                Blog
+                Foods
               </NavLink>
             </li>
+            {user && (
+              <li className="nav-item">
+                <NavLink
+                  to="/my-groups/view"
+                  className={({ isActive }) =>
+                    isActive ? "nav-link active" : "nav-link"
+                  }
+                >
+                  My group
+                </NavLink>
+              </li>
+            )}
           </ul>
 
           {/* Auth Buttons hoặc Avatar */}
@@ -901,40 +913,6 @@ const Navbar = () => {
                           borderTopRightRadius: 16,
                         }}
                       >
-                        {userProfile?.avatar ? (
-                          <img
-                            src={userProfile.avatar}
-                            alt="avatar"
-                            style={{
-                              width: 64,
-                              height: 64,
-                              borderRadius: "50%",
-                              objectFit: "cover",
-                              marginBottom: 8,
-                              border: "2px solid #F47C54",
-                            }}
-                          />
-                        ) : (
-                          <div
-                            style={{
-                              width: 64,
-                              height: 64,
-                              background: "#F47C54",
-                              color: "#fff",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              fontWeight: 700,
-                              fontSize: 32,
-                              borderRadius: "50%",
-                              marginBottom: 8,
-                            }}
-                          >
-                            {userProfile?.fullName
-                              ? userProfile.fullName[0]
-                              : "U"}
-                          </div>
-                        )}
                         <div
                           style={{
                             fontWeight: 700,
@@ -943,19 +921,7 @@ const Navbar = () => {
                             marginBottom: 2,
                           }}
                         >
-                          {userProfile?.fullName || userProfile?.email}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 14,
-                            color: "#888",
-                            marginBottom: 2,
-                          }}
-                        >
-                          {userProfile?.email}
-                        </div>
-                        <div style={{ fontSize: 13, color: "#aaa" }}>
-                          {userProfile?.roles?.join(", ")}
+                          Welcome, {userProfile?.fullName || userProfile?.email}
                         </div>
                       </div>
                       <div style={{ padding: "8px 0" }}>
@@ -977,7 +943,7 @@ const Navbar = () => {
                           View Profile
                         </NavLink>
                         <NavLink
-                          to="/profile/edit"
+                          to="/my-ticket"
                           className="navbar-avatar-item"
                           style={{
                             ...dropdownItemStyle,
@@ -990,10 +956,10 @@ const Navbar = () => {
                           <span style={{ color: "#F47C54" }}>
                             <i className="fa fa-edit" />
                           </span>{" "}
-                          Edit Profile
+                          My ticket
                         </NavLink>
                         <NavLink
-                          to="/profile/change-password"
+                          to="/profile/application-history"
                           className="navbar-avatar-item"
                           style={{
                             ...dropdownItemStyle,
@@ -1006,7 +972,7 @@ const Navbar = () => {
                           <span style={{ color: "#F47C54" }}>
                             <i className="fa fa-key" />
                           </span>{" "}
-                          Change Password
+                          My Applications
                         </NavLink>
                         <NavLink
                           to="/my-posts"
@@ -1056,6 +1022,42 @@ const Navbar = () => {
                           </span>{" "}
                           My Reports
                         </NavLink>
+                        {user?.roles?.includes("Admin") && (
+                          <>
+                            <NavLink
+                              to="/trainer/my-services"
+                              className="navbar-avatar-item"
+                              style={{
+                                ...dropdownItemStyle,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                              }}
+                              onClick={() => setAvatarDropdown(false)}
+                            >
+                              <span style={{ color: "#F47C54" }}>
+                                <i className="fa fa-briefcase" />
+                              </span>{" "}
+                              My Services
+                            </NavLink>
+                            <NavLink
+                              to="/trainer/payout/view"
+                              className="navbar-avatar-item"
+                              style={{
+                                ...dropdownItemStyle,
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                              }}
+                              onClick={() => setAvatarDropdown(false)}
+                            >
+                              <span style={{ color: "#F47C54" }}>
+                                <i className="fa fa-money" />
+                              </span>{" "}
+                              Payout
+                            </NavLink>
+                          </>
+                        )}
                         <button
                           className="navbar-avatar-item"
                           style={{

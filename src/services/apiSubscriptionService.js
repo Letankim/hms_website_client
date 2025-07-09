@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Initialize Axios client with base configuration
 const apiClient = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL,
     headers: {
@@ -7,6 +8,7 @@ const apiClient = axios.create({
     },
 });
 
+// Add request interceptor to include Bearer token
 apiClient.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -15,16 +17,26 @@ apiClient.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
 );
 
+// Subscription service API methods
 const apiSubscriptionService = {
     getMySubscriptions: async (userId,queryParams) => {
         try {
             const response = await apiClient.get(`/Subscription/user/${userId}`,{ params: queryParams });
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch my subscriptions.' };
+            throw error.response?.data || { message: 'Failed to fetch user subscriptions.' };
+        }
+    },
+
+    getSubscriptionsByPackageId: async (packageId,queryParams) => {
+        try {
+            const response = await apiClient.get(`/Subscription/byMyPackageId/${packageId}`,{ params: queryParams });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch subscriptions by package ID.' };
         }
     },
 
@@ -36,13 +48,22 @@ const apiSubscriptionService = {
             throw error.response?.data || { message: 'Failed to fetch subscription.' };
         }
     },
-    
+
     getSubscriptionStatistics: async (queryParams) => {
         try {
             const response = await apiClient.get('/Subscription/statistics',{ params: queryParams });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch subscription statistics.' };
+        }
+    },
+
+    getSubscriptionStatisticsByTrainer: async (queryParams) => {
+        try {
+            const response = await apiClient.get('/Subscription/trainer/me/statistics',{ params: queryParams });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch subscription statistics for trainer.' };
         }
     },
 };

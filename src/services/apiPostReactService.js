@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Initialize Axios client with base configuration
 const apiClient = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL,
     headers: {
@@ -7,6 +8,7 @@ const apiClient = axios.create({
     },
 });
 
+// Add request interceptor to include Bearer token
 apiClient.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -15,16 +17,17 @@ apiClient.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
 );
 
+// Post reaction service API methods
 const apiPostReactService = {
     getAllReactions: async (query = {}) => {
         try {
             const response = await apiClient.get('/PostReaction',{ params: query });
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to fetch reactions.' };
         }
     },
 
@@ -33,7 +36,7 @@ const apiPostReactService = {
             const response = await apiClient.get(`/PostReaction/by-post/${postId}`,{ params: query });
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to fetch reactions for post.' };
         }
     },
 
@@ -42,7 +45,7 @@ const apiPostReactService = {
             const response = await apiClient.get(`/PostReaction/${id}`);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to fetch reaction.' };
         }
     },
 
@@ -51,7 +54,7 @@ const apiPostReactService = {
             const response = await apiClient.post('/PostReaction',reactionData);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to create reaction.' };
         }
     },
 
@@ -60,7 +63,7 @@ const apiPostReactService = {
             const response = await apiClient.put(`/PostReaction/${id}`,reactionData);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to update reaction.' };
         }
     },
 
@@ -69,7 +72,7 @@ const apiPostReactService = {
             const response = await apiClient.delete(`/PostReaction/${id}`);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to delete reaction.' };
         }
     },
 
@@ -78,7 +81,7 @@ const apiPostReactService = {
             const response = await apiClient.get('/PostReaction/statistics',{ params: query });
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to fetch reaction statistics.' };
         }
     },
 
@@ -87,7 +90,7 @@ const apiPostReactService = {
             const response = await apiClient.post('/PostReaction/react',reactionData);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to react to post.' };
         }
     },
 
@@ -96,7 +99,7 @@ const apiPostReactService = {
             const response = await apiClient.delete(`/PostReaction/unreact/${postId}`);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to unreact to post.' };
         }
     },
 };

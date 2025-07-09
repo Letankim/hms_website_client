@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   Box,
+  Container,
   Typography,
   Table,
   TableBody,
@@ -23,12 +24,17 @@ import {
   Button,
   Alert,
   Snackbar,
+  Stack,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
+import {
+  Subscriptions as SubscriptionsIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
 import apiSubscriptionService from "services/apiSubscriptionService";
 import AuthContext from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Stack } from "@mui/system";
+import "./index.css";
+import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
@@ -63,7 +69,6 @@ const MySubscriptionsPage = () => {
       if (!user?.userId) {
         throw new Error("Please login to view your subscriptions.");
       }
-
       const params = {
         pageNumber: page + 1,
         pageSize: rowsPerPage,
@@ -72,7 +77,6 @@ const MySubscriptionsPage = () => {
         startDate: startDate || undefined,
         endDate: endDate || undefined,
       };
-
       const response = await apiSubscriptionService.getMySubscriptions(
         user.userId,
         params
@@ -86,8 +90,7 @@ const MySubscriptionsPage = () => {
     } catch (e) {
       setSubscriptions([]);
       setTotalCount(0);
-      setError(e.message || "An error occurred while fetching subscriptions.");
-      setShowError(true);
+      showErrorFetchAPI(e);
     } finally {
       setLoading(false);
     }
@@ -141,17 +144,29 @@ const MySubscriptionsPage = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status) {
+    switch (status?.toLowerCase()) {
       case "active":
-        return { backgroundColor: "#4caf50", color: "#fff" };
+        return {
+          backgroundColor: "var(--accent-success)",
+          color: "var(--text-white)",
+        };
       case "pending":
-        return { backgroundColor: "#ffca28", color: "#000" };
+        return { backgroundColor: "#ff9800", color: "var(--text-primary)" };
       case "canceled":
-        return { backgroundColor: "#f44336", color: "#fff" };
+        return {
+          backgroundColor: "var(--accent-error)",
+          color: "var(--text-white)",
+        };
       case "paid":
-        return { backgroundColor: "#2196f3", color: "#fff" };
+        return {
+          backgroundColor: "var(--accent-info)",
+          color: "var(--text-white)",
+        };
       default:
-        return { backgroundColor: "#e0e0e0", color: "#000" };
+        return {
+          backgroundColor: "var(--background-light)",
+          color: "var(--text-primary)",
+        };
     }
   };
 
@@ -183,26 +198,42 @@ const MySubscriptionsPage = () => {
       <Box
         sx={{
           minHeight: "100vh",
-          bgcolor: "error.light",
+          bgcolor: "var(--accent-error)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           p: 2,
         }}
       >
-        <Paper sx={{ textAlign: "center", padding: 4, borderRadius: 3 }}>
-          <Typography variant="h5" fontWeight="bold" gutterBottom>
+        <Paper
+          sx={{
+            textAlign: "center",
+            padding: 4,
+            borderRadius: 3,
+            bgcolor: "var(--background-white)",
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: "bold", color: "var(--text-primary)", mb: 2 }}
+          >
             Authentication Required
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography
+            variant="body2"
+            sx={{ color: "var(--text-secondary)", mb: 2 }}
+          >
             Please login to view your subscriptions.
           </Typography>
           <Button
             variant="contained"
-            color="primary"
             onClick={() => navigate("/login")}
-            size="medium"
-            sx={{ borderRadius: 2 }}
+            sx={{
+              borderRadius: 2,
+              bgcolor: "var(--primary-color)",
+              color: "var(--text-white)",
+              "&:hover": { bgcolor: "var(--primary-hover)" },
+            }}
           >
             Login
           </Button>
@@ -212,280 +243,466 @@ const MySubscriptionsPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3, pt: "100px" }}>
-      <Typography variant="h5" fontWeight={700} mb={2}>
-        My Subscriptions
-      </Typography>
-      <Grid container spacing={2} mb={2}>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search by email or name..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            select
-            size="small"
-            label="Status"
-            value={status}
-            onChange={handleStatusChange}
+    <Box
+      className="subscriptions-container"
+      sx={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%)",
+        py: 4,
+      }}
+    >
+      <Container maxWidth="xl">
+        {/* Header Section */}
+        <Box sx={{ textAlign: "center", mb: 6, pt: "100px" }}>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="center"
+            spacing={2}
+            sx={{ mb: 2 }}
           >
-            {statusOptions.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            <SubscriptionsIcon
+              sx={{ fontSize: 40, color: "var(--secondary-color)" }}
+            />
+            <Typography
+              variant="h3"
+              sx={{
+                fontWeight: 700,
+                background:
+                  "linear-gradient(45deg, var(--secondary-color), var(--primary-color))",
+                backgroundClip: "text",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              My Subscriptions
+            </Typography>
+          </Stack>
+          <Typography
+            variant="h6"
+            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+          >
+            View and manage your active and past subscription plans
+          </Typography>
+        </Box>
+
+        {/* Filter Section */}
+        <Grid container spacing={2} mb={4}>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              size="small"
+              placeholder="Search by email or name..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "var(--accent-info)" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              select
+              size="small"
+              label="Status"
+              value={status}
+              onChange={handleStatusChange}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            >
+              {statusOptions.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label="Start Date"
+              value={startDate}
+              onChange={handleStartDateChange}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <TextField
+              fullWidth
+              size="small"
+              type="date"
+              label="End Date"
+              value={endDate}
+              onChange={handleEndDateChange}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  bgcolor: "var(--background-white)",
+                  borderRadius: 2,
+                  "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                  "&.Mui-focused fieldset": {
+                    borderColor: "var(--accent-info)",
+                  },
+                },
+              }}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            label="Start Date"
-            value={startDate}
-            onChange={handleStartDateChange}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            label="End Date"
-            value={endDate}
-            onChange={handleEndDateChange}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Grid>
-      </Grid>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>No</TableCell>
-              <TableCell>Package</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Start Date</TableCell>
-              <TableCell>End Date</TableCell>
-              <TableCell align="center">Action</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              skeletonRows
-            ) : subscriptions.length === 0 ? (
+
+        {/* Subscriptions Table */}
+        <TableContainer
+          component={Paper}
+          sx={{ borderRadius: 2, boxShadow: "0 4px 12px var(--shadow-color)" }}
+        >
+          <Table>
+            <TableHead>
               <TableRow>
-                <TableCell colSpan={6} align="center">
-                  No subscriptions found.
+                <TableCell
+                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                >
+                  No
+                </TableCell>
+                <TableCell
+                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                >
+                  Package
+                </TableCell>
+                <TableCell
+                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                >
+                  Status
+                </TableCell>
+                <TableCell
+                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                >
+                  Start Date
+                </TableCell>
+                <TableCell
+                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                >
+                  End Date
+                </TableCell>
+                <TableCell
+                  sx={{
+                    color: "var(--text-primary)",
+                    fontWeight: 600,
+                    textAlign: "center",
+                  }}
+                >
+                  Action
                 </TableCell>
               </TableRow>
-            ) : (
-              subscriptions.map((sub, index) => (
-                <TableRow key={sub.subscriptionId} hover>
-                  <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                  <TableCell>{sub.packageName}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={sub.status}
-                      sx={{
-                        ...getStatusColor(sub.status),
-                        textTransform: "capitalize",
-                        fontWeight: "bold",
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(sub.startDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(sub.endDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="primary"
-                      onClick={() => handleViewDetails(sub)}
-                      sx={{ borderRadius: 0.5 }}
-                    >
-                      View Detail
-                    </Button>
+            </TableHead>
+            <TableBody>
+              {loading ? (
+                skeletonRows
+              ) : subscriptions.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Box sx={{ p: 4, textAlign: "center" }}>
+                      <SubscriptionsIcon
+                        sx={{
+                          fontSize: 80,
+                          color: "var(--text-secondary)",
+                          mb: 2,
+                        }}
+                      />
+                      <Typography
+                        variant="h5"
+                        sx={{ color: "var(--text-secondary)", mb: 1 }}
+                      >
+                        No subscriptions found
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        sx={{ color: "var(--text-secondary)" }}
+                      >
+                        Try adjusting your search or date filters
+                      </Typography>
+                    </Box>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={totalCount}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={rowsPerPage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={pageSizeOptions}
-          labelRowsPerPage="Subscriptions per page:"
-        />
-      </TableContainer>
+              ) : (
+                subscriptions.map((sub, index) => (
+                  <TableRow key={sub.subscriptionId} hover>
+                    <TableCell sx={{ color: "var(--text-primary)" }}>
+                      {page * rowsPerPage + index + 1}
+                    </TableCell>
+                    <TableCell sx={{ color: "var(--text-primary)" }}>
+                      {sub.packageName}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={sub.status}
+                        sx={{
+                          ...getStatusColor(sub.status),
+                          textTransform: "capitalize",
+                          fontWeight: "bold",
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ color: "var(--text-primary)" }}>
+                      {new Date(sub.startDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell sx={{ color: "var(--text-primary)" }}>
+                      {new Date(sub.endDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleViewDetails(sub)}
+                        sx={{
+                          borderRadius: 0.5,
+                          color: "var(--accent-info)",
+                          borderColor: "var(--accent-info)",
+                          "&:hover": { bgcolor: "var(--background-light)" },
+                        }}
+                      >
+                        View Detail
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          <TablePagination
+            component="div"
+            count={totalCount}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={pageSizeOptions}
+            labelRowsPerPage="Subscriptions per page:"
+            sx={{
+              "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+                {
+                  color: "var(--text-secondary)",
+                },
+              "& .MuiTablePagination-select": {
+                color: "var(--text-primary)",
+              },
+            }}
+          />
+        </TableContainer>
 
-      {/* Details Dialog */}
-      <Dialog
-        open={openDetailDialog}
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Subscription Details</DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          {selectedSubscription && (
-            <Stack spacing={2} sx={{ pt: 2 }}>
-              <TextField
-                label="Subscription ID"
-                value={selectedSubscription.subscriptionId}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="User Name"
-                value={selectedSubscription.userFullName}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="User Email"
-                value={selectedSubscription.userEmail}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Trainer Name"
-                value={selectedSubscription.trainerFullName}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Trainer Email"
-                value={selectedSubscription.trainerEmail}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Package Name"
-                value={selectedSubscription.packageName}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Package Price"
-                value={`${selectedSubscription.packagePrice?.toLocaleString()} VND`}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Package Duration (Days)"
-                value={selectedSubscription.packageDurationDays}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Start Date"
-                value={new Date(
-                  selectedSubscription.startDate
-                ).toLocaleDateString()}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="End Date"
-                value={new Date(
-                  selectedSubscription.endDate
-                ).toLocaleDateString()}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-              <TextField
-                label="Status"
-                value={selectedSubscription.status}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-                sx={{ textTransform: "capitalize" }}
-              />
-              <TextField
-                label="Created At"
-                value={new Date(
-                  selectedSubscription.createdAt
-                ).toLocaleDateString()}
-                fullWidth
-                InputProps={{ readOnly: true }}
-                variant="outlined"
-                size="small"
-              />
-            </Stack>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCloseDialog}
-            color="primary"
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseError}
-          severity="error"
-          sx={{ width: "100%" }}
+        {/* Details Dialog */}
+        <Dialog
+          open={openDetailDialog}
+          onClose={handleCloseDialog}
+          maxWidth="sm"
+          fullWidth
+          PaperProps={{
+            sx: { borderRadius: 4, bgcolor: "var(--background-white)" },
+          }}
         >
-          {error}
-        </Alert>
-      </Snackbar>
+          <DialogTitle
+            sx={{ fontWeight: 700, color: "var(--secondary-color)" }}
+          >
+            Subscription Details
+          </DialogTitle>
+          <DialogContent sx={{ p: 3, bgcolor: "var(--background-light)" }}>
+            {selectedSubscription && (
+              <Stack spacing={2} sx={{ pt: 2 }}>
+                <TextField
+                  label="Subscription ID"
+                  value={selectedSubscription.subscriptionId}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="User Name"
+                  value={selectedSubscription.userFullName}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="User Email"
+                  value={selectedSubscription.userEmail}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Trainer Name"
+                  value={selectedSubscription.trainerFullName}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Trainer Email"
+                  value={selectedSubscription.trainerEmail}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Package Name"
+                  value={selectedSubscription.packageName}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Package Price"
+                  value={`${
+                    selectedSubscription.packagePrice?.toLocaleString() || "N/A"
+                  } VND`}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Package Duration (Days)"
+                  value={selectedSubscription.packageDurationDays || "N/A"}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Start Date"
+                  value={new Date(
+                    selectedSubscription.startDate
+                  ).toLocaleDateString()}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="End Date"
+                  value={new Date(
+                    selectedSubscription.endDate
+                  ).toLocaleDateString()}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+                <TextField
+                  label="Status"
+                  value={selectedSubscription.status}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    bgcolor: "var(--background-white)",
+                    textTransform: "capitalize",
+                  }}
+                />
+                <TextField
+                  label="Created At"
+                  value={new Date(
+                    selectedSubscription.createdAt
+                  ).toLocaleDateString()}
+                  fullWidth
+                  InputProps={{ readOnly: true }}
+                  variant="outlined"
+                  size="small"
+                  sx={{ bgcolor: "var(--background-white)" }}
+                />
+              </Stack>
+            )}
+          </DialogContent>
+          <DialogActions sx={{ bgcolor: "var(--background-light)" }}>
+            <Button
+              onClick={handleCloseDialog}
+              variant="contained"
+              sx={{
+                borderRadius: 2,
+                bgcolor: "var(--accent-error)",
+                color: "var(--text-white)",
+                "&:hover": { bgcolor: "var(--primary-hover)" },
+              }}
+            >
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={showError}
+          autoHideDuration={6000}
+          onClose={handleCloseError}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        >
+          <Alert
+            onClose={handleCloseError}
+            severity="error"
+            sx={{
+              width: "100%",
+              bgcolor: "var(--accent-error)",
+              color: "var(--text-white)",
+              elevation: 6,
+              variant: "filled",
+            }}
+          >
+            {error}
+          </Alert>
+        </Snackbar>
+      </Container>
     </Box>
   );
 };

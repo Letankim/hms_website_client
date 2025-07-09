@@ -1,55 +1,33 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useContext,
-} from "react";
+import styles from "./ViewPostDetails.module.css";
+import { useEffect, useState, useRef, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Box,
-  Typography,
-  Card,
-  CardContent,
-  CardMedia,
-  Chip,
-  CircularProgress,
-  Avatar,
-  Divider,
-  TextField,
-  IconButton,
-  Menu,
-  MenuItem,
-  Dialog,
-  DialogContent,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Button,
-  Snackbar,
-  Alert,
-  Tabs,
-  Tab,
-} from "@mui/material";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import CommentIcon from "@mui/icons-material/Comment";
-import ShareIcon from "@mui/icons-material/Share";
-import SendIcon from "@mui/icons-material/Send";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import apiPostService from "services/apiPostService";
-import apiPostCommentService from "services/apiPostCommentService";
-import "./ViewPostDetails.css";
+  MoreVertical,
+  ThumbsUp,
+  MessageCircle,
+  Share2,
+  Send,
+  MoreHorizontal,
+  Edit3,
+  Trash2,
+  EyeOff,
+  X,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { Fancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
-import { BoxOpen } from "components/Icon/BoxOpen";
 import AuthContext from "contexts/AuthContext";
+import apiPostService from "services/apiPostService";
+import apiPostCommentService from "services/apiPostCommentService";
+import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
+import "./ViewPostDetails.module.css";
 
 const ViewPostDetails = () => {
   const { groupId, postId } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [loadingPost, setLoadingPost] = useState(true);
@@ -67,30 +45,25 @@ const ViewPostDetails = () => {
   const [editCommentText, setEditCommentText] = useState("");
   const [reactionDialogOpen, setReactionDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState(0);
-  const [anchorElPost, setAnchorElPost] = useState(null);
-  const [anchorElComment, setAnchorElComment] = useState(null);
+  const [showPostMenu, setShowPostMenu] = useState(false);
+  const [showCommentMenu, setShowCommentMenu] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
   const [error, setError] = useState(null);
-  const observer = useRef();
 
+  const observer = useRef();
+  const postMenuRef = useRef();
+  const commentMenuRef = useRef();
+
+  // All API calls and handlers remain the same...
   const fetchPost = useCallback(async () => {
     setLoadingPost(true);
     try {
       const res = await apiPostService.getActivePostByIdForUser(postId);
       setPost(res.data);
-      setSnackbar({
-        open: true,
-        message: "Post loaded successfully.",
-        severity: "success",
-      });
       return res.data;
     } catch (e) {
-      setError(e?.message || "Failed to load post details.");
-      setSnackbar({
-        open: true,
-        message: e?.message || "Failed to load post details.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
+      setError("Failed to load post");
       return null;
     } finally {
       setLoadingPost(false);
@@ -100,9 +73,11 @@ const ViewPostDetails = () => {
   const fetchComments = useCallback(
     async (pageNum, reset = false, retryCount = 0) => {
       const maxRetries = 3;
-      if (!post || !hasMore || loadingComments) return;
+      if (!postId || loadingComments || !hasMore) return;
+
       setLoadingComments(true);
       setLoadingCommentsError(null);
+
       try {
         const res = await apiPostCommentService.getCommentsByPostId(postId, {
           pageNumber: pageNum,
@@ -120,12 +95,8 @@ const ViewPostDetails = () => {
           }, 1000 * (retryCount + 1));
           return;
         }
-        setLoadingCommentsError(e?.message || "Failed to load comments.");
-        setSnackbar({
-          open: true,
-          message: "Failed to load comments.",
-          severity: "error",
-        });
+        setLoadingCommentsError("Failed to load comments");
+        showErrorFetchAPI(e);
       } finally {
         setLoadingComments(false);
       }
@@ -133,6 +104,7 @@ const ViewPostDetails = () => {
     [postId, hasMore, loadingComments]
   );
 
+  // All useEffects remain the same...
   useEffect(() => {
     const loadData = async () => {
       const postData = await fetchPost();
@@ -141,33 +113,23 @@ const ViewPostDetails = () => {
       }
     };
     loadData();
-  }, [fetchPost]);
+  }, [fetchPost, fetchComments]);
 
   useEffect(() => {
-    const initializeFancybox = () => {
-      Fancybox.bind("[data-fancybox]", {
-        animated: true,
-        showClass: "fancybox-zoomInUp",
-        hideClass: "fancybox-zoomOutDown",
-        Toolbar: {
-          display: {
-            left: ["infobar"],
-            middle: ["zoomIn", "zoomOut", "close"],
-            right: ["slideshow", "fullscreen", "download", "thumbs"],
-          },
+    Fancybox.bind("[data-fancybox]", {
+      animated: true,
+      showClass: "fancybox-zoomInUp",
+      hideClass: "fancybox-zoomOutDown",
+      Toolbar: {
+        display: {
+          left: ["infobar"],
+          middle: ["zoomIn", "zoomOut", "close"],
+          right: ["slideshow", "fullscreen", "download", "thumbs"],
         },
-        Image: {
-          zoom: true,
-          click: "zoom",
-          doubleClick: "close",
-        },
-        Thumbs: {
-          autoStart: false,
-        },
-      });
-    };
-
-    initializeFancybox();
+      },
+      Image: { zoom: true, click: "zoom", doubleClick: "close" },
+      Thumbs: { autoStart: false },
+    });
 
     return () => {
       Fancybox.unbind("[data-fancybox]");
@@ -197,9 +159,10 @@ const ViewPostDetails = () => {
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
+
     try {
       await apiPostCommentService.addCommentByUser({
-        postId: parseInt(postId),
+        postId: Number.parseInt(postId),
         commentText: newComment,
       });
       setNewComment("");
@@ -221,16 +184,18 @@ const ViewPostDetails = () => {
   };
 
   const handleEditComment = async () => {
-    if (!editCommentText.trim()) return;
+    if (!editCommentText.trim() || !editingComment) return;
+
     try {
       await apiPostCommentService.editCommentByUser(editingComment.commentId, {
-        postId: parseInt(postId),
+        postId: Number.parseInt(postId),
         commentText: editCommentText,
       });
       setPage(1);
       setHasMore(true);
       fetchComments(1, true);
       setEditingComment(null);
+      setEditCommentText("");
       setSnackbar({
         open: true,
         message: "Comment edited successfully.",
@@ -263,11 +228,12 @@ const ViewPostDetails = () => {
         severity: "error",
       });
     }
-    setAnchorElComment(null);
+    setShowCommentMenu(false);
   };
 
   const handleDeletePost = async () => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
+
     try {
       await apiPostService.deletePost(postId);
       navigate(`/group/${groupId}`);
@@ -283,7 +249,7 @@ const ViewPostDetails = () => {
         severity: "error",
       });
     }
-    setAnchorElPost(null);
+    setShowPostMenu(false);
   };
 
   const handleHidePost = async () => {
@@ -302,7 +268,7 @@ const ViewPostDetails = () => {
         severity: "error",
       });
     }
-    setAnchorElPost(null);
+    setShowPostMenu(false);
   };
 
   const handleSharePost = () => {
@@ -312,35 +278,8 @@ const ViewPostDetails = () => {
       open: true,
       message: "Post URL copied to clipboard!",
       severity: "success",
-      autoHideDuration: 3000,
     });
-    setAnchorElPost(null);
-  };
-
-  const handlePostMenuOpen = (event) => {
-    setAnchorElPost(event.currentTarget);
-  };
-
-  const handlePostMenuClose = () => {
-    setAnchorElPost(null);
-  };
-
-  const handleCommentMenuOpen = (event, comment) => {
-    setAnchorElComment(event.currentTarget);
-    setSelectedComment(comment);
-  };
-
-  const handleCommentMenuClose = () => {
-    setAnchorElComment(null);
-    setSelectedComment(null);
-  };
-
-  const handleCloseSnackbar = () => {
-    setSnackbar({ ...snackbar, open: false });
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setSelectedTab(newValue);
+    setShowPostMenu(false);
   };
 
   const handleRetryComments = () => {
@@ -349,467 +288,446 @@ const ViewPostDetails = () => {
     fetchComments(1, true);
   };
 
-  const reactionCount = post?.reactions ? post.reactions.length : 0;
+  const reactionCount = post?.reactions?.length || 0;
   const reactionTypes = post?.reactions
     ? [...new Set(post.reactions.map((r) => r.reactionTypeName))]
     : [];
 
   if (loadingPost) {
     return (
-      <Box
-        className="view-post-details-container"
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        minHeight="100vh"
-      >
-        <CircularProgress />
-      </Box>
+      <div className={styles["loading-container"]}>
+        <div className={styles["loading-spinner"]}></div>
+      </div>
     );
   }
 
+  // Error state
   if (error || !post) {
     return (
-      <Box
-        className="view-post-details-container"
-        py={4}
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        gap={2}
-      >
-        <BoxOpen style={{ width: 96, height: 96, color: "#d32f2f" }} />
-        <Typography color="error" align="center" variant="h6">
-          {error || "Post not found."}
-        </Typography>
-      </Box>
+      <div className={styles["error-container"]}>
+        <AlertCircle className={styles["error-icon"]} />
+        <h2 className={styles["error-title"]}>Post Not Found</h2>
+        <p className={styles["error-message"]}>
+          {error || "The post you're looking for doesn't exist."}
+        </p>
+      </div>
     );
   }
 
   return (
-    <Box className="view-post-details-container">
-      <Card className="post-card">
-        <CardContent className="post-header">
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box display="flex" alignItems="center" gap={2}>
-              <Avatar
-                src={post.user?.avatar || "/default-avatar.png"}
-                alt="User Avatar"
-                className="user-avatar"
-              />
-              <Box>
-                <Typography variant="subtitle1" fontWeight={600}>
-                  {post.user?.fullName || "Unknown User"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {new Date(post.createdAt).toLocaleString()}
-                </Typography>
-              </Box>
-            </Box>
-            <IconButton size="small" onClick={handlePostMenuOpen}>
-              <MoreVertIcon />
-            </IconButton>
-          </Box>
-        </CardContent>
-        <CardContent className="post-content-area">
-          <div
-            className="post-text"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
-          {post.thumbnail && (
-            <a href={post.thumbnail} data-fancybox="gallery">
-              <CardMedia
-                component="img"
-                image={post.thumbnail}
-                alt="Post Thumbnail"
-                className="post-image"
-              />
-            </a>
-          )}
-        </CardContent>
-        <CardContent className="post-tags">
-          {post.tags && post.tags.length > 0 ? (
-            post.tags.map((tag) => (
-              <Chip
-                key={tag.tagId}
-                label={tag.tagName}
-                size="small"
-                className="post-chip"
-                sx={{ mr: 1, mb: 1 }}
-              />
-            ))
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              No tags
-            </Typography>
-          )}
-        </CardContent>
-        <Divider />
-        <CardContent className="post-footer">
-          <Box
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-          >
-            <Box display="flex" gap={2} alignItems="center">
-              <Box
-                display="flex"
-                alignItems="center"
-                gap={1}
-                onClick={() => setReactionDialogOpen(true)}
-                className="reaction-count"
-              >
-                <ThumbUpIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary">
-                  {reactionCount} Reactions
-                </Typography>
-              </Box>
-              <Box display="flex" alignItems="center" gap={1}>
-                <CommentIcon fontSize="small" color="action" />
-                <Typography variant="body2" color="text.secondary">
-                  {post.totalComment} Comments
-                </Typography>
-              </Box>
-            </Box>
-            <Chip
-              label={post.status === "active" ? "Active" : "Deleted"}
-              color={post.status === "active" ? "success" : "default"}
-              size="small"
-            />
-          </Box>
-        </CardContent>
-        <Divider />
-        <CardContent className="comment-section">
-          <Box display="flex" gap={1} mb={2} className="comment-input">
-            <TextField
-              fullWidth
-              size="small"
-              placeholder="Write a comment..."
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              variant="outlined"
-            />
-            <IconButton
-              color="primary"
-              onClick={handleAddComment}
-              disabled={!newComment.trim()}
-            >
-              <SendIcon />
-            </IconButton>
-          </Box>
-          {loadingCommentsError && (
-            <Box
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              gap={2}
-              mb={2}
-            >
-              <Typography color="error" align="center">
-                {loadingCommentsError}
-              </Typography>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={handleRetryComments}
-              >
-                Retry Loading Comments
-              </Button>
-            </Box>
-          )}
-          {comments.map((comment, index) => (
-            <Box
-              key={comment.commentId}
-              ref={index === comments.length - 1 ? lastCommentRef : null}
-              className={`comment-item ${
-                comment.userId === user.userId ? "user-comment" : ""
-              }`}
-            >
-              <Box display="flex" gap={2}>
-                <Avatar
-                  src={comment.userAvatar || "/default-avatar.png"}
-                  alt="Commenter Avatar"
-                  className="comment-avatar"
-                />
-                <Box flexGrow={1}>
-                  <Box display="flex" justifyContent="space-between">
-                    <Box>
-                      <Typography variant="subtitle2" fontWeight={600}>
-                        {comment.userFullName || "Unknown User"}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </Typography>
-                    </Box>
-                    {comment.userId === user.userId && (
-                      <IconButton
-                        size="small"
-                        onClick={(e) => handleCommentMenuOpen(e, comment)}
-                      >
-                        <MoreHorizIcon />
-                      </IconButton>
-                    )}
-                  </Box>
-                  {editingComment?.commentId === comment.commentId ? (
-                    <Box display="flex" gap={1} mt={1}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        value={editCommentText}
-                        onChange={(e) => setEditCommentText(e.target.value)}
-                        variant="outlined"
-                      />
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleEditComment}
-                        disabled={!editCommentText.trim()}
-                        size="small"
-                      >
-                        Save
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="secondary"
-                        onClick={() => setEditingComment(null)}
-                        size="small"
-                      >
-                        Cancel
-                      </Button>
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" mt={1}>
-                      {comment.commentText}
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
-            </Box>
-          ))}
-          {loadingComments && (
-            <Box display="flex" justifyContent="center" mt={2}>
-              <CircularProgress size={24} />
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-
-      <Menu
-        anchorEl={anchorElPost}
-        open={Boolean(anchorElPost)}
-        onClose={handlePostMenuClose}
-      >
-        <MenuItem
-          onClick={() => {
-            navigate(`/my-posts/${postId}/edit`);
-            handlePostMenuClose();
-          }}
-        >
-          Edit
-        </MenuItem>
-        <MenuItem onClick={handleDeletePost}>Delete</MenuItem>
-        <MenuItem onClick={handleSharePost}>Share</MenuItem>
-        <MenuItem onClick={handleHidePost}>Hide Post</MenuItem>
-      </Menu>
-
-      <Menu
-        anchorEl={anchorElComment}
-        open={Boolean(anchorElComment)}
-        onClose={handleCommentMenuClose}
-      >
-        <MenuItem
-          onClick={() => {
-            setEditingComment(selectedComment);
-            setEditCommentText(selectedComment.commentText);
-            handleCommentMenuClose();
-          }}
-        >
-          Edit
-        </MenuItem>
-        <MenuItem
-          onClick={() => handleDeleteComment(selectedComment.commentId)}
-        >
-          Delete
-        </MenuItem>
-      </Menu>
-
-      <Dialog
-        open={reactionDialogOpen}
-        onClose={() => setReactionDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogContent>
-          {reactionTypes.length > 0 ? (
-            <>
-              <Tabs
-                value={selectedTab}
-                onChange={handleTabChange}
-                variant="scrollable"
-                scrollButtons="auto"
-                aria-label="reaction types tabs"
-                sx={{ mb: 2, borderBottom: 1, borderColor: "divider" }}
-              >
-                <Tab
-                  label={
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Typography variant="body2">
-                        All Reactions ({reactionCount})
-                      </Typography>
-                    </Box>
-                  }
-                  aria-label="all reactions"
-                />
-                {reactionTypes.map((type, index) => (
-                  <Tab
-                    key={type}
-                    label={
-                      <Box display="flex" alignItems="center" gap={1}>
-                        {post.reactions.find((r) => r.reactionTypeName === type)
-                          ?.reactionTypeEmojiUnicode ? (
-                          <span>
-                            {String.fromCodePoint(
-                              parseInt(
-                                post.reactions
-                                  .find((r) => r.reactionTypeName === type)
-                                  .reactionTypeEmojiUnicode.replace("U+", ""),
-                                16
-                              )
-                            )}
-                          </span>
-                        ) : (
-                          type
-                        )}
-                        <Typography variant="body2">
-                          {type} (
-                          {
-                            post.reactions.filter(
-                              (r) => r.reactionTypeName === type
-                            ).length
-                          }
-                          )
-                        </Typography>
-                      </Box>
-                    }
-                    aria-label={`${type} reactions`}
+    <div className={styles["view-post-details-container"]}>
+      <div className={styles["facebook-layout"]}>
+        <div className={styles["main-content"]}>
+          {/* Main Post Card */}
+          <div className={styles["post-card"]}>
+            {/* Post Header */}
+            <div className={styles["post-header"]}>
+              <div className={styles["post-header-content"]}>
+                <div className={styles["post-user-info"]}>
+                  <img
+                    src={post.user?.avatar || "/default-avatar.png"}
+                    alt="User Avatar"
+                    className={styles["user-avatar"]}
                   />
-                ))}
-              </Tabs>
-              <div
-                role="tabpanel"
-                hidden={selectedTab !== 0}
-                id="reaction-tabpanel-all"
-                aria-labelledby="reaction-tab-all"
-              >
-                {selectedTab === 0 && (
-                  <List>
-                    {post.reactions.map((reaction) => (
-                      <ListItem key={reaction.reactionId}>
-                        <ListItemAvatar>
-                          <Avatar
-                            src={reaction.userAvatar || "/default-avatar.png"}
-                            alt="User Avatar"
-                          />
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={reaction.userFullName || "Unknown User"}
-                          secondary={
-                            reaction.reactionTypeEmojiUnicode ? (
-                              <span>
-                                {String.fromCodePoint(
-                                  parseInt(
-                                    reaction.reactionTypeEmojiUnicode.replace(
-                                      "U+",
-                                      ""
-                                    ),
-                                    16
-                                  )
-                                )}
-                              </span>
-                            ) : (
-                              reaction.reactionTypeName
-                            )
-                          }
-                        />
-                      </ListItem>
-                    ))}
-                  </List>
-                )}
-              </div>
-              {reactionTypes.map((type, index) => (
-                <div
-                  key={type}
-                  role="tabpanel"
-                  hidden={selectedTab !== index + 1}
-                  id={`reaction-tabpanel-${index + 1}`}
-                  aria-labelledby={`reaction-tab-${index + 1}`}
-                >
-                  {selectedTab === index + 1 && (
-                    <List>
-                      {post.reactions
-                        .filter((r) => r.reactionTypeName === type)
-                        .map((reaction) => (
-                          <ListItem key={reaction.reactionId}>
-                            <ListItemAvatar>
-                              <Avatar
-                                src={
-                                  reaction.userAvatar || "/default-avatar.png"
-                                }
-                                alt="User Avatar"
-                              />
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={reaction.userFullName || "Unknown User"}
-                              secondary={
-                                reaction.reactionTypeEmojiUnicode ? (
-                                  <span>
-                                    {String.fromCodePoint(
-                                      parseInt(
-                                        reaction.reactionTypeEmojiUnicode.replace(
-                                          "U+",
-                                          ""
-                                        ),
-                                        16
-                                      )
-                                    )}
-                                  </span>
-                                ) : (
-                                  type
-                                )
-                              }
-                            />
-                          </ListItem>
-                        ))}
-                    </List>
+                  <div className={styles["user-details"]}>
+                    <h3>{post.user?.fullName || "Unknown User"}</h3>
+                    <p>{new Date(post.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+
+                <div style={{ position: "relative" }} ref={postMenuRef}>
+                  <button
+                    onClick={() => setShowPostMenu(!showPostMenu)}
+                    className={styles["post-menu-button"]}
+                  >
+                    <MoreVertical />
+                  </button>
+
+                  {showPostMenu && (
+                    <div className={styles["dropdown-menu"]}>
+                      <button
+                        onClick={() => {
+                          navigate(`/my-posts/${postId}/edit`);
+                          setShowPostMenu(false);
+                        }}
+                        className={styles["dropdown-item"]}
+                      >
+                        <Edit3 />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={handleDeletePost}
+                        className={
+                          styles["dropdown-item"] + " " + styles["danger"]
+                        }
+                      >
+                        <Trash2 />
+                        <span>Delete</span>
+                      </button>
+                      <button
+                        onClick={handleSharePost}
+                        className={styles["dropdown-item"]}
+                      >
+                        <Share2 />
+                        <span>Share</span>
+                      </button>
+                      <button
+                        onClick={handleHidePost}
+                        className={styles["dropdown-item"]}
+                      >
+                        <EyeOff />
+                        <span>Hide Post</span>
+                      </button>
+                    </div>
                   )}
                 </div>
-              ))}
-            </>
-          ) : (
-            <Typography>No reactions yet.</Typography>
-          )}
-        </DialogContent>
-      </Dialog>
+              </div>
+            </div>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+            {/* Post Content */}
+            <div className={styles["post-content"]}>
+              <div
+                className={styles["post-text"]}
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
+
+              {post.thumbnail && (
+                <a href={post.thumbnail} data-fancybox="gallery">
+                  <img
+                    src={post.thumbnail || "/placeholder.svg"}
+                    alt="Post Thumbnail"
+                    className={styles["post-image"]}
+                  />
+                </a>
+              )}
+            </div>
+
+            {/* Post Tags */}
+            <div className={styles["post-tags"]}>
+              {post.tags && post.tags.length > 0 ? (
+                <div className={styles["tags-container"]}>
+                  {post.tags.map((tag) => (
+                    <span key={tag.tagId} className={styles["post-tag"]}>
+                      {tag.tagName}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles["no-tags"]}>No tags</p>
+              )}
+            </div>
+
+            {/* Post Stats */}
+            <div className={styles["post-stats"]}>
+              <div className={styles["stats-content"]}>
+                <div className={styles["stats-left"]}>
+                  <button
+                    onClick={() => setReactionDialogOpen(true)}
+                    className={styles["stat-item"]}
+                  >
+                    <ThumbsUp />
+                    <span>{reactionCount} Reactions</span>
+                  </button>
+
+                  <div className={styles["stat-item"]}>
+                    <MessageCircle />
+                    <span>{post.totalComment} Comments</span>
+                  </div>
+                </div>
+
+                <span
+                  className={`post-status ${
+                    post.status === "active" ? "active" : "deleted"
+                  }`}
+                >
+                  {post.status === "active" ? "Active" : "Deleted"}
+                </span>
+              </div>
+
+              {/* Action Buttons - Facebook Style */}
+              <div className={styles["post-actions"]}>
+                <button className={styles["action-button"]}>
+                  <ThumbsUp />
+                  <span>Like</span>
+                </button>
+                <button className={styles["action-button"]}>
+                  <MessageCircle />
+                  <span>Comment</span>
+                </button>
+                <button
+                  onClick={handleSharePost}
+                  className={styles["action-button"]}
+                >
+                  <Share2 />
+                  <span>Share</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Comment Section */}
+            <div className={styles["comment-section"]}>
+              {/* Add Comment */}
+              <div className={styles["comment-input-container"]}>
+                <div className={styles["comment-input-wrapper"]}>
+                  <img
+                    src={post?.user?.avatar || "/default-avatar.png"}
+                    alt="Your Avatar"
+                    className={styles["comment-avatar"]}
+                  />
+                  <div className={styles["comment-input-group"]}>
+                    <input
+                      type="text"
+                      placeholder="Write a comment..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && handleAddComment()
+                      }
+                      className={styles["comment-input"]}
+                    />
+                    <button
+                      onClick={handleAddComment}
+                      disabled={!newComment.trim()}
+                      className={styles["comment-send-button"]}
+                    >
+                      <Send />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Comments Error */}
+              {loadingCommentsError && (
+                <div className={styles["comments-error"]}>
+                  <p>{loadingCommentsError}</p>
+                  <button
+                    onClick={handleRetryComments}
+                    className={styles["retry-button"]}
+                  >
+                    <RefreshCw />
+                    <span>Retry Loading Comments</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Comments List */}
+              <div className={styles["comments-list"]}>
+                {comments.map((comment, index) => (
+                  <div
+                    key={comment.commentId}
+                    ref={index === comments.length - 1 ? lastCommentRef : null}
+                    className={styles["comment-item"]}
+                  >
+                    <div className={styles["comment-content"]}>
+                      <img
+                        src={comment.userAvatar || "/default-avatar.png"}
+                        alt="Commenter Avatar"
+                        className={styles["comment-avatar"]}
+                      />
+                      <div className={styles["comment-main"]}>
+                        <div className={styles["comment-header"]}>
+                          <div className={styles["comment-user-info"]}>
+                            <h4>{comment.userFullName || "Unknown User"}</h4>
+                            <p>
+                              {new Date(comment.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+
+                          {comment.userId === user.userId && (
+                            <div
+                              style={{ position: "relative" }}
+                              ref={commentMenuRef}
+                            >
+                              <button
+                                onClick={() => {
+                                  setSelectedComment(comment);
+                                  setShowCommentMenu(!showCommentMenu);
+                                }}
+                                className={styles["comment-menu-button"]}
+                              >
+                                <MoreHorizontal />
+                              </button>
+
+                              {showCommentMenu &&
+                                selectedComment?.commentId ===
+                                  comment.commentId && (
+                                  <div className={styles["dropdown-menu"]}>
+                                    <button
+                                      onClick={() => {
+                                        setEditingComment(selectedComment);
+                                        setEditCommentText(
+                                          selectedComment.commentText
+                                        );
+                                        setShowCommentMenu(false);
+                                      }}
+                                      className={styles["dropdown-item"]}
+                                    >
+                                      <Edit3 />
+                                      <span>Edit</span>
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleDeleteComment(
+                                          selectedComment.commentId
+                                        )
+                                      }
+                                      className={
+                                        styles["dropdown-item"] +
+                                        " " +
+                                        styles["danger"]
+                                      }
+                                    >
+                                      <Trash2 />
+                                      <span>Delete</span>
+                                    </button>
+                                  </div>
+                                )}
+                            </div>
+                          )}
+                        </div>
+
+                        {editingComment?.commentId === comment.commentId ? (
+                          <div className={styles["comment-edit-form"]}>
+                            <input
+                              type="text"
+                              value={editCommentText}
+                              onChange={(e) =>
+                                setEditCommentText(e.target.value)
+                              }
+                              className={styles["comment-edit-input"]}
+                            />
+                            <button
+                              onClick={handleEditComment}
+                              disabled={!editCommentText.trim()}
+                              className={
+                                styles["comment-edit-button"] +
+                                " " +
+                                styles["save"]
+                              }
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => setEditingComment(null)}
+                              className={
+                                styles["comment-edit-button"] +
+                                " " +
+                                styles["cancel"]
+                              }
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <div className={styles["comment-text"]}>
+                            {comment.commentText}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Loading Comments */}
+              {loadingComments && (
+                <div className={styles["loading-comments"]}>
+                  <div className={styles["loading-spinner"]}></div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* All dialogs and overlays remain the same... */}
+      {reactionDialogOpen && (
+        <div className={styles["reaction-dialog-overlay"]}>
+          <div className={styles["reaction-dialog"]}>
+            <div className={styles["reaction-dialog-header"]}>
+              <h3 className={styles["reaction-dialog-title"]}>Reactions</h3>
+              <button
+                onClick={() => setReactionDialogOpen(false)}
+                className={styles["reaction-dialog-close"]}
+              >
+                <X />
+              </button>
+            </div>
+
+            <div className={styles["reaction-dialog-content"]}>
+              {reactionTypes.length > 0 ? (
+                <div className={styles["reaction-section"]}>
+                  <h4>All Reactions ({reactionCount})</h4>
+                  <div className={styles["reaction-list"]}>
+                    {post.reactions.map((reaction) => (
+                      <div
+                        key={reaction.reactionId}
+                        className={styles["reaction-item"]}
+                      >
+                        <img
+                          src={reaction.userAvatar || "/default-avatar.png"}
+                          alt="User Avatar"
+                          className={styles["reaction-user-avatar"]}
+                        />
+                        <div className={styles["reaction-user-info"]}>
+                          <p className={styles["reaction-user-name"]}>
+                            {reaction.userFullName || "Unknown User"}
+                          </p>
+                        </div>
+                        <span className={styles["reaction-emoji"]}>
+                          {reaction.reactionTypeEmojiUnicode
+                            ? String.fromCodePoint(
+                                Number.parseInt(
+                                  reaction.reactionTypeEmojiUnicode.replace(
+                                    "U+",
+                                    ""
+                                  ),
+                                  16
+                                )
+                              )
+                            : reaction.reactionTypeName}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className={styles["no-reactions"]}>No reactions yet.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {snackbar.open && (
+        <div className={styles["snackbar"]}>
+          <div className={`snackbar-content ${snackbar.severity}`}>
+            <span className={styles["snackbar-message"]}>
+              {snackbar.message}
+            </span>
+            <button
+              onClick={() => setSnackbar({ ...snackbar, open: false })}
+              className={styles["snackbar-close"]}
+            >
+              <X />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPostMenu && (
+        <div
+          className={styles["click-outside-overlay"]}
+          onClick={() => setShowPostMenu(false)}
+        />
+      )}
+      {showCommentMenu && (
+        <div
+          className={styles["click-outside-overlay"]}
+          onClick={() => setShowCommentMenu(false)}
+        />
+      )}
+    </div>
   );
 };
 

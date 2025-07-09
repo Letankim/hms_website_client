@@ -1,13 +1,10 @@
 import { createContext, useState, useEffect, useCallback } from "react";
 import apiAuthService from "services/apiAuthService";
-
 const AuthContext = createContext();
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [shouldLogout, setShouldLogout] = useState(false);
-
   const getTokenExpiration = useCallback((token) => {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
@@ -16,7 +13,6 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   }, []);
-
   const isTokenNearingExpiry = useCallback(
     (token) => {
       const expirationTime = getTokenExpiration(token);
@@ -27,7 +23,6 @@ export const AuthProvider = ({ children }) => {
     },
     [getTokenExpiration]
   );
-
   const refreshAccessToken = useCallback(async (currentUser) => {
     if (!currentUser || !currentUser.refreshToken) {
       await logout();
@@ -55,7 +50,6 @@ export const AuthProvider = ({ children }) => {
       return null;
     }
   }, []);
-
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -70,28 +64,37 @@ export const AuthProvider = ({ children }) => {
     }
     setLoading(false);
   }, [isTokenNearingExpiry, refreshAccessToken]);
-
   useEffect(() => {
     if (!user || !user.accessToken) return;
-
     const checkAndRefresh = async () => {
       if (isTokenNearingExpiry(user.accessToken)) {
         await refreshAccessToken(user);
       }
     };
-
     checkAndRefresh();
     const interval = setInterval(checkAndRefresh, 60 * 1000);
-
     return () => clearInterval(interval);
   }, [user, isTokenNearingExpiry, refreshAccessToken]);
-
   const login = async (email, password) => {
     setLoading(true);
     try {
       const response = await apiAuthService.login(email, password);
       if (response.status === "Success") {
         const userData = response.data;
+        console.log(userData);
+        const validRoles = ["Trainer", "User"];
+        if (
+          !userData.roles ||
+          !userData.roles.some((role) => validRoles.includes(role))
+        ) {
+          setUser(null);
+          localStorage.removeItem("user");
+          setShouldLogout(true);
+          return {
+            success: false,
+            message: "Access denied: Only Trainer or User roles are allowed",
+          };
+        }
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         setShouldLogout(false);
@@ -108,7 +111,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
   const register = async (email, password) => {
     setLoading(true);
     try {
@@ -124,7 +126,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
   const logout = async () => {
     try {
       await apiAuthService.logout();
@@ -133,13 +134,25 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user");
     setShouldLogout(true);
   };
-
   const googleLogin = async (googleToken) => {
     setLoading(true);
     try {
       const response = await apiAuthService.googleLogin(googleToken);
       if (response.status === "Success") {
         const userData = response.data;
+        const validRoles = ["Trainer", "User"];
+        if (
+          !userData.roles ||
+          !userData.roles.some((role) => validRoles.includes(role))
+        ) {
+          setUser(null);
+          localStorage.removeItem("user");
+          setShouldLogout(true);
+          return {
+            success: false,
+            message: "Access denied: Only Trainer or User roles are allowed",
+          };
+        }
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         setShouldLogout(false);
@@ -156,13 +169,25 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
   const facebookLogin = async (facebookToken) => {
     setLoading(true);
     try {
       const response = await apiAuthService.facebookLogin(facebookToken);
       if (response.status === "Success") {
         const userData = response.data;
+        const validRoles = ["Trainer", "User"];
+        if (
+          !userData.roles ||
+          !userData.roles.some((role) => validRoles.includes(role))
+        ) {
+          setUser(null);
+          localStorage.removeItem("user");
+          setShouldLogout(true);
+          return {
+            success: false,
+            message: "Access denied: Only Trainer or User roles are allowed",
+          };
+        }
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
         setShouldLogout(false);
@@ -182,12 +207,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
   const hasPermission = (permission) => {
     if (!user || !user.roles) return false;
     return user.roles.includes(permission) || user.roles.includes("Admin");
   };
-
   return (
     <AuthContext.Provider
       value={{
@@ -203,9 +226,9 @@ export const AuthProvider = ({ children }) => {
         hasPermission,
       }}
     >
-      {children}
+      {" "}
+      {children}{" "}
     </AuthContext.Provider>
   );
 };
-
 export default AuthContext;

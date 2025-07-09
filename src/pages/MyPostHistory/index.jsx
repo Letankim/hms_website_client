@@ -1,31 +1,28 @@
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useContext } from "react";
 import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Tooltip,
-  TablePagination,
-  TextField,
-  InputAdornment,
-  MenuItem,
-  Skeleton,
-  Chip,
-  Grid,
-} from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import apiPostService from "services/apiPostService";
-import "./index.css";
+  Activity,
+  Eye,
+  Edit2,
+  Trash,
+  SearchNormal1,
+  Filter,
+  CloseCircle,
+  Warning2,
+  DocumentText,
+  Calendar,
+  ArrowRight2,
+  ArrowLeft2,
+  Image as ImageIcon,
+  Tag,
+} from "iconsax-react";
 import { useNavigate } from "react-router-dom";
+import apiPostService from "services/apiPostService";
+import "./MyPostHistory.css";
+import {
+  showErrorFetchAPI,
+  showSuccessMessage,
+} from "components/ErrorHandler/showStatusMessage";
+import AuthContext from "contexts/AuthContext";
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
@@ -36,11 +33,12 @@ const statusOptions = [
 const pageSizeOptions = [5, 10, 20, 50];
 
 const MyPostHistory = () => {
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [page, setPage] = useState(0);
@@ -49,13 +47,20 @@ const MyPostHistory = () => {
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [refresh, setRefresh] = useState(false);
+  const [error, setError] = useState(null);
+  const [showError, setShowError] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [postToDelete, setPostToDelete] = useState(null);
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
       const params = {
         search,
-        status,
+        status: status === "all" ? "" : status,
         startDate,
         endDate,
         pageNumber: page + 1,
@@ -63,18 +68,21 @@ const MyPostHistory = () => {
         sortBy,
         sortOrder,
       };
-      params.status = params.status === "all" ? "" : params.status;
-      const res = await apiPostService.getMyPosts(params);
-      if (params.status === "") {
-        params.status = "all";
+      const res = await apiPostService.getMyPosts(user.userId, params);
+      if (res.data) {
+        setPosts(res.data.posts || []);
+        setTotal(res.data.totalCount || 0);
+      } else {
+        setPosts([]);
+        setTotal(0);
       }
-      setPosts(res.data.posts || []);
-      setTotal(res.data.totalCount || 0);
     } catch (e) {
+      showErrorFetchAPI(e);
       setPosts([]);
       setTotal(0);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [
     search,
     status,
@@ -121,250 +129,532 @@ const MyPostHistory = () => {
     setPage(0);
   };
 
-  const handleChangePage = (e, newPage) => {
+  const handleChangePage = (newPage) => {
     setPage(newPage);
   };
 
   const handleChangeRowsPerPage = (e) => {
-    setPageSize(parseInt(e.target.value, 10));
+    setPageSize(Number.parseInt(e.target.value, 10));
     setPage(0);
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this post?")) {
+    try {
       await apiPostService.softDeletePost(id);
+      showSuccessMessage("Post deleted successfully");
+      setShowSuccess(true);
       setRefresh((r) => !r);
+    } catch (e) {
+      showErrorFetchAPI(e);
+      setShowError(true);
     }
   };
 
-  const skeletonRows = Array.from({ length: pageSize }).map((_, idx) => (
-    <TableRow key={idx}>
-      <TableCell>
-        <Skeleton variant="text" width={40} />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="rectangular" width={60} height={40} />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" width={120} />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" width={200} />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" width={80} />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="text" width={100} />
-      </TableCell>
-      <TableCell>
-        <Skeleton variant="rectangular" width={120} height={36} />
-      </TableCell>
-    </TableRow>
-  ));
+  const handleConfirmDelete = (postId) => {
+    setPostToDelete(postId);
+    setDeleteDialogOpen(true);
+    document.body.style.overflow = "hidden";
+  };
+
+  const handleConfirmDeleteDialogClose = (confirm) => {
+    setDeleteDialogOpen(false);
+    document.body.style.overflow = "auto";
+    if (confirm && postToDelete) {
+      handleDelete(postToDelete);
+    }
+    setPostToDelete(null);
+  };
+
+  const handleClearFilters = () => {
+    setSearch("");
+    setStatus("all");
+    setStartDate("");
+    setEndDate("");
+    setPage(0);
+  };
+
+  const handleCloseSuccess = () => {
+    setShowSuccess(false);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch {
+      return "N/A";
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "var(--accent-success)";
+      case "deleted":
+        return "var(--text-light)";
+      default:
+        return "var(--text-light)";
+    }
+  };
+
+  const totalPages = Math.ceil(total / pageSize);
+  const currentPage = page + 1;
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    if (currentPage > 1) {
+      pages.push(
+        <button
+          key="prev"
+          className="pagination-btn"
+          onClick={() => handleChangePage(page - 1)}
+        >
+          <ArrowLeft2 size="16" />
+        </button>
+      );
+    }
+
+    if (startPage > 1) {
+      pages.push(
+        <button
+          key={1}
+          className="pagination-btn"
+          onClick={() => handleChangePage(0)}
+        >
+          1
+        </button>
+      );
+      if (startPage > 2) {
+        pages.push(
+          <span key="dots1" className="pagination-dots">
+            ...
+          </span>
+        );
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          className={`pagination-btn ${i === currentPage ? "active" : ""}`}
+          onClick={() => handleChangePage(i - 1)}
+        >
+          {i}
+        </button>
+      );
+    }
+
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        pages.push(
+          <span key="dots2" className="pagination-dots">
+            ...
+          </span>
+        );
+      }
+      pages.push(
+        <button
+          key={totalPages}
+          className="pagination-btn"
+          onClick={() => handleChangePage(totalPages - 1)}
+        >
+          {totalPages}
+        </button>
+      );
+    }
+
+    // Next button
+    if (currentPage < totalPages) {
+      pages.push(
+        <button
+          key="next"
+          className="pagination-btn"
+          onClick={() => handleChangePage(page + 1)}
+        >
+          <ArrowRight2 size="16" />
+        </button>
+      );
+    }
+
+    return <div className="pagination-container">{pages}</div>;
+  };
+
+  const renderSkeletonCard = (index) => (
+    <div key={index} className="post-card skeleton-card">
+      <div className="post-avatar skeleton skeleton-avatar"></div>
+      <div className="post-content">
+        <div className="skeleton skeleton-title"></div>
+        <div className="skeleton skeleton-description"></div>
+        <div className="skeleton skeleton-description short"></div>
+        <div className="post-meta">
+          <div className="skeleton skeleton-chip"></div>
+          <div className="skeleton skeleton-chip"></div>
+          <div className="skeleton skeleton-date"></div>
+        </div>
+      </div>
+      <div className="post-actions">
+        <div className="skeleton skeleton-action-btn"></div>
+        <div className="skeleton skeleton-action-btn"></div>
+        <div className="skeleton skeleton-action-btn"></div>
+      </div>
+    </div>
+  );
+
+  if (loading && posts.length === 0) {
+    return (
+      <div className="post-history-container">
+        <div className="container">
+          <div className="header-section">
+            <div className="skeleton skeleton-header-title"></div>
+            <div className="skeleton skeleton-header-desc"></div>
+          </div>
+          <div className="filter-section">
+            <div className="filter-grid">
+              {[...Array(6)].map((_, index) => (
+                <div key={index} className="skeleton skeleton-filter"></div>
+              ))}
+            </div>
+          </div>
+          <div className="posts-list">
+            {[...Array(5)].map((_, i) => renderSkeletonCard(i))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Box className="my-post-history-container">
-      <Typography variant="h5" fontWeight={700} mb={2}>
-        My Post History
-      </Typography>
-      <Grid container spacing={2} mb={2}>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search content..."
-            value={search}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            select
-            size="small"
-            label="Status"
-            value={status}
-            onChange={handleStatusChange}
-          >
-            {statusOptions.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            label="Start Date"
-            value={startDate}
-            onChange={handleStartDateChange}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <TextField
-            fullWidth
-            size="small"
-            type="date"
-            label="End Date"
-            value={endDate}
-            onChange={handleEndDateChange}
-            InputLabelProps={{ shrink: true }}
-          />
-        </Grid>
-      </Grid>
-      <TableContainer component={Paper}>
-        <Table className="my-post-history-table">
-          <TableHead>
-            <TableRow>
-              <TableCell
-                onClick={() => handleSort("postId")}
-                style={{ cursor: "pointer" }}
+    <div className="post-history-container">
+      <div className="container">
+        {/* Header Section */}
+        <div className="header-section">
+          <div className="header-content">
+            <div className="header-icon">
+              <DocumentText
+                size="40"
+                color="var(--secondary-color)"
+                variant="Bold"
+              />
+            </div>
+            <h1 className="header-title">My Post History</h1>
+          </div>
+          <p className="header-description">
+            View and manage your published posts
+          </p>
+        </div>
+
+        {/* Filter Section */}
+        <div className="filter-section">
+          <div className="filter-header">
+            <div className="filter-title">
+              <Filter size="20" color="var(--accent-info)" variant="Bold" />
+              <span>Search & Filter</span>
+            </div>
+            <div className="filter-actions">
+              <button
+                className="mobile-filter-toggle"
+                onClick={() => setShowFilters(!showFilters)}
               >
-                No. {sortBy === "postId" && (sortOrder === "asc" ? "↑" : "↓")}
-              </TableCell>
-              <TableCell>Image</TableCell>
-              <TableCell>Content</TableCell>
-              <TableCell>Tags</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell
-                onClick={() => handleSort("createdAt")}
-                style={{ cursor: "pointer" }}
+                {showFilters ? "Hide" : "Show"} Filters
+              </button>
+            </div>
+          </div>
+          <div className={`filter-content ${showFilters ? "show" : ""}`}>
+            <div className="filter-grid">
+              <div className="search-input-container">
+                <div className="search-icon">
+                  <SearchNormal1 size="20" color="var(--accent-info)" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search posts..."
+                  value={search}
+                  onChange={handleSearchChange}
+                  className="search-input"
+                />
+              </div>
+              <div className="select-container">
+                <label>Status</label>
+                <select
+                  value={status}
+                  onChange={handleStatusChange}
+                  className="filter-select"
+                >
+                  {statusOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="select-container">
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={handleStartDateChange}
+                  className="filter-select"
+                />
+              </div>
+              <div className="select-container">
+                <label>End Date</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={handleEndDateChange}
+                  className="filter-select"
+                />
+              </div>
+              <div className="select-container">
+                <label>Per Page</label>
+                <select
+                  value={pageSize}
+                  onChange={handleChangeRowsPerPage}
+                  className="filter-select"
+                >
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button
+                className="clear-filters-btn"
+                onClick={handleClearFilters}
               >
-                Created At{" "}
-                {sortBy === "createdAt" && (sortOrder === "asc" ? "↑" : "↓")}
-              </TableCell>
-              <TableCell align="center">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {loading ? (
-              skeletonRows
-            ) : posts.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center">
-                  No posts found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              posts.map((row, index) => (
-                <TableRow key={row.postId} hover>
-                  <TableCell>{page * pageSize + index + 1}</TableCell>
-                  <TableCell>
-                    <img
-                      src={row.thumbnail || "/logo192.png"}
-                      alt="thumbnail"
-                      style={{
-                        width: 60,
-                        height: 40,
-                        objectFit: "cover",
-                        borderRadius: 6,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div
-                      style={{
-                        maxWidth: 220,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                      dangerouslySetInnerHTML={{ __html: row.content }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {row.tags && row.tags.length > 0
-                      ? row.tags.map((tag) => (
-                          <Chip
-                            key={tag.tagId}
-                            label={tag.tagName}
-                            size="small"
-                            sx={{ mr: 0.5, mb: 0.5 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                            }}
+                <CloseCircle size="16" color="#1976d2" />
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        {!error && (
+          <div className="results-summary">
+            Found <strong>{total}</strong> post{total !== 1 ? "s" : ""}
+            {status !== "all" && ` with status "${status}"`}
+            {search && ` matching "${search}"`}
+            {startDate && ` from ${formatDate(startDate)}`}
+            {endDate && ` to ${formatDate(endDate)}`}
+          </div>
+        )}
+
+        {/* Posts List */}
+        {posts.length === 0 && !loading ? (
+          <div className="empty-state">
+            <div className="empty-icon">
+              <DocumentText size="80" color="var(--text-secondary)" />
+            </div>
+            <h3 className="empty-title">No posts found</h3>
+            <p className="empty-description">
+              Try adjusting your search criteria or create a new post
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="posts-list">
+              {loading
+                ? [...Array(pageSize > 5 ? 5 : pageSize)].map((_, i) =>
+                    renderSkeletonCard(i)
+                  )
+                : posts.map((post, index) => (
+                    <div key={post.postId} className="post-card">
+                      <div className="post-thumbnail">
+                        {post.thumbnail ? (
+                          <img
+                            src={post.thumbnail || "/placeholder.svg"}
+                            alt="Post thumbnail"
+                            className="thumbnail-image"
                           />
-                        ))
-                      : "-"}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={row.status === "active" ? "Active" : "Deleted"}
-                      color={row.status === "active" ? "success" : "default"}
-                      size="small"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {new Date(row.createdAt).toLocaleString()}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="View Details">
-                      <IconButton
-                        color="primary"
-                        onClick={() => {
-                          navigate(`/my-posts/${row.postId}/view`);
-                        }}
-                      >
-                        <VisibilityIcon />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Edit">
-                      <span>
-                        <IconButton
-                          color="secondary"
-                          onClick={() => {
-                            navigate(`/my-posts/${row.postId}/edit`);
+                        ) : (
+                          <div className="thumbnail-placeholder">
+                            <ImageIcon size="24" color="white" variant="Bold" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="post-content">
+                        <div className="post-number">
+                          #POST{page * pageSize + index + 1}
+                        </div>
+                        <div
+                          className="post-description"
+                          dangerouslySetInnerHTML={{
+                            __html: post.content,
                           }}
-                          disabled={row.status !== "active"}
+                        />
+                        <div className="post-tags">
+                          {post.tags && post.tags.length > 0 ? (
+                            post.tags.map((tag) => (
+                              <span key={tag.tagId} className="tag-chip">
+                                <Tag size="12" />
+                                {tag.tagName}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="no-tags">No tags</span>
+                          )}
+                        </div>
+                        <div className="post-meta">
+                          <span
+                            className="status-chip"
+                            style={{
+                              backgroundColor: getStatusColor(post.status),
+                            }}
+                            onClick={() => {
+                              setStatus(post.status);
+                              setPage(0);
+                            }}
+                          >
+                            {post.status.charAt(0).toUpperCase() +
+                              post.status.slice(1)}
+                          </span>
+                          <span
+                            className="post-date"
+                            title={formatDate(post.createdAt)}
+                          >
+                            <Calendar size="14" />
+                            {formatDate(post.createdAt)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="post-actions">
+                        <button
+                          className="action-btn view-btn"
+                          onClick={() =>
+                            navigate(`/my-posts/${post.postId}/view`)
+                          }
+                          title="View Details"
                         >
-                          <EditIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                    <Tooltip title="Delete">
-                      <span>
-                        <IconButton
-                          color="error"
-                          onClick={() => handleDelete(row.postId)}
-                          disabled={row.status !== "active"}
+                          <Eye size="16" color="#FFF" />
+                        </button>
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() =>
+                            navigate(`/my-posts/${post.postId}/edit`)
+                          }
+                          title="Edit Post"
+                          disabled={post.status !== "active"}
                         >
-                          <DeleteIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          component="div"
-          count={total}
-          page={page}
-          onPageChange={handleChangePage}
-          rowsPerPage={pageSize}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          rowsPerPageOptions={pageSizeOptions}
-          labelRowsPerPage="Posts per page:"
-        />
-      </TableContainer>
-    </Box>
+                          <Edit2 size="16" color="#FFF" />
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => handleConfirmDelete(post.postId)}
+                          title="Delete Post"
+                          disabled={post.status !== "active"}
+                        >
+                          <Trash size="16" color="#FFF" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="pagination-section">
+              <div className="page-size-selector">
+                <label>Items per page:</label>
+                <select value={pageSize} onChange={handleChangeRowsPerPage}>
+                  {pageSizeOptions.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {renderPagination()}
+              <div className="pagination-info">
+                Showing {page * pageSize + 1} to{" "}
+                {Math.min((page + 1) * pageSize, total)} of {total} posts
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteDialogOpen && (
+        <div
+          className="modal-overlay"
+          onClick={() => handleConfirmDeleteDialogClose(false)}
+        >
+          <div
+            className="modal-container delete-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header delete-header">
+              <div className="modal-header-content">
+                <Warning2 size="24" color="white" variant="Bold" />
+                <h2>Confirm Delete</h2>
+              </div>
+              <button
+                className="modal-close-btn"
+                onClick={() => handleConfirmDeleteDialogClose(false)}
+              >
+                <CloseCircle size="24" color="white" />
+              </button>
+            </div>
+            <div className="modal-content">
+              <div className="delete-confirmation">
+                <Warning2 size="48" color="var(--accent-error)" />
+                <h3>Are you sure?</h3>
+                <p>
+                  Are you sure you want to delete this post? This action cannot
+                  be undone.
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="cancel-btn"
+                onClick={() => handleConfirmDeleteDialogClose(false)}
+              >
+                <CloseCircle size="18" />
+                Cancel
+              </button>
+              <button
+                className="delete-confirm-btn"
+                onClick={() => handleConfirmDeleteDialogClose(true)}
+              >
+                <Trash size="18" />
+                Delete Post
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {showSuccess && (
+        <div className="snackbar success">
+          <div className="snackbar-content">
+            <Activity size="20" color="white" variant="Bold" />
+            <span>{successMessage}</span>
+            <button className="snackbar-close" onClick={handleCloseSuccess}>
+              <CloseCircle size="16" color="white" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

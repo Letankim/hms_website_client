@@ -1,0 +1,726 @@
+.user-water-log-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+}
+
+.user-water-log-loading {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-water-log-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--background-light);
+    border-top: 4px solid var(--accent-info);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.user-water-log-error-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+    padding: 2rem;
+    padding-top: 120px;
+}
+
+.user-water-log-error-content {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.user-water-log-error-card {
+    background: var(--background-white);
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border-left: 4px solid var(--accent-error);
+}
+
+.user-water-log-error-card h3 {
+    color: var(--text-primary);
+    margin: 1rem 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.user-water-log-error-card p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.user-water-log-retry-btn {
+    background: var(--accent-error);
+    color: var(--text-white);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-water-log-retry-btn:hover {
+    background: var(--accent-error-hover);
+    transform: translateY(-2px);
+}
+
+.user-water-log-header {
+    background: var(--background-white);
+    border-bottom: 1px solid var(--border-color);
+    padding: 2rem 0;
+    padding-top: 120px;
+}
+
+.user-water-log-header-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.user-water-log-header-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-water-log-header-icon {
+    padding: 0.75rem;
+    background: var(--background-light);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-water-log-header-text h1 {
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+}
+
+.user-water-log-header-text p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 1rem;
+}
+
+.user-water-log-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+}
+
+.user-water-log-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.user-water-log-stat-card {
+    background: var(--background-white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition: all 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.user-water-log-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 20px var(--shadow-hover);
+}
+
+.user-water-log-stat-average {
+    border-left-color: var(--accent-success);
+    background: linear-gradient(135deg, var(--background-white) 0%, #f0fdf4 100%);
+}
+
+.user-water-log-stat-total {
+    border-left-color: var(--accent-info);
+    background: linear-gradient(135deg, var(--background-white) 0%, #eff6ff 100%);
+}
+
+.user-water-log-stat-week {
+    border-left-color: var(--accent-warning);
+    background: linear-gradient(135deg, var(--background-white) 0%, #fffbeb 100%);
+}
+
+.user-water-log-stat-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-water-log-stat-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.user-water-log-stat-value {
+    display: block;
+    color: var(--text-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.user-water-log-filters-card {
+    background: var(--background-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    margin-bottom: 3rem;
+}
+
+.user-water-log-filters-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-water-log-filters-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.user-water-log-filters-toggle {
+    display: none;
+    background: transparent;
+    border: 2px solid var(--accent-info);
+    color: var(--accent-info);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-water-log-filters-toggle:hover {
+    background: var(--background-light);
+}
+
+.user-water-log-filters-content {
+    padding: 2rem;
+}
+
+.user-water-log-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.user-water-log-filter-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.user-water-log-filter-group label {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.user-water-log-filter-input {
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-light);
+    color: var(--text-primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.user-water-log-filter-input:focus {
+    outline: none;
+    border-color: var(--accent-info);
+    background: var(--background-white);
+}
+
+.user-water-log-clear-btn {
+    background: transparent;
+    border: 2px solid var(--accent-error);
+    color: var(--accent-error);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    height: fit-content;
+    align-self: end;
+}
+
+.user-water-log-clear-btn:hover {
+    background: var(--background-light);
+}
+
+.user-water-log-chart-card,
+.user-water-log-table-card {
+    background: var(--background-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    margin-bottom: 3rem;
+}
+
+.user-water-log-chart-header,
+.user-water-log-table-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.user-water-log-chart-header h3,
+.user-water-log-table-header h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.user-water-log-page-size {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-water-log-page-size label {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.user-water-log-page-size-select {
+    padding: 0.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-white);
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    cursor: pointer;
+}
+
+.user-water-log-chart-content,
+.user-water-log-table-content {
+    padding: 2rem;
+}
+
+.user-water-log-chart {
+    height: 320px;
+}
+
+.user-water-log-empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.user-water-log-empty-state h4 {
+    margin: 1rem 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.user-water-log-empty-state p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+.user-water-log-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.user-water-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--background-white);
+}
+
+.user-water-log-table th {
+    background: var(--background-light);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.user-water-log-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.user-water-log-table tr:hover {
+    background: var(--background-light);
+}
+
+.user-water-log-date-cell {
+    font-weight: 500;
+}
+
+.user-water-log-amount {
+    font-weight: 600;
+    color: var(--accent-info);
+}
+
+.user-water-log-notes-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-water-log-status {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.user-water-log-status-active {
+    background: var(--accent-success-light);
+    color: var(--accent-success);
+}
+
+.user-water-log-status-default {
+    background: var(--background-light);
+    color: var(--text-secondary);
+}
+
+.user-water-log-view-btn {
+    background: transparent;
+    border: none;
+    color: var(--accent-info);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-water-log-view-btn:hover {
+    background: var(--background-light);
+    color: var(--primary-hover);
+}
+
+.user-water-log-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.user-water-log-pagination-info {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.user-water-log-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-water-log-pagination-btn {
+    background: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.user-water-log-pagination-btn:hover:not(:disabled) {
+    border-color: var(--accent-info);
+    color: var(--accent-info);
+}
+
+.user-water-log-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.user-water-log-pagination-text {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.user-water-log-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.user-water-log-modal {
+    background: var(--background-white);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.user-water-log-modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-water-log-modal-header h3 {
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+.user-water-log-modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.user-water-log-modal-close:hover {
+    color: var(--text-primary);
+    background: var(--background-light);
+}
+
+.user-water-log-modal-content {
+    padding: 2rem;
+}
+
+.user-water-log-modal-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.user-water-log-modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.user-water-log-modal-field label {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+.user-water-log-modal-input,
+.user-water-log-modal-textarea {
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--background-light);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.user-water-log-modal-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.user-water-log-modal-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.user-water-log-modal-btn {
+    background: var(--accent-info);
+    color: var(--text-white);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.user-water-log-modal-btn:hover {
+    background: var(--primary-hover);
+}
+
+.user-water-log-snackbar {
+    position: fixed;
+    top: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-white);
+    color: var(--text-primary);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    z-index: 1001;
+    min-width: 300px;
+    border-left: 4px solid var(--accent-info);
+}
+
+.user-water-log-snackbar-error {
+    border-left-color: var(--accent-error);
+    background: #fef2f2;
+    color: var(--accent-error);
+}
+
+.user-water-log-snackbar-success {
+    border-left-color: var(--accent-success);
+    background: #f0fdf4;
+    color: var(--accent-success);
+}
+
+.user-water-log-snackbar-close {
+    background: transparent;
+    border: none;
+    color: currentColor;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.user-water-log-snackbar-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .user-water-log-header-content {
+        padding: 0 1rem;
+    }
+
+    .user-water-log-content {
+        padding: 2rem 1rem;
+    }
+
+    .user-water-log-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .user-water-log-filters-toggle {
+        display: block;
+    }
+
+    .user-water-log-filters-content {
+        display: none;
+    }
+
+    .user-water-log-filters-show {
+        display: block;
+    }
+
+    .user-water-log-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-water-log-hide-mobile {
+        display: none;
+    }
+
+    .user-water-log-chart-header,
+    .user-water-log-table-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .user-water-log-pagination {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .user-water-log-modal {
+        margin: 1rem;
+    }
+
+    .user-water-log-modal-header,
+    .user-water-log-modal-content,
+    .user-water-log-modal-footer {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-water-log-header-text h1 {
+        font-size: 1.5rem;
+    }
+
+    .user-water-log-stat-value {
+        font-size: 1.5rem;
+    }
+
+    .user-water-log-chart-content,
+    .user-water-log-table-content {
+        padding: 1rem;
+    }
+
+    .user-water-log-table th,
+    .user-water-log-table td {
+        padding: 0.75rem 0.5rem;
+    }
+}

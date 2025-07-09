@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Initialize Axios client with base configuration
 const apiClient = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL,
     headers: {
@@ -7,6 +8,7 @@ const apiClient = axios.create({
     },
 });
 
+// Add request interceptor to include Bearer token
 apiClient.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -15,26 +17,25 @@ apiClient.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
 );
 
+// Post service API methods
 const apiPostService = {
-    getMyPosts: async (queryParams) => {
+    getMyPosts: async (ownerId,queryParams) => {
         try {
-            const response = await apiClient.get('/CommunityPost',{ params: queryParams });
+            const response = await apiClient.get(`/CommunityPost/owner/${ownerId}`,{ params: queryParams });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch posts.' };
         }
     },
 
+
     getPostsByTags: async (groupId,tagIds,queryParams) => {
         try {
             const response = await apiClient.get(`/CommunityPost/tags/${groupId}`,{
-                params: {
-                    tagIds,
-                    ...queryParams
-                },
+                params: { tagIds,...queryParams },
                 paramsSerializer: (params) => {
                     const searchParams = new URLSearchParams();
                     for (const [key,value] of Object.entries(params)) {
@@ -45,7 +46,7 @@ const apiPostService = {
                         }
                     }
                     return searchParams.toString();
-                }
+                },
             });
             return response.data;
         } catch (error) {
@@ -67,7 +68,7 @@ const apiPostService = {
                         }
                     }
                     return searchParams.toString();
-                }
+                },
             });
             return response.data;
         } catch (error) {
@@ -121,42 +122,6 @@ const apiPostService = {
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to soft delete post.' };
-        }
-    },
-
-    restorePost: async (id) => {
-        try {
-            const response = await apiClient.post(`/CommunityPost/restore/${id}`);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to restore post.' };
-        }
-    },
-
-    restoreMultiplePosts: async (postIds) => {
-        try {
-            const response = await apiClient.post('/CommunityPost/restore-multiple',postIds);
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to restore multiple posts.' };
-        }
-    },
-
-    restoreAllPosts: async () => {
-        try {
-            const response = await apiClient.post('/CommunityPost/restore-all');
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to restore all posts.' };
-        }
-    },
-
-    getPostStatistics: async (queryParams) => {
-        try {
-            const response = await apiClient.get('/CommunityPost/statistics',{ params: queryParams });
-            return response.data;
-        } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch post statistics.' };
         }
     },
 };

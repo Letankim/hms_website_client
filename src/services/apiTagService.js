@@ -1,16 +1,16 @@
-import axios from 'axios';
+import axios from "axios";
 
 const apiClient = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL,
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
 });
 
 apiClient.interceptors.request.use(
     (config) => {
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.accessToken) {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        if (user?.accessToken) {
             config.headers.Authorization = `Bearer ${user.accessToken}`;
         }
         return config;
@@ -21,46 +21,46 @@ apiClient.interceptors.request.use(
 const apiTagService = {
     getAllActiveTags: async (queryParams) => {
         try {
-            const response = await apiClient.get('/Tag/active',{ params: queryParams });
+            const response = await apiClient.get("/tag/active",{ params: queryParams });
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch tags.' };
+            throw error.response?.data || { message: "Failed to fetch active tags." };
         }
     },
 
     getTagById: async (id) => {
         try {
-            const response = await apiClient.get(`/Tag/${id}`);
+            const response = await apiClient.get(`/tag/${id}`);
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch tag.' };
+            throw error.response?.data || { message: "Failed to fetch tag." };
         }
     },
 
     addTagsToPost: async (postId,tagIds) => {
         try {
-            const response = await apiClient.post(`/Tag/post/${postId}/add-tags`,tagIds);
+            const response = await apiClient.post(`/tag/post/${postId}/add-tags`,tagIds);
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Failed to add tags to post.' };
+            throw error.response?.data || { message: "Failed to add tags to post." };
         }
     },
 
     removeTagsFromPost: async (postId,tagIds) => {
         try {
-            const response = await apiClient.post(`/Tag/post/${postId}/remove-tags`,tagIds);
+            const response = await apiClient.post(`/tag/post/${postId}/remove-tags`,tagIds);
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Failed to remove tags from post.' };
+            throw error.response?.data || { message: "Failed to remove tags from post." };
         }
     },
 
     getTagStatistics: async (queryParams) => {
         try {
-            const response = await apiClient.get('/Tag/statistics',{ params: queryParams });
+            const response = await apiClient.get("/tag/statistics",{ params: queryParams });
             return response.data;
         } catch (error) {
-            throw error.response?.data || { message: 'Failed to fetch tag statistics.' };
+            throw error.response?.data || { message: "Failed to fetch tag statistics." };
         }
     },
 };

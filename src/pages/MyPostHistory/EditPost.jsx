@@ -24,13 +24,22 @@ import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import apiPostService from "services/apiPostService";
 import apiTagService from "services/apiTagService";
-import "./EditPost.css";
+import { apiUploadImageCloudService } from "services/apiUploadImageCloudService";
 import AuthContext from "contexts/AuthContext";
+import "./EditPost.css";
+import {
+  showErrorFetchAPI,
+  showErrorMessage,
+  showSuccessMessage,
+} from "components/ErrorHandler/showStatusMessage";
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/bmp"];
 
 const EditPost = () => {
-  const { groupId, postId } = useParams();
+  const { postId } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+
   const [post, setPost] = useState(null);
   const [content, setContent] = useState("");
   const [thumbnail, setThumbnail] = useState("");
@@ -55,15 +64,17 @@ const EditPost = () => {
         setThumbnail(postRes.data.thumbnail || "");
         setThumbnailBase64(postRes.data.thumbnail || "");
         setTags(postRes.data.tags || []);
-        setSelectedTagIds(postRes.data.tags.map((tag) => tag.tagId) || []);
+        setSelectedTagIds(postRes.data.tags?.map((tag) => tag.tagId) || []);
 
         const tagsRes = await apiTagService.getAllActiveTags({});
         setAvailableTags(tagsRes?.data?.tags || []);
       } catch (e) {
-        setError("Failed to load post or tags.");
+        showErrorFetchAPI(e);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
+
     fetchData();
   }, [postId]);
 
@@ -77,18 +88,21 @@ const EditPost = () => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file && ["image/jpeg", "image/png", "image/gif"].includes(file.type)) {
+    if (file && ALLOWED_TYPES.includes(file.type)) {
       setThumbnailFile(file);
-      setThumbnail(URL.createObjectURL(file));
-
-      // Convert to Base64
       const reader = new FileReader();
       reader.onloadend = () => {
         setThumbnailBase64(reader.result);
+        setThumbnail(reader.result);
       };
       reader.readAsDataURL(file);
     } else {
-      setError("Please select a valid image file (JPEG, PNG, or GIF).");
+      showErrorMessage(
+        `Please select a valid image file (${ALLOWED_TYPES.join(", ")}).`
+      );
+      setThumbnailFile(null);
+      setThumbnailBase64("");
+      setThumbnail("");
     }
   };
 
@@ -102,41 +116,91 @@ const EditPost = () => {
   };
 
   const handleSave = async () => {
-    if (!content.trim()) {
-      setError("Content is required.");
+    const trimmedContent = content.trim();
+    const finalTagIds = selectedTagIds || [];
+
+    if (!trimmedContent) {
+      showErrorMessage("Content is required.");
       return;
     }
+
+    if (trimmedContent.length > 500) {
+      showErrorMessage("Content must be 500 characters or fewer.");
+      return;
+    }
+
+    if (!post?.userId || post.userId <= 0) {
+      showErrorMessage("Invalid user.");
+      return;
+    }
+
+    if (!post?.groupId || post.groupId <= 0) {
+      showErrorMessage("Invalid group.");
+      return;
+    }
+
+    if (!Array.isArray(finalTagIds) || finalTagIds.length === 0) {
+      showErrorMessage("At least one tag is required.");
+      return;
+    }
+
+    if (thumbnail && thumbnail.length > 255) {
+      showErrorMessage("Thumbnail URL must be 255 characters or fewer.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(null);
+
     try {
+      let finalThumbnail = thumbnail;
+
+      if (thumbnailMode === "file" && thumbnailFile) {
+        const formData = new FormData();
+        const fileName = `post_thumbnail-${Date.now()}.${
+          thumbnailFile.type.split("/")[1]
+        }`;
+        formData.append("file", thumbnailFile, fileName);
+
+        const uploadResponse = await apiUploadImageCloudService.uploadImage(
+          formData,
+          "post_thumbnails",
+          user.userId
+        );
+        if (uploadResponse.isError) {
+          throw new Error(uploadResponse.message);
+        }
+        finalThumbnail = uploadResponse.imageUrl;
+      } else if (thumbnailMode !== "url") {
+        finalThumbnail = "";
+      }
+
       const updatedPost = {
         postId: parseInt(postId),
         userId: post.userId,
-        groupId: parseInt(groupId),
-        thumbnail:
-          thumbnailMode === "file" && thumbnailBase64
-            ? thumbnailBase64
-            : thumbnail,
-        content,
-        status: post.status,
+        groupId: parseInt(post.groupId),
+        thumbnail: finalThumbnail,
+        content: trimmedContent,
+        status: post.status || "active",
         createdAt: post.createdAt,
         createdBy: post.createdBy,
         updatedAt: new Date().toISOString(),
-        totalComment: post.totalComment,
-        tagIds: selectedTagIds,
+        totalComment: post.totalComment || 0,
+        tagIds: finalTagIds,
         tags,
       };
 
       await apiPostService.updatePost(postId, updatedPost);
-      await apiTagService.addTagsToPost(postId, selectedTagIds);
+      await apiTagService.addTagsToPost(postId, finalTagIds);
 
-      setSuccess("Post updated successfully!");
+      showSuccessMessage("Post updated successfully!");
       setTimeout(() => navigate(`/my-posts/${postId}/view`), 2000);
     } catch (e) {
-      setError(e?.message || "Failed to update post.");
+      showErrorFetchAPI(e);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   if (loading) {
@@ -158,6 +222,7 @@ const EditPost = () => {
       <Typography variant="h5" fontWeight={700} mb={3}>
         Edit Post
       </Typography>
+
       <Snackbar
         open={error || success}
         autoHideDuration={6000}
@@ -177,6 +242,7 @@ const EditPost = () => {
           {error || success}
         </Alert>
       </Snackbar>
+
       <Card className="edit-card">
         <CardContent>
           <Grid container spacing={3}>
@@ -232,6 +298,7 @@ const EditPost = () => {
                 className="ckeditor-editor"
               />
             </Grid>
+
             <Grid item xs={12} sx={{ width: "100%" }}>
               <Typography variant="h6" fontWeight={600} mb={1}>
                 Thumbnail
@@ -255,7 +322,10 @@ const EditPost = () => {
                 <TextField
                   fullWidth
                   value={thumbnail}
-                  onChange={(e) => setThumbnail(e.target.value)}
+                  onChange={(e) => {
+                    setThumbnail(e.target.value);
+                    setThumbnailBase64(e.target.value);
+                  }}
                   placeholder="Enter image URL..."
                   variant="outlined"
                   className="modern-textfield"
@@ -267,20 +337,21 @@ const EditPost = () => {
                   onChange={handleFileChange}
                   variant="outlined"
                   className="modern-textfield"
-                  inputProps={{ accept: "image/jpeg,image/png,image/gif" }}
+                  inputProps={{ accept: ALLOWED_TYPES.join(",") }}
                 />
               )}
-              {thumbnail && (
+              {thumbnailBase64 && (
                 <CardMedia
                   component="img"
                   height="150"
-                  image={thumbnail}
+                  image={thumbnailBase64}
                   alt="Thumbnail Preview"
                   className="thumbnail-preview"
                   sx={{ mt: 2 }}
                 />
               )}
             </Grid>
+
             <Grid item xs={12} sx={{ width: "100%" }}>
               <Typography variant="h6" fontWeight={600} mb={1}>
                 Tags
@@ -318,6 +389,7 @@ const EditPost = () => {
                 </Select>
               </FormControl>
             </Grid>
+
             <Grid item xs={12} sx={{ width: "100%" }}>
               <Box display="flex" gap={2}>
                 <Button

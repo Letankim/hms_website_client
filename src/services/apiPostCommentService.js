@@ -15,7 +15,7 @@ apiClient.interceptors.request.use(
         }
         return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
 );
 
 const apiPostCommentService = {
@@ -25,7 +25,7 @@ const apiPostCommentService = {
             const response = await apiClient.get(`/PostComment/active/by-post/${postId}`,{ params });
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to fetch comments.' };
         }
     },
 
@@ -40,7 +40,7 @@ const apiPostCommentService = {
             const response = await apiClient.post('/PostComment/user',commentData);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to add comment.' };
         }
     },
 
@@ -58,7 +58,7 @@ const apiPostCommentService = {
             const response = await apiClient.put(`/PostComment/user/${commentId}`,commentData);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to edit comment.' };
         }
     },
 
@@ -70,9 +70,9 @@ const apiPostCommentService = {
             const response = await apiClient.delete(`/PostComment/delete/user/${commentId}`);
             return response.data;
         } catch (error) {
-            throw error;
+            throw error.response?.data || { message: 'Failed to delete comment.' };
         }
-    }
+    },
 };
 
 export default apiPostCommentService;

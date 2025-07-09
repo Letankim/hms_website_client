@@ -1,0 +1,196 @@
+/* Main container styles */
+.services-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+    padding: 24px;
+    padding-top: 80px;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Title styling */
+.services-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table styling */
+.services-table {
+    background: var(--background-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px var(--shadow-color);
+}
+
+/* Status pill button styling (larger, legible, modern) */
+.status-pill {
+    border-radius: 20px !important;
+    /* Pill shape with rounded edges */
+    min-width: 100px !important;
+    height: 40px !important;
+    padding: 8px 16px !important;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    text-transform: capitalize !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.status-pill:hover {
+    opacity: 0.9 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Detail button styling (larger, legible, modern) */
+.MuiButton-outlined {
+    border-radius: 20px !important;
+    /* Pill shape with rounded edges */
+    min-width: 80px !important;
+    height: 36px !important;
+    padding: 6px 12px !important;
+    font-size: 0.875rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: all 0.2s ease !important;
+}
+
+.MuiButton-outlined:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Empty state styling */
+.services-empty {
+    text-align: center;
+    padding: 32px 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+/* Additional Material-UI component styles */
+.MuiTableRow-root:hover {
+    background-color: var(--background-light);
+    transition: background-color 0.3s ease;
+}
+
+.MuiDialog-paper {
+    border-radius: 16px !important;
+    overflow: hidden;
+}
+
+.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+    border-color: var(--accent-info) !important;
+}
+
+.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: var(--accent-info) !important;
+    border-width: 2px;
+}
+
+.MuiSnackbarContent-root {
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+/* Animation for dialog entrance */
+.MuiDialog-paper {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Styles */
+@media (max-width: 600px) {
+    .services-container {
+        padding: 16px;
+        padding-top: 70px;
+    }
+
+    .services-title {
+        font-size: 1.6rem !important;
+    }
+
+    .services-table {
+        padding: 12px;
+        overflow-x: auto;
+    }
+
+    .status-pill {
+        min-width: 80px !important;
+        height: 32px !important;
+        font-size: 0.75rem !important;
+        padding: 4px 12px !important;
+    }
+
+    .MuiButton-outlined {
+        min-width: 60px !important;
+        height: 30px !important;
+        font-size: 0.75rem !important;
+        padding: 4px 8px !important;
+    }
+
+    .MuiTableCell-root {
+        padding: 8px;
+        font-size: 0.75rem;
+    }
+
+    .MuiTypography-h3 {
+        font-size: 1.5rem;
+    }
+
+    .MuiTypography-h6 {
+        font-size: 0.875rem;
+    }
+
+    .MuiButton-root {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+}
+
+@media (min-width: 600px) and (max-width: 960px) {
+    .services-container {
+        padding: 20px;
+        padding-top: 80px;
+    }
+
+    .services-title {
+        font-size: 1.8rem !important;
+    }
+
+    .status-pill {
+        min-width: 90px !important;
+        height: 36px !important;
+        font-size: 0.8rem !important;
+        padding: 6px 14px !important;
+    }
+
+    .MuiButton-outlined {
+        min-width: 70px !important;
+        height: 34px !important;
+        font-size: 0.8rem !important;
+        padding: 6px 10px !important;
+    }
+
+    .MuiTableCell-root {
+        font-size: 0.875rem;
+    }
+
+    .MuiTypography-h3 {
+        font-size: 2rem;
+    }
+}

@@ -1,0 +1,913 @@
+.food-list-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+    padding: 2rem 0;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Header Section */
+.header-section {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-top: 100px;
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.header-icon {
+    color: var(--secondary-color);
+    display: flex;
+    align-items: center;
+}
+
+.header-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 700;
+    background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+.header-description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Filter Section */
+.filter-section {
+    background: var(--background-white);
+    border-radius: var(--border-radius-large);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    border: 1px solid var(--border-light);
+}
+
+.filter-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.filter-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--secondary-color);
+}
+
+.filter-title svg {
+    color: var(--accent-info);
+}
+
+.mobile-filter-toggle {
+    display: none;
+    background: none;
+    border: 1px solid var(--accent-info);
+    color: var(--accent-info);
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.mobile-filter-toggle:hover {
+    background: rgba(25, 118, 210, 0.1);
+}
+
+.filter-content {
+    display: block;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 1.5rem;
+    align-items: end;
+}
+
+/* Search Input */
+.search-input-container {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-info);
+    z-index: 1;
+}
+
+.search-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    background: var(--background-white);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--accent-info);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+.search-input::placeholder {
+    color: var(--text-light);
+}
+
+/* Select Containers */
+.select-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.select-container label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.filter-select {
+    padding: 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    background: var(--background-white);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent-info);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.1);
+}
+
+/* Clear Filters Button */
+.clear-filters-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: 1px solid var(--accent-info);
+    color: var(--accent-info);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.clear-filters-btn:hover {
+    background: rgba(25, 118, 210, 0.1);
+}
+
+/* Error Message */
+.error-message {
+    background: var(--accent-error);
+    color: white;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 2rem;
+    animation: slideInDown 0.3s ease;
+}
+
+.error-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Results Summary */
+.results-summary {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    font-size: 1rem;
+}
+
+.results-summary strong {
+    color: var(--text-primary);
+}
+
+/* Foods Grid */
+.foods-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+/* Food Card */
+.food-card {
+    background: var(--background-white);
+    border-radius: var(--border-radius-large);
+    overflow: hidden;
+    box-shadow: 0 4px 12px var(--shadow-color);
+    transition: var(--transition);
+    border: 1px solid var(--border-light);
+    height: 420px;
+    display: flex;
+    flex-direction: column;
+}
+
+.food-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px var(--shadow-hover);
+}
+
+.food-image-container {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+}
+
+.food-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.food-card:hover .food-image {
+    transform: scale(1.05);
+}
+
+.category-chip {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+}
+
+.food-content {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.food-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin: 0 0 1rem 0;
+    line-height: 1.3;
+    height: 2.6em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.calories-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.nutrition-chips {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+}
+
+.nutrition-chip {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid;
+}
+
+.nutrition-chip.protein {
+    color: var(--accent-info);
+    border-color: var(--accent-info);
+    background: rgba(25, 118, 210, 0.1);
+}
+
+.nutrition-chip.carbs {
+    color: #ff9800;
+    border-color: #ff9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+.nutrition-chip.fats {
+    color: #9c27b0;
+    border-color: #9c27b0;
+    background: rgba(156, 39, 176, 0.1);
+}
+
+.view-details-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-top: auto;
+}
+
+.view-details-btn:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--background-white);
+    border-radius: var(--border-radius-large);
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.empty-icon {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.empty-title {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-description {
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Pagination Section */
+.pagination-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--background-white);
+    padding: 1.5rem;
+    border-radius: var(--border-radius-large);
+    box-shadow: 0 4px 12px var(--shadow-color);
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.page-size-selector select {
+    padding: 0.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    background: var(--background-white);
+}
+
+.pagination-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pagination-btn {
+    min-width: 40px;
+    height: 40px;
+    border: 1px solid var(--border-light);
+    background: var(--background-white);
+    color: var(--accent-info);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+.pagination-btn:hover {
+    background: var(--background-light);
+}
+
+.pagination-btn.active {
+    background: var(--accent-info);
+    color: white;
+    border-color: var(--accent-info);
+}
+
+.pagination-dots {
+    padding: 0 0.5rem;
+    color: var(--text-secondary);
+}
+
+.pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999999999;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+.modal-container {
+    background: var(--background-white);
+    border-radius: var(--border-radius-large);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideInUp 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 9999999999999999;
+}
+
+.modal-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-header-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.modal-close-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-content {
+    overflow-y: auto;
+    max-height: calc(90vh - 200px);
+}
+
+.modal-image {
+    height: 250px;
+}
+
+.modal-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.food-header {
+    margin-bottom: 2rem;
+}
+
+.food-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin: 0 0 0.5rem 0;
+}
+
+.food-category {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.nutrition-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.nutrition-panel,
+.details-panel {
+    background: var(--background-light);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+}
+
+.panel-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--secondary-color);
+    margin: 0 0 1rem 0;
+}
+
+.nutrition-list,
+.details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.nutrition-item,
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nutrition-label,
+.detail-label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.nutrition-value,
+.detail-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.calories-badge {
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+}
+
+.protein-value {
+    color: var(--accent-info);
+}
+
+.carbs-value {
+    color: #ff9800;
+}
+
+.fats-value {
+    color: #9c27b0;
+}
+
+.nutrition-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 0.5rem 0;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-badge.active {
+    background: var(--accent-success);
+    color: white;
+}
+
+.status-badge.inactive {
+    background: var(--text-light);
+    color: white;
+}
+
+.description-panel {
+    background: var(--background-light);
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+}
+
+.food-description {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.modal-footer {
+    background: var(--background-light);
+    padding: 1.5rem 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.modal-close-footer-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.modal-close-footer-btn:hover {
+    background: var(--primary-hover);
+}
+
+/* Skeleton Loading */
+.skeleton-card {
+    pointer-events: none;
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+.skeleton-image {
+    height: 180px;
+    width: 100%;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 80%;
+    margin-bottom: 1rem;
+}
+
+.skeleton-calories {
+    height: 20px;
+    width: 60%;
+    margin-bottom: 1rem;
+}
+
+.skeleton-chip {
+    height: 24px;
+    width: 50px;
+    border-radius: 12px;
+}
+
+.skeleton-button {
+    height: 40px;
+    width: 100%;
+    border-radius: var(--border-radius);
+    margin-top: 1rem;
+}
+
+.skeleton-header-title {
+    height: 48px;
+    width: 300px;
+    margin: 0 auto 1rem;
+}
+
+.skeleton-header-desc {
+    height: 20px;
+    width: 200px;
+    margin: 0 auto;
+}
+
+.skeleton-filter {
+    height: 56px;
+    border-radius: var(--border-radius);
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .filter-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+
+    .clear-filters-btn {
+        grid-column: span 2;
+    }
+
+    .nutrition-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pagination-section {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-section {
+        padding-top: 80px;
+        margin-bottom: 2rem;
+    }
+
+    .header-content {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .mobile-filter-toggle {
+        display: block;
+    }
+
+    .filter-content {
+        display: none;
+    }
+
+    .filter-content.show {
+        display: block;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .foods-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .food-card {
+        height: auto;
+    }
+
+    .modal-container {
+        margin: 0.5rem;
+        max-height: 95vh;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 1rem;
+    }
+
+    .pagination-container {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+
+    .filter-section {
+        padding: 1rem;
+    }
+
+    .food-content {
+        padding: 1rem;
+    }
+
+    .modal-container {
+        margin: 0.25rem;
+    }
+}
+
+/* Focus States for Accessibility */
+.search-input:focus,
+.filter-select:focus,
+.clear-filters-btn:focus,
+.view-details-btn:focus,
+.pagination-btn:focus,
+.modal-close-btn:focus,
+.modal-close-footer-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Print Styles */
+@media print {
+    .food-list-container {
+        background: white !important;
+    }
+
+    .filter-section,
+    .pagination-section,
+    .modal-overlay {
+        display: none !important;
+    }
+
+    .food-card {
+        break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+}

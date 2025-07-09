@@ -1,58 +1,29 @@
 import { useState, useEffect, useContext, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  CircularProgress,
-  Alert,
-  Divider,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Snackbar,
-  Chip,
-  Avatar,
-  InputAdornment,
-  Grid,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-} from "@mui/material";
-import {
-  Edit as EditIcon,
-  Lock as LockIcon,
-  CameraAlt as CameraIcon,
-  Phone as PhoneIcon,
-  CheckCircle as StatusIcon,
-  People as RolesIcon,
-  CalendarToday as CreatedAtIcon,
-  Login as LastLoginIcon,
-  History as HistoryIcon,
-  FitnessCenter as FitnessIcon,
-} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { useDropzone } from "react-dropzone";
 import Cropper from "react-easy-crop";
 import AuthContext from "contexts/AuthContext";
 import apiUserService from "services/apiUserService";
+import { apiUploadImageCloudService } from "services/apiUploadImageCloudService";
 import "./UserProfile.css";
+import {
+  showErrorFetchAPI,
+  showErrorMessage,
+  showSuccessMessage,
+} from "components/ErrorHandler/showStatusMessage";
+
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/bmp"];
+
+const base64ToFile = (base64, filename, mimeType) => {
+  const byteString = atob(base64.split(",")[1]);
+  const arrayBuffer = new ArrayBuffer(byteString.length);
+  const intArray = new Uint8Array(arrayBuffer);
+  for (let i = 0; i < byteString.length; i++) {
+    intArray[i] = byteString.charCodeAt(i);
+  }
+  const blob = new Blob([arrayBuffer], { type: mimeType });
+  return new File([blob], filename, { type: mimeType });
+};
 
 export default function UserProfile() {
   const navigate = useNavigate();
@@ -76,21 +47,14 @@ export default function UserProfile() {
     severity: "success",
   });
 
-  const weightHistory = [
-    { date: "2025-06-01", weight: 70, bmi: 22.5 },
-    { date: "2025-05-01", weight: 71, bmi: 22.8 },
-    { date: "2025-04-01", weight: 72, bmi: 23.1 },
-  ];
-  const bodyMeasurements = {
-    height: "175 cm",
-    weight: "70 kg",
-    bmi: "22.5",
-    waist: "80 cm",
-    chest: "95 cm",
-  };
-
   useEffect(() => {
     const fetchProfile = async () => {
+      if (!user?.userId) {
+        setLoading(false);
+        showErrorMessage("You are not authorized to view this profile.");
+        return;
+      }
+
       setLoading(true);
       setError(null);
       try {
@@ -98,70 +62,75 @@ export default function UserProfile() {
         if (!response.data) throw new Error("No user data received");
         setProfile(response.data);
       } catch (err) {
-        setError(err.message || "Failed to load profile.");
+        showErrorFetchAPI(err);
       } finally {
         setLoading(false);
       }
     };
-
-    if (!user || !user.userId) {
-      setError("You are not authorized to view this profile.");
-      setLoading(false);
-      return;
-    }
 
     fetchProfile();
   }, [user]);
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
-    if (file && file.type.startsWith("image/")) {
+    if (file && ALLOWED_TYPES.includes(file.type)) {
       setNewAvatarFile(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewAvatarBase64(reader.result);
-      };
+      reader.onloadend = () => setNewAvatarBase64(reader.result);
       reader.readAsDataURL(file);
     } else {
-      setAvatarError("Please upload a valid image file.");
+      showErrorMessage(
+        `Please upload a valid image file (${ALLOWED_TYPES.join(", ")}).`
+      );
     }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [] },
+    accept: ALLOWED_TYPES.reduce((acc, type) => ({ ...acc, [type]: [] }), {}),
     maxFiles: 1,
   });
 
   const handleUpdateAvatar = async () => {
     if (avatarSource === "file" && !newAvatarBase64) {
-      setAvatarError("Please upload an image.");
+      showErrorMessage("Please upload an image.");
       return;
     }
     if (avatarSource === "url" && !avatarUrl) {
-      setAvatarError("Please enter a valid image URL.");
+      showErrorMessage("Please enter a valid image URL.");
       return;
     }
+
     setAvatarLoading(true);
     setAvatarError(null);
     try {
-      const avatarData = avatarSource === "file" ? newAvatarBase64 : avatarUrl;
+      let avatarData;
+      if (avatarSource === "file") {
+        const mimeType = newAvatarBase64.split(";")[0].split(":")[1];
+        const fileName = `avatar-${Date.now()}.${mimeType.split("/")[1]}`;
+        const file = base64ToFile(newAvatarBase64, fileName, mimeType);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("user", user?.userId || "anonymous");
+
+        const uploadResponse = await apiUploadImageCloudService.uploadImage(
+          formData
+        );
+        if (uploadResponse.isError) {
+          throw new Error(uploadResponse.message);
+        }
+        avatarData = uploadResponse.imageUrl;
+      } else {
+        avatarData = avatarUrl;
+      }
+
       await apiUserService.updateAvatar(user.userId, avatarData);
-      setAvatarDialogOpen(false);
       const response = await apiUserService.getUserActiveById(user.userId);
       setProfile(response.data);
-      setSnackbar({
-        open: true,
-        message: "Avatar updated successfully!",
-        severity: "success",
-      });
+      setAvatarDialogOpen(false);
+      showSuccessMessage("Avatar updated successfully!");
     } catch (err) {
-      setAvatarError(err.response?.message || "Failed to update avatar.");
-      setSnackbar({
-        open: true,
-        message: err.response?.message || "Failed to update avatar.",
-        severity: "error",
-      });
+      showErrorFetchAPI(err);
     } finally {
       setAvatarLoading(false);
     }
@@ -175,6 +144,13 @@ export default function UserProfile() {
     setAvatarError(null);
     setCrop({ x: 0, y: 0 });
     setZoom(1);
+    setCroppedAreaPixels(null);
+    document.body.style.overflow = "auto";
+  };
+
+  const handleOpenAvatarDialog = () => {
+    setAvatarDialogOpen(true);
+    document.body.style.overflow = "hidden";
   };
 
   const handleCloseSnackbar = () => {
@@ -199,365 +175,478 @@ export default function UserProfile() {
     navigate(path);
   };
 
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case "active":
+        return "success";
+      case "pending":
+        return "warning";
+      case "inactive":
+        return "error";
+      default:
+        return "default";
+    }
+  };
+
+  const quickActions = [
+    {
+      icon: "✏️",
+      title: "Edit Profile",
+      description: "Update your personal information",
+      path: "/profile/edit",
+      color: "var(--accent-info)",
+    },
+    {
+      icon: "🔒",
+      title: "Change Password",
+      description: "Update your account security",
+      path: "/profile/change-password",
+      color: "var(--accent-info)",
+    },
+    {
+      icon: "📊",
+      title: "Weight History",
+      description: "View your weight tracking progress",
+      path: "/profile/weight-history",
+      color: "var(--accent-success)",
+    },
+    {
+      icon: "💪",
+      title: "Body Measurements",
+      description: "Track your body measurements",
+      path: "/profile/body-measurements",
+      color: "var(--accent-warning)",
+    },
+    {
+      icon: "💧",
+      title: "Water Log",
+      description: "Track your water intake",
+      path: "/profile/water-log",
+      color: "var(--accent-info)",
+    },
+  ];
+
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
-        <CircularProgress />
-      </Box>
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <h3 className="loading-text">Loading your profile...</h3>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
+      <div className="user-profile-container">
+        <div className="container">
+          <div className="error-message">
+            <div className="error-content">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              </svg>
+              <span>{error}</span>
+              <button
+                className="retry-btn"
+                onClick={() => window.location.reload()}
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        marginTop: "100px",
-      }}
-    >
-      <Grid container spacing={3} className="profile-container">
-        <Grid item xs={12} md={12} sm={12}>
-          <Paper elevation={3} sx={{ p: 2, borderRadius: 2, width: "100%" }}>
-            <Typography variant="h6" sx={{ mb: 2, color: "#1976d2" }}>
-              Profile Actions
-            </Typography>
-            <List>
-              <ListItem
-                button
-                onClick={() => handleNavigation("/profile/edit")}
+    <div className="user-profile-container">
+      <div className="container">
+        {/* Header Section */}
+        <div className="header-section">
+          <div className="header-content">
+            <div className="header-icon">
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="currentColor"
               >
-                <ListItemIcon>
-                  <EditIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="Edit Profile" />
-              </ListItem>
-              <ListItem
-                button
-                onClick={() => handleNavigation("/profile/change-password")}
-              >
-                <ListItemIcon>
-                  <LockIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="Change Password" />
-              </ListItem>
-              <ListItem
-                button
-                onClick={() => handleNavigation("/profile/weight-history")}
-              >
-                <ListItemIcon>
-                  <HistoryIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="Weight History" />
-              </ListItem>
-              <ListItem
-                button
-                onClick={() => handleNavigation("/profile/body-measurements")}
-              >
-                <ListItemIcon>
-                  <FitnessIcon color="primary" />
-                </ListItemIcon>
-                <ListItemText primary="Body Measurements" />
-              </ListItem>
-            </List>
-          </Paper>
-        </Grid>
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+              </svg>
+            </div>
+            <h1 className="header-title">User Profile</h1>
+          </div>
+          <p className="header-description">
+            Manage your personal information and account settings
+          </p>
+        </div>
 
-        <Grid item xs={12} md={9} sm={12}>
-          <Card sx={{ borderRadius: 2, boxShadow: 3, width: "100%" }}>
-            <CardContent>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-                <Box sx={{ position: "relative" }}>
-                  <Avatar
-                    src={profile.avatar}
+        {/* Profile Card */}
+        <div className="profile-card">
+          <div className="profile-banner"></div>
+          <div className="profile-content">
+            <div className="profile-info-section">
+              {/* Avatar Section */}
+              <div className="avatar-section">
+                <div className="avatar-container">
+                  <img
+                    src={profile.avatar || "/placeholder-avatar.jpg"}
                     alt={profile.fullName}
-                    sx={{
-                      width: 100,
-                      height: 100,
-                      border: "3px solid #1976d2",
-                      mr: 3,
+                    className="avatar-image"
+                    onError={(e) => {
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "flex";
                     }}
-                  >
-                    {profile.fullName?.charAt(0)?.toUpperCase() || "U"}
-                  </Avatar>
-                  <IconButton
-                    onClick={() => setAvatarDialogOpen(true)}
-                    sx={{
-                      position: "absolute",
-                      bottom: 0,
-                      right: 15,
-                      bgcolor: "#1976d2",
-                      color: "#fff",
-                      "&:hover": { bgcolor: "#1565c0" },
-                    }}
-                  >
-                    <CameraIcon />
-                  </IconButton>
-                </Box>
-                <Box>
-                  <Typography
-                    variant="h5"
-                    sx={{ fontWeight: 700, color: "#1976d2" }}
-                  >
-                    {profile.fullName || "N/A"}
-                  </Typography>
-                  <Typography variant="body1" sx={{ color: "#555" }}>
-                    {profile.email || "N/A"}
-                  </Typography>
-                </Box>
-              </Box>
-              <Divider sx={{ my: 2 }} />
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <PhoneIcon sx={{ color: "#43b72a", mr: 1 }} />
-                    <Typography variant="body1">
-                      <strong>Phone:</strong> {profile.phone || "N/A"}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <StatusIcon sx={{ color: "#43b72a", mr: 1 }} />
-                    <Typography variant="body1">
-                      <strong>Status:</strong>
-                      <Chip
-                        label={profile.status || "N/A"}
-                        color={
-                          profile.status === "active"
-                            ? "success"
-                            : profile.status === "pending"
-                            ? "warning"
-                            : "error"
-                        }
-                        size="small"
-                        sx={{ ml: 1 }}
-                      />
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <RolesIcon sx={{ color: "#43b72a", mr: 1 }} />
-                    <Typography variant="body1">
-                      <strong>Roles:</strong>
-                      {profile.roles && profile.roles.length > 0 ? (
-                        profile.roles.map((role, index) => (
-                          <Chip
-                            key={index}
-                            label={role}
-                            size="small"
-                            sx={{ ml: 1, bgcolor: "#e3f2fd", color: "#1976d2" }}
-                          />
-                        ))
-                      ) : (
-                        <span style={{ marginLeft: 8, color: "#888" }}>
-                          No roles
-                        </span>
-                      )}
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <CreatedAtIcon sx={{ color: "#43b72a", mr: 1 }} />
-                    <Typography variant="body1">
-                      <strong>Created At:</strong>{" "}
-                      {formatDate(profile.createdAt)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                    <LastLoginIcon sx={{ color: "#43b72a", mr: 1 }} />
-                    <Typography variant="body1">
-                      <strong>Last Login:</strong>{" "}
-                      {formatDate(profile.lastLogin) || "Never"}
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              {/* Weight History */}
-              <Typography variant="h6" sx={{ mt: 4, mb: 2, color: "#1976d2" }}>
-                Weight History
-              </Typography>
-              <TableContainer component={Paper} sx={{ mb: 4 }}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Date</TableCell>
-                      <TableCell>Weight (kg)</TableCell>
-                      <TableCell>BMI</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {weightHistory.map((entry, index) => (
-                      <TableRow key={index}>
-                        <TableCell>{entry.date}</TableCell>
-                        <TableCell>{entry.weight}</TableCell>
-                        <TableCell>{entry.bmi}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-
-              {/* Body Measurements */}
-              <Typography variant="h6" sx={{ mt: 4, mb: 2, color: "#1976d2" }}>
-                Body Measurements
-              </Typography>
-              <Grid container spacing={2}>
-                {Object.entries(bodyMeasurements).map(([key, value]) => (
-                  <Grid item xs={6} sm={4} key={key}>
-                    <Paper sx={{ p: 2, textAlign: "center", borderRadius: 2 }}>
-                      <Typography
-                        variant="subtitle1"
-                        sx={{ textTransform: "capitalize" }}
-                      >
-                        {key}
-                      </Typography>
-                      <Typography variant="h6">{value}</Typography>
-                    </Paper>
-                  </Grid>
-                ))}
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
-      <Dialog
-        open={avatarDialogOpen}
-        onClose={handleCloseAvatarDialog}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ bgcolor: "#1976d2", color: "#fff" }}>
-          Update Your Avatar
-        </DialogTitle>
-        <DialogContent sx={{ mt: 2 }}>
-          {avatarError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {avatarError}
-            </Alert>
-          )}
-          <FormControl fullWidth sx={{ mb: 2, mt: 2 }}>
-            <InputLabel>Avatar Source</InputLabel>
-            <Select
-              value={avatarSource}
-              onChange={(e) => {
-                setAvatarSource(e.target.value);
-                setNewAvatarFile(null);
-                setNewAvatarBase64("");
-                setAvatarUrl("");
-                setAvatarError(null);
-              }}
-              label="Avatar Source"
-            >
-              <MenuItem value="file">Upload File</MenuItem>
-              <MenuItem value="url">Enter URL</MenuItem>
-            </Select>
-          </FormControl>
-          {avatarSource === "file" ? (
-            <Box>
-              <Box
-                {...getRootProps()}
-                sx={{
-                  border: "2px dashed #1976d2",
-                  borderRadius: 2,
-                  p: 4,
-                  textAlign: "center",
-                  bgcolor: isDragActive ? "#e3f2fd" : "#fff",
-                  mb: 2,
-                }}
-              >
-                <input {...getInputProps()} />
-                {isDragActive ? (
-                  <Typography>Drop the image here...</Typography>
-                ) : (
-                  <Typography>
-                    Drag & drop an image here, or click to select
-                  </Typography>
-                )}
-              </Box>
-              {newAvatarBase64 && (
-                <Box sx={{ position: "relative", height: 300, mb: 2 }}>
-                  <Cropper
-                    image={newAvatarBase64}
-                    crop={crop}
-                    zoom={zoom}
-                    aspect={1}
-                    cropShape="round"
-                    onCropChange={setCrop}
-                    onZoomChange={setZoom}
-                    onCropComplete={(croppedArea, croppedAreaPixels) =>
-                      setCroppedAreaPixels(croppedAreaPixels)
-                    }
                   />
-                </Box>
-              )}
-            </Box>
-          ) : (
-            <TextField
-              label="Image URL"
-              value={avatarUrl}
-              onChange={(e) => setAvatarUrl(e.target.value)}
-              fullWidth
-              sx={{ mb: 2 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <CameraIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-          )}
-          {(avatarSource === "file" && newAvatarBase64) ||
-          (avatarSource === "url" && avatarUrl) ? (
-            <Box sx={{ textAlign: "center" }}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                Preview
-              </Typography>
-              <Avatar
-                src={avatarSource === "file" ? newAvatarBase64 : avatarUrl}
-                sx={{
-                  width: 100,
-                  height: 100,
-                  mx: "auto",
-                  border: "2px solid #1976d2",
-                }}
-              />
-            </Box>
-          ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAvatarDialog}>Cancel</Button>
-          <Button
-            onClick={handleUpdateAvatar}
-            variant="contained"
-            disabled={avatarLoading}
-          >
-            {avatarLoading ? <CircularProgress size={24} /> : "Update"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+                  <div className="avatar-fallback" style={{ display: "none" }}>
+                    {profile.fullName?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                  <button
+                    className="avatar-edit-btn"
+                    onClick={handleOpenAvatarDialog}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseSnackbar}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+              {/* Profile Info */}
+              <div className="profile-details">
+                <h2 className="profile-name">{profile.fullName || "N/A"}</h2>
+                <p className="profile-email">{profile.email || "N/A"}</p>
+                <div className="profile-badges">
+                  <span
+                    className={`status-badge ${getStatusColor(profile.status)}`}
+                  >
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                    </svg>
+                    {profile.status || "Unknown"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Stats */}
+              <div className="profile-stats">
+                <div className="stat-item">
+                  <div className="stat-icon level">⭐</div>
+                  <div className="stat-value">
+                    {profile.levelAccount || "N/A"}
+                  </div>
+                  <div className="stat-label">Level</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-icon experience">📈</div>
+                  <div className="stat-value">{profile.experience || "0"}</div>
+                  <div className="stat-label">XP</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-icon streak">🔥</div>
+                  <div className="stat-value">
+                    {profile.currentStreak || "0"}
+                  </div>
+                  <div className="stat-label">Streak</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="quick-actions-card">
+          <h3 className="section-title">Quick Actions</h3>
+          <div className="quick-actions-grid">
+            {quickActions.map((action, index) => (
+              <div
+                key={index}
+                className="action-card"
+                onClick={() => handleNavigation(action.path)}
+              >
+                <div className="action-header">
+                  <div
+                    className="action-icon"
+                    style={{ backgroundColor: `${action.color}15` }}
+                  >
+                    <span style={{ color: action.color }}>{action.icon}</span>
+                  </div>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="action-arrow"
+                  >
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+                  </svg>
+                </div>
+                <h4 className="action-title">{action.title}</h4>
+                <p className="action-description">{action.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Personal Information */}
+        <div className="personal-info-card">
+          <div className="section-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+            </svg>
+            <h3 className="section-title">Personal Information</h3>
+          </div>
+          <div className="info-list">
+            {[
+              { icon: "👤", label: "Username", value: profile.username },
+              { icon: "📧", label: "Email", value: profile.email },
+              { icon: "📱", label: "Phone", value: profile.phone },
+              { icon: "⚧", label: "Gender", value: profile.gender },
+              {
+                icon: "🎂",
+                label: "Birth Date",
+                value: formatDate(profile.birthDate),
+              },
+            ].map((item, index) => (
+              <div key={index} className="info-item">
+                <div className="info-icon">{item.icon}</div>
+                <div className="info-content">
+                  <span className="info-label">{item.label}</span>
+                  <span className="info-value">{item.value || "N/A"}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Avatar Update Modal */}
+      {avatarDialogOpen && (
+        <div className="modal-overlay" onClick={handleCloseAvatarDialog}>
+          <div
+            className="modal-container avatar-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div className="modal-header-content">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                </svg>
+                <h2>Update Your Avatar</h2>
+              </div>
+              <button
+                className="modal-close-btn"
+                onClick={handleCloseAvatarDialog}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
+            </div>
+            <div className="modal-content">
+              {avatarError && (
+                <div className="error-message">
+                  <div className="error-content">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+                    </svg>
+                    {avatarError}
+                  </div>
+                </div>
+              )}
+              <div className="avatar-source-selector">
+                <label>Avatar Source</label>
+                <select
+                  value={avatarSource}
+                  onChange={(e) => {
+                    setAvatarSource(e.target.value);
+                    setNewAvatarFile(null);
+                    setNewAvatarBase64("");
+                    setAvatarUrl("");
+                    setAvatarError(null);
+                  }}
+                  className="avatar-source-select"
+                >
+                  <option value="file">📁 Upload File</option>
+                  <option value="url">🔗 Enter URL</option>
+                </select>
+              </div>
+              {avatarSource === "file" ? (
+                <div className="file-upload-section">
+                  <div
+                    {...getRootProps()}
+                    className={`dropzone ${isDragActive ? "active" : ""}`}
+                  >
+                    <input {...getInputProps()} />
+                    <div className="dropzone-content">
+                      <svg
+                        width="48"
+                        height="48"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M14 2H6A2 2 0 0 0 4 4v16A2 2 0 0 0 6 22h12a2 2 0 0 0 2-20H14V2zm4 18H6V4h7v5h5v11z" />
+                      </svg>
+                      <h3>
+                        {isDragActive
+                          ? "Drop the image here..."
+                          : "Drag & drop an image here"}
+                      </h3>
+                      <p>or click to select a file</p>
+                    </div>
+                  </div>
+                  {newAvatarBase64 && (
+                    <div className="cropper-container">
+                      <Cropper
+                        image={newAvatarBase64}
+                        crop={crop}
+                        zoom={zoom}
+                        aspect={1}
+                        cropShape="round"
+                        onCropChange={setCrop}
+                        onZoomChange={setZoom}
+                        onCropComplete={(croppedArea, croppedAreaPixels) =>
+                          setCroppedAreaPixels(croppedAreaPixels)
+                        }
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="url-input-section">
+                  <label>Image URL</label>
+                  <div className="url-input-container">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H6.9C4.01 7 1.9 9.11 1.9 12s2.11 5 5 5h4v-1.9H6.9c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9.1-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.89 0 5-2.11 5-5s-2.11-5-5-5z" />
+                    </svg>
+                    <input
+                      type="text"
+                      value={avatarUrl}
+                      onChange={(e) => setAvatarUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className="url-input"
+                    />
+                  </div>
+                </div>
+              )}
+              {((avatarSource === "file" && newAvatarBase64) ||
+                (avatarSource === "url" && avatarUrl)) && (
+                <div className="avatar-preview">
+                  <h4>Preview</h4>
+                  <div className="preview-avatar">
+                    <img
+                      src={
+                        avatarSource === "file" ? newAvatarBase64 : avatarUrl
+                      }
+                      alt="Avatar preview"
+                      onError={(e) => {
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "flex";
+                      }}
+                    />
+                    <div
+                      className="preview-fallback"
+                      style={{ display: "none" }}
+                    >
+                      ❌
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={handleCloseAvatarDialog}>
+                Cancel
+              </button>
+              <button
+                className="update-btn"
+                onClick={handleUpdateAvatar}
+                disabled={avatarLoading}
+              >
+                {avatarLoading ? (
+                  <>
+                    <div className="loading-spinner small"></div>
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                    </svg>
+                    Update Avatar
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Snackbar Notification */}
+      {snackbar.open && (
+        <div className={`snackbar ${snackbar.severity}`}>
+          <div className="snackbar-content">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              {snackbar.severity === "success" ? (
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              ) : (
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
+              )}
+            </svg>
+            <span>{snackbar.message}</span>
+            <button className="snackbar-close" onClick={handleCloseSnackbar}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

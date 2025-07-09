@@ -1,53 +1,192 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
-  Box,
-  Container,
-  Card,
-  CardContent,
-  Avatar,
-  Typography,
-  Button,
-  Grid,
-  Chip,
-  IconButton,
-  Skeleton,
-  Paper,
-  Rating,
-  Divider,
-  Alert,
-  Snackbar,
-  AppBar,
-  Toolbar,
-  CardActionArea,
-  Stack,
-} from "@mui/material";
-import {
-  ArrowBack,
-  CalendarToday,
-  CheckCircle,
-  Schedule,
+  Calendar,
+  TickCircle,
+  Clock,
+  Profile,
+  Flash,
+  Tag,
+  Sms,
   Star,
-  Person,
-  FlashOn,
-  LocalOffer,
-  Email,
-  Verified,
-} from "@mui/icons-material";
-import apiServicePackageService from "services/apiServicePackageService";
-import { useNavigate, useParams } from "react-router-dom";
+  Warning2,
+  CloseCircle,
+  People,
+  Whatsapp,
+  Facebook,
+  Link1,
+} from "iconsax-react";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import DOMPurify from "dompurify";
 import AuthContext from "contexts/AuthContext";
+import apiServicePackageService from "services/apiServicePackageService";
+import apiTrainerRatingService from "services/apiTrainerRatingService";
+import "./ServicePackageDetail.css";
+import { Twitter } from "lucide-react";
+import {
+  showErrorFetchAPI,
+  showErrorMessage,
+  showInfoMessage,
+  showSuccessMessage,
+} from "components/ErrorHandler/showStatusMessage";
+
+const statusColors = {
+  active: "var(--accent-success)",
+  inactive: "var(--accent-error)",
+  pending: "#ff9800",
+};
+
+const RatingsCard = ({
+  ratingsData,
+  ratingsLoading,
+  packageId,
+  setError,
+  setShowError,
+}) => {
+  const [starFilter, setStarFilter] = useState("all");
+  const filteredRatings =
+    starFilter === "all"
+      ? ratingsData?.ratings || []
+      : ratingsData?.ratings?.filter(
+          (rating) => rating.rating === parseInt(starFilter)
+        ) || [];
+
+  return (
+    <div className="service-package-ratings-card">
+      <div className="service-package-ratings-header">
+        <div className="service-package-ratings-title">
+          <Star size="24" color="var(--secondary-color)" variant="Bold" />
+          <span>Ratings & Reviews</span>
+        </div>
+      </div>
+      {ratingsData?.ratings?.length > 0 && (
+        <>
+          <div className="service-package-rating-summary">
+            <div className="service-package-rating-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  size="20"
+                  color={
+                    star <= (ratingsData.averageRating || 0)
+                      ? "#ffc107"
+                      : "#e0e0e0"
+                  }
+                  variant={
+                    star <= (ratingsData.averageRating || 0)
+                      ? "Bold"
+                      : "Outline"
+                  }
+                />
+              ))}
+            </div>
+            <span className="service-package-rating-text">
+              {ratingsData.averageRating || 0} ({ratingsData.totalRatings || 0}{" "}
+              reviews)
+            </span>
+          </div>
+          <div className="service-package-filter-container">
+            <label>Filter by Stars:</label>
+            <select
+              value={starFilter}
+              onChange={(e) => setStarFilter(e.target.value)}
+              className="service-package-filter-select"
+            >
+              <option value="all">All Stars</option>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <option key={star} value={star}>
+                  {star} Star{star > 1 ? "s" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
+      <div className="service-package-ratings-divider"></div>
+      {ratingsLoading ? (
+        <div className="service-package-ratings-loading">
+          {[1, 2].map((i) => (
+            <div key={i} className="service-package-rating-skeleton">
+              <div className="service-package-skeleton service-package-skeleton-avatar"></div>
+              <div className="service-package-rating-skeleton-content">
+                <div className="service-package-skeleton service-package-skeleton-name"></div>
+                <div className="service-package-skeleton service-package-skeleton-date"></div>
+                <div className="service-package-skeleton service-package-skeleton-text"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : filteredRatings.length > 0 ? (
+        <div className="service-package-ratings-list">
+          {filteredRatings.map((rating) => (
+            <div key={rating.ratingId} className="service-package-rating-item">
+              <div className="service-package-rating-user">
+                <div className="service-package-rating-avatar">
+                  {rating.userAvatar ? (
+                    <img
+                      src={rating.userAvatar || "/placeholder.svg"}
+                      alt={rating.userFullName}
+                    />
+                  ) : (
+                    <Profile size="20" color="white" variant="Bold" />
+                  )}
+                </div>
+                <div className="service-package-rating-user-info">
+                  <span className="service-package-rating-user-name">
+                    {rating.userFullName}
+                  </span>
+                  <span className="service-package-rating-date">
+                    {new Date(rating.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <div className="service-package-rating-stars">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Star
+                    key={star}
+                    size="16"
+                    color={star <= rating.rating ? "#ffc107" : "#e0e0e0"}
+                    variant={star <= rating.rating ? "Bold" : "Outline"}
+                  />
+                ))}
+              </div>
+              <p className="service-package-rating-feedback">
+                {rating.feedbackText}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="service-package-no-ratings">
+          <Star size="48" color="var(--text-secondary)" />
+          <p>
+            No reviews{" "}
+            {starFilter !== "all"
+              ? `for ${starFilter} star${starFilter > 1 ? "s" : ""}`
+              : "yet"}
+            .
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ServicePackageDetail = () => {
   const { user } = useContext(AuthContext);
   const { packageId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [pkg, setPkg] = useState(null);
   const [relatedPackages, setRelatedPackages] = useState([]);
+  const [ratingsData, setRatingsData] = useState(null);
+  const [trainerAverageRating, setTrainerAverageRating] = useState(null);
   const [loading, setLoading] = useState(true);
   const [relatedLoading, setRelatedLoading] = useState(false);
+  const [ratingsLoading, setRatingsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showError, setShowError] = useState(false);
-  const navigate = useNavigate();
+  const [shareMessage, setShareMessage] = useState(null);
+  const [showShareMessage, setShowShareMessage] = useState(false);
 
   const fetchPackage = async () => {
     setLoading(true);
@@ -56,13 +195,13 @@ const ServicePackageDetail = () => {
       if (response.statusCode === 200 && response.data) {
         setPkg(response.data);
         fetchRelatedPackages(response.data.trainerId);
+        fetchRatings();
+        fetchTrainerAverageRating(response.data.trainerId);
       } else {
-        setError("Package not found.");
-        setShowError(true);
+        showErrorMessage("Package not found.");
       }
     } catch (e) {
-      setError("Failed to load package details.");
-      setShowError(true);
+      showErrorFetchAPI(e);
     } finally {
       setLoading(false);
     }
@@ -75,19 +214,87 @@ const ServicePackageDetail = () => {
         await apiServicePackageService.getRelativePackageServiceByTrainer(
           trainerId,
           packageId,
-          { PageNumber: 1, PageSize: 4 }
+          {
+            PageNumber: 1,
+            PageSize: 4,
+          }
         );
       if (response.statusCode === 200 && response.data?.packages) {
-        const filtered = response.data.packages.filter(
-          (p) => p.packageId !== packageId
+        setRelatedPackages(
+          response.data.packages.filter((p) => p.packageId !== packageId)
         );
-        setRelatedPackages(filtered);
       }
     } catch (e) {
-      console.error("Failed to load related packages:", e);
+      showErrorFetchAPI(e);
     } finally {
       setRelatedLoading(false);
     }
+  };
+
+  const fetchRatings = async () => {
+    setRatingsLoading(true);
+    try {
+      const response = await apiTrainerRatingService.getRatingsByPackageId(
+        packageId,
+        {
+          pageNumber: 1,
+          pageSize: 50,
+        }
+      );
+      if (response.statusCode === 200 && response.data) {
+        setRatingsData(response.data);
+      } else {
+        showErrorMessage("Failed to fetch ratings.");
+      }
+    } catch (e) {
+      showErrorFetchAPI(e);
+    } finally {
+      setRatingsLoading(false);
+    }
+  };
+
+  const fetchTrainerAverageRating = async (trainerId) => {
+    try {
+      const response =
+        await apiTrainerRatingService.getAvarageRatingByTrainerId(trainerId);
+      if (response.statusCode === 200 && response.data !== null) {
+        setTrainerAverageRating(response.data);
+      }
+    } catch (e) {
+      showErrorFetchAPI(e);
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const shareUrl = `${window.location.origin}${location.pathname}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showSuccessMessage("Link copied to clipboard!");
+    } catch (e) {
+      showErrorMessage("Failed to copy link.");
+    }
+  };
+
+  const handleShare = (platform) => {
+    const shareUrl = `${window.location.origin}${location.pathname}`;
+    const encodedUrl = encodeURIComponent(shareUrl);
+    const title = encodeURIComponent(pkg?.packageName || "Training Package");
+    let shareLink;
+
+    switch (platform) {
+      case "facebook":
+        shareLink = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        break;
+      case "twitter":
+        shareLink = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${title}`;
+        break;
+      case "whatsapp":
+        shareLink = `https://api.whatsapp.com/send?text=${title}%20${encodedUrl}`;
+        break;
+      default:
+        return;
+    }
+    window.open(shareLink, "_blank", "noopener,noreferrer");
   };
 
   useEffect(() => {
@@ -96,572 +303,521 @@ const ServicePackageDetail = () => {
 
   const handleBookNow = () => {
     if (!user) {
-      setError("Please login before do this action.");
-      setShowError(true);
-      setTimeout(() => {
-        navigate(`/login`);
-      }, 1000);
+      showInfoMessage("Please login before performing this action.");
+      setTimeout(() => navigate("/login"), 1000);
     } else {
       navigate(`/checkout/${packageId}`);
     }
   };
 
+  const handleViewTrainerDetails = () => {
+    if (pkg?.trainerId) {
+      navigate(`/trainer/view/${pkg.trainerId}`);
+    }
+  };
+
   const handleBack = () => {
-    navigate("services");
+    navigate("/services");
   };
 
   const handleRelatedPackageClick = (relatedPackageId) => {
-    navigate("/service-packages/" + relatedPackageId);
+    navigate(`/service-packages/${relatedPackageId}`);
   };
 
   const handleCloseError = () => {
     setShowError(false);
   };
 
+  const handleCloseShareMessage = () => {
+    setShowShareMessage(false);
+  };
+
+  const getAvailableSlots = () => {
+    if (!pkg.maxSubscribers) return "Unlimited";
+    const remaining = pkg.maxSubscribers - pkg.currentSubscribers;
+    return remaining > 0 ? remaining : 0;
+  };
+
+  const isFullyBooked = () => {
+    if (!pkg.maxSubscribers) return false;
+    return pkg.currentSubscribers >= pkg.maxSubscribers;
+  };
+
   const LoadingSkeleton = () => (
-    <Box sx={{ minHeight: "100vh", bgcolor: "grey.50", p: 3 }}>
-      <Container maxWidth="lg">
-        <Card sx={{ borderRadius: 4, overflow: "hidden" }}>
-          <Skeleton variant="rectangular" height={250} />
-          <CardContent sx={{ p: 4 }}>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 3, mb: 3 }}>
-              <Skeleton variant="circular" width={80} height={80} />
-              <Box sx={{ flex: 1 }}>
-                <Skeleton variant="text" sx={{ fontSize: "2rem", mb: 1 }} />
-                <Skeleton variant="text" width="60%" />
-              </Box>
-            </Box>
-            <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
-            <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
-            <Skeleton variant="text" height={20} width="75%" />
-          </CardContent>
-        </Card>
-      </Container>
-    </Box>
+    <div className="service-package-container">
+      <div className="service-package-content">
+        <div className="service-package-loading">
+          <div className="service-package-loading-card">
+            <div className="service-package-skeleton service-package-skeleton-header"></div>
+            <div className="service-package-skeleton service-package-skeleton-content"></div>
+            <div className="service-package-skeleton service-package-skeleton-actions"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 
   if (loading) return <LoadingSkeleton />;
 
   if (error && !pkg) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          bgcolor: "error.light",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          p: 3,
-        }}
-      >
-        <Paper sx={{ textAlign: "center", p: 6, borderRadius: 4 }}>
-          <FlashOn sx={{ fontSize: 80, color: "error.main", mb: 2 }} />
-          <Typography variant="h4" gutterBottom fontWeight="bold">
-            Oops! Something went wrong
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {error}
-          </Typography>
-          <Button
-            variant="contained"
-            color="error"
-            onClick={handleBack}
-            size="large"
-            sx={{ borderRadius: 2 }}
-          >
-            Go Back
-          </Button>
-        </Paper>
-      </Box>
+      <div className="service-package-container">
+        <div className="service-package-content">
+          <div className="service-package-error-state">
+            <div className="service-package-error-card">
+              <div className="service-package-error-icon">
+                <Flash size="80" color="var(--accent-error)" />
+              </div>
+              <h2 className="service-package-error-title">
+                Oops! Something went wrong
+              </h2>
+              <p className="service-package-error-description">{error}</p>
+              <button
+                className="service-package-error-btn"
+                onClick={handleBack}
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "grey.50" }}>
-      <Container maxWidth="lg" sx={{ py: 3, pt: "100px" }}>
-        <Card sx={{ borderRadius: 4, overflow: "hidden", mb: 4, boxShadow: 4 }}>
-          <Box
-            sx={{
-              height: 200,
-              background:
-                "linear-gradient(135deg, #1d88ec 0%, #114c84 50%, #9db2c6 100%)",
-              position: "relative",
-              display: "flex",
-              alignItems: "flex-end",
-              p: 3,
-            }}
-          >
-            <Box
-              sx={{ display: "flex", alignItems: "end", gap: 3, width: "100%" }}
-            >
-              <Box sx={{ position: "relative" }}>
-                <Avatar
-                  src={pkg.trainerAvatar}
-                  alt={pkg.trainerFullName}
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    border: "4px solid white",
-                    boxShadow: 2,
-                  }}
-                />
-                <Verified
-                  sx={{
-                    position: "absolute",
-                    top: -8,
-                    right: -8,
-                    bgcolor: "success.main",
-                    borderRadius: "50%",
-                    fontSize: 32,
-                    color: "white",
-                  }}
-                />
-              </Box>
-              <Box sx={{ flex: 1, color: "white" }}>
-                <Typography variant="h3" fontWeight="bold" gutterBottom>
-                  {pkg.packageName}
-                </Typography>
-                <Stack direction="row" spacing={3} alignItems="center">
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Person fontSize="small" />
-                    <Typography variant="h6">
-                      by {pkg.trainerFullName}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Rating value={4.8} precision={0.1} readOnly size="small" />
-                    <Typography fontWeight="bold">4.8</Typography>
-                  </Stack>
-                </Stack>
-              </Box>
-            </Box>
-          </Box>
+    <div className="service-package-container">
+      <div className="service-package-content">
+        {/* Header Section */}
+        <div className="service-package-header-section">
+          <div className="service-package-header-content">
+            <div className="service-package-header-icon">
+              <Tag size="40" color="var(--secondary-color)" variant="Bold" />
+            </div>
+            <h1 className="service-package-header-title">
+              Service Package Details
+            </h1>
+          </div>
+          <p className="service-package-header-description">
+            Explore details of {pkg ? pkg.packageName : "the training package"}{" "}
+            offered by {pkg ? pkg.trainerFullName : "the trainer"}
+          </p>
+        </div>
 
-          <CardContent sx={{ p: 4 }}>
+        {/* Main Card */}
+        <div className="service-package-main-card">
+          <div className="service-package-hero-section">
+            <div className="service-package-hero-content">
+              <div className="service-package-trainer-info">
+                <div className="service-package-trainer-avatar">
+                  {pkg.trainerAvatar ? (
+                    <img
+                      src={pkg.trainerAvatar || "/placeholder.svg"}
+                      alt={pkg.trainerFullName}
+                    />
+                  ) : (
+                    <Profile size="40" color="white" variant="Bold" />
+                  )}
+                  <div className="service-package-verified-badge">
+                    <TickCircle size="24" color="white" variant="Bold" />
+                  </div>
+                </div>
+                <div className="service-package-trainer-details">
+                  <h2 className="service-package-name">{pkg.packageName}</h2>
+                  <div className="service-package-trainer-meta">
+                    <div className="service-package-trainer-name">
+                      <Profile size="20" color="white" />
+                      <span>by {pkg.trainerFullName}</span>
+                    </div>
+                    <div className="service-package-rating-display">
+                      <div className="service-package-rating-stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            size="16"
+                            color={
+                              star <= (ratingsData?.averageRating || 0)
+                                ? "#ffc107"
+                                : "rgba(255,255,255,0.3)"
+                            }
+                            variant={
+                              star <= (ratingsData?.averageRating || 0)
+                                ? "Bold"
+                                : "Outline"
+                            }
+                          />
+                        ))}
+                      </div>
+                      <span>
+                        {ratingsData?.averageRating || 0} (
+                        {ratingsData?.totalRatings || 0} reviews)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="service-package-share-actions">
+                <button
+                  className="service-package-share-btn"
+                  onClick={handleCopyLink}
+                  title="Copy Link"
+                >
+                  <Link1 size={20} color="white" />
+                </button>
+                <button
+                  className="service-package-share-btn"
+                  onClick={() => handleShare("facebook")}
+                  title="Share on Facebook"
+                >
+                  <Facebook size={20} color="white" />
+                </button>
+                <button
+                  className="service-package-share-btn"
+                  onClick={() => handleShare("twitter")}
+                  title="Share on Twitter"
+                >
+                  <Twitter size={20} color="white" />
+                </button>
+                <button
+                  className="service-package-share-btn"
+                  onClick={() => handleShare("whatsapp")}
+                  title="Share on WhatsApp"
+                >
+                  <Whatsapp size={20} color="white" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="service-package-details-content">
             {/* Package Info Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={4}>
-                <Paper
-                  sx={{
-                    p: 3,
-                    background: "linear-gradient(135deg, #1976d2, #1565c0)",
-                    color: "white",
-                    borderRadius: 3,
-                  }}
+            <div className="service-package-info-grid">
+              <div className="service-package-info-card">
+                <div className="service-package-info-header">
+                  <Calendar size="24" color="var(--accent-info)" />
+                  <span>Duration</span>
+                </div>
+                <div className="service-package-info-value">
+                  {pkg.durationDays} Days
+                </div>
+              </div>
+              <div className="service-package-info-card">
+                <div className="service-package-info-header">
+                  <TickCircle size="24" color="var(--accent-info)" />
+                  <span>Status</span>
+                </div>
+                <div
+                  className="service-package-status-chip"
+                  style={{ backgroundColor: statusColors[pkg.status] }}
                 >
-                  <Stack
-                    direction="row"
-                    spacing={2}
-                    alignItems="center"
-                    sx={{ mb: 1 }}
-                  >
-                    <CalendarToday />
-                    <Typography fontWeight="bold">Duration</Typography>
-                  </Stack>
-                  <Typography variant="h4" fontWeight="bold">
-                    {pkg.durationDays} Days
-                  </Typography>
-                </Paper>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <Paper
-                  sx={{
-                    p: 3,
-                    background: "linear-gradient(135deg, #2e7d32, #1b5e20)",
-                    color: "white",
-                    borderRadius: 3,
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    spacing={2}
-                    alignItems="center"
-                    sx={{ mb: 1 }}
-                  >
-                    <CheckCircle />
-                    <Typography fontWeight="bold">Status</Typography>
-                  </Stack>
-                  <Typography
-                    variant="h4"
-                    fontWeight="bold"
-                    sx={{ textTransform: "capitalize" }}
-                  >
-                    {pkg.status}
-                  </Typography>
-                </Paper>
-              </Grid>
-
-              <Grid item xs={12} md={4}>
-                <Paper
-                  sx={{
-                    p: 3,
-                    background: "linear-gradient(135deg, #7b1fa2, #4a148c)",
-                    color: "white",
-                    borderRadius: 3,
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    spacing={2}
-                    alignItems="center"
-                    sx={{ mb: 1 }}
-                  >
-                    <FlashOn />
-                    <Typography fontWeight="bold">Price</Typography>
-                  </Stack>
-                  <Typography variant="h4" fontWeight="bold">
-                    {pkg.price.toLocaleString()} VND
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
+                  {pkg.status.charAt(0).toUpperCase() + pkg.status.slice(1)}
+                </div>
+              </div>
+              <div className="service-package-info-card">
+                <div className="service-package-info-header">
+                  <Flash size="24" color="var(--accent-info)" />
+                  <span>Price</span>
+                </div>
+                <div className="service-package-info-value">
+                  {pkg.price.toLocaleString()} VND
+                </div>
+              </div>
+              <div className="service-package-info-card">
+                <div className="service-package-info-header">
+                  <People size="24" color="var(--accent-info)" />
+                  <span>Available Slots</span>
+                </div>
+                <div className="service-package-info-value">
+                  {pkg.maxSubscribers ? (
+                    <div className="service-package-slots-info">
+                      <span
+                        className={`service-package-slots-count ${
+                          isFullyBooked() ? "fully-booked" : ""
+                        }`}
+                      >
+                        {getAvailableSlots()}
+                      </span>
+                      <span className="service-package-slots-total">
+                        / {pkg.maxSubscribers}
+                      </span>
+                      {isFullyBooked() && (
+                        <span className="service-package-fully-booked">
+                          Fully Booked
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="service-package-unlimited">Unlimited</span>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {/* Description */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h5" fontWeight="bold" gutterBottom>
+            <div className="service-package-description-section">
+              <h3 className="service-package-section-title">
                 About This Package
-              </Typography>
-              <Paper sx={{ p: 3, bgcolor: "grey.50", borderRadius: 3 }}>
-                <Typography
-                  variant="body1"
-                  sx={{ lineHeight: 1.8, fontSize: "1.1rem" }}
-                >
-                  {pkg.description}
-                </Typography>
-              </Paper>
-            </Box>
+              </h3>
+              <div className="service-package-description-card">
+                <div
+                  className="service-package-description-content"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      pkg.description || "<i>No description provided.</i>"
+                    ),
+                  }}
+                />
+              </div>
+            </div>
 
             {/* Action Buttons */}
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <Button
-                variant="contained"
-                size="large"
+            <div className="service-package-actions">
+              <button
+                className={`service-package-book-btn ${
+                  isFullyBooked() ? "disabled" : ""
+                }`}
                 onClick={handleBookNow}
-                sx={{
-                  flex: 1,
-                  py: 2,
-                  fontSize: "1.1rem",
-                  fontWeight: "bold",
-                  background: "linear-gradient(135deg, #228aeb, #0b64b7)",
-                  borderRadius: 1,
-                  "&:hover": {
-                    background: "linear-gradient(135deg, #0b64b7, #228aeb)",
-                    transform: "scale(1.02)",
-                  },
-                }}
+                disabled={isFullyBooked()}
               >
-                Book Now
-              </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                sx={{
-                  py: 2,
-                  px: 4,
-                  fontSize: "1.1rem",
-                  fontWeight: "bold",
-                  borderRadius: 1,
-                  borderWidth: 2,
-                  "&:hover": {
-                    borderWidth: 2,
-                  },
-                }}
+                {isFullyBooked() ? "Fully Booked" : "Book Now"}
+              </button>
+              <button
+                className="service-package-contact-btn"
+                onClick={handleViewTrainerDetails}
               >
                 Contact Trainer
-              </Button>
-            </Stack>
-          </CardContent>
-        </Card>
+              </button>
+            </div>
+          </div>
+        </div>
 
-        <Grid container spacing={3} sx={{ mt: 2 }}>
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: "100%", width: "100%", borderRadius: 3 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  gutterBottom
-                  color="#00695C"
-                >
-                  Trainer Information
-                </Typography>
-                <Stack direction="row" spacing={2} alignItems="center">
-                  <Avatar
-                    src={pkg.trainerAvatar}
+        {/* Additional Information */}
+        <div className="service-package-additional-info">
+          <div className="service-package-trainer-card">
+            <h3 className="service-package-section-title">
+              Trainer Information
+            </h3>
+            <div className="service-package-trainer-profile">
+              <div className="service-package-trainer-avatar-large">
+                {pkg.trainerAvatar ? (
+                  <img
+                    src={pkg.trainerAvatar || "/placeholder.svg"}
                     alt={pkg.trainerFullName}
-                    sx={{ width: 64, height: 64 }}
                   />
-                  <Box>
-                    <Typography fontWeight="bold">
-                      {pkg.trainerFullName}
-                    </Typography>
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      alignItems="center"
-                      sx={{ mb: 1 }}
-                    >
-                      <Email fontSize="small" color="action" />
-                      <Typography variant="body2" color="#004D40">
-                        {pkg.trainerEmail}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: "100%", borderRadius: 3 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  gutterBottom
-                  color="#00695C"
+                ) : (
+                  <Profile size="32" color="white" variant="Bold" />
+                )}
+              </div>
+              <div className="service-package-trainer-info-details">
+                <h4 className="service-package-trainer-name-large">
+                  {pkg.trainerFullName}
+                </h4>
+                <div className="service-package-trainer-contact">
+                  <Sms size="16" color="var(--accent-info)" />
+                  <span>{pkg.trainerEmail}</span>
+                </div>
+                {trainerAverageRating !== null && (
+                  <div className="service-package-trainer-rating">
+                    <div className="service-package-rating-stars">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          size="16"
+                          color={
+                            star <= trainerAverageRating.averageRating
+                              ? "#ffc107"
+                              : "#e0e0e0"
+                          }
+                          variant={
+                            star <= trainerAverageRating.averageRating
+                              ? "Bold"
+                              : "Outline"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <span>
+                      Trainer Rating: {trainerAverageRating.averageRating}
+                    </span>
+                  </div>
+                )}
+                <button
+                  className="service-package-view-trainer-btn"
+                  onClick={handleViewTrainerDetails}
                 >
-                  Package Details
-                </Typography>
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Schedule color="action" />
-                    <Typography>Duration: {pkg.durationDays} days</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <Person color="action" />
-                    <Typography>Personal training included</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <CheckCircle color="action" />
-                    <Typography>Money-back guarantee</Typography>
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
+                  View Trainer Details
+                </button>
+              </div>
+            </div>
+          </div>
 
-          <Grid item xs={12} md={6}>
-            <Card sx={{ height: "100%", borderRadius: 3 }}>
-              <CardContent sx={{ p: 3 }}>
-                <Typography
-                  variant="h6"
-                  fontWeight="bold"
-                  gutterBottom
-                  color="#00695C"
-                >
-                  Warranty Information
-                </Typography>
-                <Stack spacing={2}>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <CheckCircle color="action" />
-                    <Typography>Warranty period: 30 days</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <CheckCircle color="action" />
-                    <Typography>Full refund if unsatisfied</Typography>
-                  </Stack>
-                  <Stack direction="row" spacing={2} alignItems="center">
-                    <CheckCircle color="action" />
-                    <Typography>Contact trainer for claims</Typography>
-                  </Stack>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+          <div className="service-package-details-card">
+            <h3 className="service-package-section-title">Package Details</h3>
+            <div className="service-package-features-list">
+              <div className="service-package-feature-item">
+                <Clock size="20" color="var(--accent-info)" />
+                <span>Duration: {pkg.durationDays} days</span>
+              </div>
+              <div className="service-package-feature-item">
+                <Profile size="20" color="var(--accent-info)" />
+                <span>Personal training included</span>
+              </div>
+              <div className="service-package-feature-item">
+                <TickCircle size="20" color="var(--accent-info)" />
+                <span>Money-back guarantee</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="service-package-warranty-card">
+            <h3 className="service-package-section-title">
+              Warranty Information
+            </h3>
+            <div className="service-package-features-list">
+              <div className="service-package-feature-item">
+                <TickCircle size="20" color="var(--accent-info)" />
+                <span>Warranty period: 30 days</span>
+              </div>
+              <div className="service-package-feature-item">
+                <TickCircle size="20" color="var(--accent-info)" />
+                <span>Full refund if unsatisfied</span>
+              </div>
+              <div className="service-package-feature-item">
+                <TickCircle size="20" color="var(--accent-info)" />
+                <span>Contact trainer for claims</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Ratings Section */}
+        <RatingsCard
+          ratingsData={ratingsData}
+          ratingsLoading={ratingsLoading}
+          packageId={packageId}
+          setError={setError}
+          setShowError={setShowError}
+        />
+
         {/* Related Packages */}
         {relatedPackages.length > 0 && (
-          <Card
-            sx={{ borderRadius: 4, overflow: "hidden", boxShadow: 4, mt: 4 }}
-          >
-            <CardContent sx={{ p: 4, borderBottom: 1, borderColor: "divider" }}>
-              <Stack
-                direction="row"
-                spacing={2}
-                alignItems="center"
-                sx={{ mb: 1 }}
-              >
-                <LocalOffer color="primary" />
-                <Typography variant="h5" fontWeight="bold">
-                  More from {pkg.trainerFullName}
-                </Typography>
-              </Stack>
-              <Typography color="text.secondary">
+          <div className="service-package-related-section">
+            <div className="service-package-related-header">
+              <div className="service-package-related-title">
+                <Tag size="24" color="var(--secondary-color)" variant="Bold" />
+                <span>More from {pkg.trainerFullName}</span>
+              </div>
+              <p className="service-package-related-description">
                 Discover other training packages by this trainer
-              </Typography>
-            </CardContent>
-
-            <CardContent sx={{ p: 4 }}>
+              </p>
+            </div>
+            <div className="service-package-related-content">
               {relatedLoading ? (
-                <Grid container spacing={3}>
+                <div className="service-package-related-loading">
                   {[1, 2, 3, 4].map((i) => (
-                    <Grid item xs={12} md={6} lg={3} key={i}>
-                      <Paper sx={{ p: 3, borderRadius: 3, minHeight: 200 }}>
-                        <Skeleton variant="text" height={30} sx={{ mb: 2 }} />
-                        <Skeleton variant="text" height={20} sx={{ mb: 1 }} />
-                        <Skeleton
-                          variant="text"
-                          height={20}
-                          width="75%"
-                          sx={{ mb: 2 }}
-                        />
-                        <Skeleton
-                          variant="rectangular"
-                          height={40}
-                          sx={{ borderRadius: 2 }}
-                        />
-                      </Paper>
-                    </Grid>
+                    <div key={i} className="service-package-related-skeleton">
+                      <div className="service-package-skeleton service-package-skeleton-card"></div>
+                    </div>
                   ))}
-                </Grid>
+                </div>
               ) : (
-                <Grid container spacing={3}>
+                <div className="service-package-related-grid">
                   {relatedPackages.map((relatedPkg) => (
-                    <Grid
-                      item
-                      xs={12}
-                      md={6}
-                      lg={3}
+                    <div
                       key={relatedPkg.packageId}
-                      className="package-wrapper"
-                      sx={{ width: "100%" }}
+                      className="service-package-related-card"
+                      onClick={() =>
+                        handleRelatedPackageClick(relatedPkg.packageId)
+                      }
                     >
-                      <Card
-                        sx={{
-                          height: "100%",
-                          width: "100%",
-                          display: "flex",
-                          flexDirection: "column",
-                          cursor: "pointer",
-                          transition: "all 0.3s ease",
-                          "&:hover": {
-                            transform: "scale(1.03)",
-                            boxShadow: 4,
-                          },
-                        }}
-                      >
-                        <CardActionArea
-                          onClick={() =>
-                            handleRelatedPackageClick(relatedPkg.packageId)
-                          }
-                        >
-                          <CardContent
-                            sx={{
-                              p: 3,
-                              display: "flex",
-                              flexDirection: "column",
-                              flex: 1,
-                            }}
-                          >
-                            <Stack
-                              direction="row"
-                              spacing={2}
-                              alignItems="flex-start"
-                              sx={{ mb: 2 }}
-                            >
-                              <Avatar
-                                src={relatedPkg.trainerAvatar}
-                                alt={relatedPkg.trainerFullName}
-                                sx={{ width: 48, height: 48 }}
-                              />
-                              <Box sx={{ flex: 1, minWidth: 0 }}>
-                                <Typography
-                                  variant="h6"
-                                  fontWeight="bold"
-                                  sx={{
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    lineHeight: 1.4,
-                                    maxHeight: "2.8em",
-                                  }}
-                                >
-                                  {relatedPkg.packageName}
-                                </Typography>
-                                <Typography
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mt: 0.5 }}
-                                >
-                                  {relatedPkg.durationDays} days
-                                </Typography>
-                              </Box>
-                            </Stack>
-
-                            <div
-                              sx={{
-                                flex: 1,
-                                display: "-webkit-box",
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: "vertical",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                lineHeight: 1.5,
-                                maxHeight: "4.5em",
-                                mb: 2,
-                                color: "#004D40",
-                                fontSize: "0.875rem",
-                                fontFamily:
-                                  '"Roboto", "Helvetica", "Arial", sans-serif',
-                              }}
-                              dangerouslySetInnerHTML={{
-                                __html: DOMPurify.sanitize(
-                                  relatedPkg.description
-                                ),
-                              }}
+                      <div className="service-package-related-card-header">
+                        <div className="service-package-related-avatar">
+                          {pkg.trainerAvatar ? (
+                            <img
+                              src={pkg.trainerAvatar || "/placeholder.svg"}
+                              alt={pkg.trainerFullName}
                             />
-
-                            <Stack
-                              direction="row"
-                              justifyContent="space-between"
-                              alignItems="center"
-                            >
-                              <Typography
-                                variant="h6"
-                                fontWeight="bold"
-                                color="primary"
-                              >
-                                {relatedPkg.price.toLocaleString()} VND
-                              </Typography>
-                              <Chip
-                                label={relatedPkg.status}
-                                color="success"
-                                size="small"
-                                sx={{ textTransform: "capitalize" }}
-                              />
-                            </Stack>
-                          </CardContent>
-                        </CardActionArea>
-                      </Card>
-                    </Grid>
+                          ) : (
+                            <Profile size="24" color="white" variant="Bold" />
+                          )}
+                        </div>
+                        <div className="service-package-related-info">
+                          <h4 className="service-package-related-name">
+                            {relatedPkg.packageName}
+                          </h4>
+                          <span className="service-package-related-duration">
+                            {relatedPkg.durationDays} days
+                          </span>
+                        </div>
+                      </div>
+                      <div
+                        className="service-package-related-description"
+                        dangerouslySetInnerHTML={{
+                          __html: DOMPurify.sanitize(
+                            relatedPkg.description ||
+                              "<i>No description provided.</i>"
+                          ),
+                        }}
+                      />
+                      <div className="service-package-related-footer">
+                        <span className="service-package-related-price">
+                          {relatedPkg.price.toLocaleString()} VND
+                        </span>
+                        <div
+                          className="service-package-related-status"
+                          style={{
+                            backgroundColor: statusColors[relatedPkg.status],
+                          }}
+                        >
+                          {relatedPkg.status.charAt(0).toUpperCase() +
+                            relatedPkg.status.slice(1)}
+                        </div>
+                      </div>
+                    </div>
                   ))}
-                </Grid>
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
-      </Container>
+      </div>
 
-      {/* Error Snackbar */}
-      <Snackbar
-        open={showError}
-        autoHideDuration={6000}
-        onClose={handleCloseError}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleCloseError}
-          severity="error"
-          sx={{ width: "100%" }}
+      {/* Error Notification */}
+      {showError && (
+        <div className="service-package-snackbar error">
+          <div className="service-package-snackbar-content">
+            <Warning2 size="20" color="white" variant="Bold" />
+            <span>{error}</span>
+            <button
+              className="service-package-snackbar-close"
+              onClick={handleCloseError}
+            >
+              <CloseCircle size="16" color="white" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Share Message Notification */}
+      {showShareMessage && (
+        <div
+          className={`service-package-snackbar ${
+            shareMessage?.includes("Failed") ? "error" : "success"
+          }`}
         >
-          {error}
-        </Alert>
-      </Snackbar>
-    </Box>
+          <div className="service-package-snackbar-content">
+            <TickCircle size="20" color="white" variant="Bold" />
+            <span>{shareMessage}</span>
+            <button
+              className="service-package-snackbar-close"
+              onClick={handleCloseShareMessage}
+            >
+              <CloseCircle size="16" color="white" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
