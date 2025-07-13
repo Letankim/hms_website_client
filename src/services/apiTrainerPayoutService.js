@@ -21,7 +21,7 @@ apiClient.interceptors.request.use(
 const apiTrainerPayoutService = {
     getPayoutsByTrainerId: async (trainerId,queryParams) => {
         try {
-            const response = await apiClient.get(`/trainer-payout/trainer/${trainerId}`,{ params: queryParams });
+            const response = await apiClient.get(`/trainerPayout/trainer/${trainerId}`,{ params: queryParams });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to fetch payouts." };
@@ -30,7 +30,7 @@ const apiTrainerPayoutService = {
 
     getPayoutById: async (payoutId) => {
         try {
-            const response = await apiClient.get(`/trainer-payout/${payoutId}`);
+            const response = await apiClient.get(`/trainerPayout/${payoutId}`);
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to fetch payout." };
@@ -39,7 +39,7 @@ const apiTrainerPayoutService = {
 
     getPayoutStatistics: async (trainerId,queryParams) => {
         try {
-            const response = await apiClient.get(`/trainer-payout/statistics/trainer/${trainerId}`,{ params: queryParams });
+            const response = await apiClient.get(`/trainerPayout/statistics/trainer/${trainerId}`,{ params: queryParams });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to fetch payout statistics." };

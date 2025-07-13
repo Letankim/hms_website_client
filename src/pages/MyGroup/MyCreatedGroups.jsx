@@ -226,9 +226,8 @@ const MyCreatedGroups = () => {
       };
 
       const res = await apiGroupService.createGroup(groupDto);
-      if (res.statusCode === 200) {
-        setSuccessMessage("Group created successfully!");
-        setShowSuccess(true);
+      if (res.statusCode === 201) {
+        showSuccessMessage("Group created successfully!");
         setCreateDialogOpen(false);
         document.body.style.overflow = "auto";
         resetCreateForm();
@@ -295,13 +294,11 @@ const MyCreatedGroups = () => {
 
   const handleDeleteGroup = async (id) => {
     try {
-      await apiGroupService.deleteGroup(id);
-      setSuccessMessage("Group deleted successfully.");
-      setShowSuccess(true);
+      await apiGroupService.softDeleteGroup(id);
+      showSuccessMessage("Group deleted successfully.");
       await fetchGroups();
     } catch (e) {
       showErrorFetchAPI(e);
-      setShowError(true);
     }
   };
 
@@ -833,10 +830,10 @@ const MyCreatedGroups = () => {
                           </span>
                           <span
                             className={styles["group-date"]}
-                            title={formatDate(group.createdAt)}
+                            title={formatDate(group?.createdAt)}
                           >
                             <Calendar size="14" />
-                            {formatDate(group.createdAt)}
+                            {formatDate(group?.createdAt)}
                           </span>
                         </div>
 
@@ -1037,7 +1034,7 @@ const MyCreatedGroups = () => {
                   <label className={styles["form-label"]}>Group ID</label>
                   <input
                     type="text"
-                    value={"#GROUP" + selectedGroup.groupId}
+                    value={"#GROUP" + selectedGroup?.groupId}
                     className={styles["form-input"]}
                     readOnly
                   />
@@ -1049,7 +1046,7 @@ const MyCreatedGroups = () => {
                   <label className={styles["form-label"]}>Created At</label>
                   <input
                     type="text"
-                    value={formatDate(selectedGroup.createdAt)}
+                    value={formatDate(selectedGroup?.createdAt)}
                     className={styles["form-input"]}
                     readOnly
                   />
@@ -1059,7 +1056,7 @@ const MyCreatedGroups = () => {
                   <label className={styles["form-label"]}>Updated At</label>
                   <input
                     type="text"
-                    value={formatDate(selectedGroup.updatedAt)}
+                    value={formatDate(selectedGroup?.updatedAt)}
                     className={styles["form-input"]}
                     readOnly
                   />
@@ -1070,7 +1067,7 @@ const MyCreatedGroups = () => {
                 <label className={styles["form-label"]}>Created By</label>
                 <input
                   type="text"
-                  value={selectedGroup.creator?.fullName || "Unknown"}
+                  value={selectedGroup?.creator?.fullName || "Unknown"}
                   className={styles["form-input"]}
                   readOnly
                 />
@@ -1137,7 +1134,9 @@ const MyCreatedGroups = () => {
                 <input
                   type="text"
                   value={
-                    createDialogOpen ? newGroup.groupName : editGroup.groupName
+                    createDialogOpen
+                      ? newGroup?.groupName
+                      : editGroup?.groupName
                   }
                   onChange={(e) => {
                     if (createDialogOpen) {

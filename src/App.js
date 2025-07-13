@@ -268,7 +268,7 @@ function App() {
                             <Route
                                 path="/trainer/my-services"
                                 element={
-                                    <ProtectedRoute requiredRoles={['Admin']}>
+                                    <ProtectedRoute requiredRoles={['Trainer']}>
                                         <MyServicesPage />
                                     </ProtectedRoute>
                                 }
@@ -276,7 +276,7 @@ function App() {
                             <Route
                                 path="/trainer/service-detail/:packageId"
                                 element={
-                                    <ProtectedRoute requiredRoles={['Admin']}>
+                                    <ProtectedRoute requiredRoles={['Trainer']}>
                                         <MyServiceDetailPage />
                                     </ProtectedRoute>
                                 }
@@ -284,7 +284,7 @@ function App() {
                             <Route
                                 path="/trainer/service-edit/:packageId"
                                 element={
-                                    <ProtectedRoute requiredRoles={['Admin']}>
+                                    <ProtectedRoute requiredRoles={['Trainer']}>
                                         <MyServiceEditPage />
                                     </ProtectedRoute>
                                 }
@@ -292,7 +292,7 @@ function App() {
                             <Route
                                 path="/trainer/service-statistics/view"
                                 element={
-                                    <ProtectedRoute requiredRoles={['Admin']}>
+                                    <ProtectedRoute requiredRoles={['Trainer']}>
                                         <TrainerStatisticsPage />
                                     </ProtectedRoute>
                                 }
@@ -300,7 +300,7 @@ function App() {
                             <Route
                                 path="/trainer/payout/view"
                                 element={
-                                    <ProtectedRoute requiredRoles={['Admin']}>
+                                    <ProtectedRoute requiredRoles={['Trainer']}>
                                         <TrainerPayoutPage />
                                     </ProtectedRoute>
                                 }
@@ -308,7 +308,7 @@ function App() {
                             <Route
                                 path="/trainer/payout-statistics/view"
                                 element={
-                                    <ProtectedRoute requiredRoles={['Admin']}>
+                                    <ProtectedRoute requiredRoles={['Trainer']}>
                                         <TrainerPayoutStatisticsPage />
                                     </ProtectedRoute>
                                 }

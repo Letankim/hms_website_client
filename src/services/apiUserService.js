@@ -39,7 +39,7 @@ const apiUserService = {
 
     updateUser: async (id,userData) => {
         try {
-            const response = await apiClient.put(`/User/${id}`,userData);
+            const response = await apiClient.put(`/User/user/${id}`,userData);
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to update user.' };

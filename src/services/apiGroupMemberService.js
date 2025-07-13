@@ -57,7 +57,7 @@ const apiGroupMemberService = {
 
     leaveGroup: async (leaveGroupDto) => {
         try {
-            const response = await apiClient.post("/groupMember/leave",leaveGroupDto);
+            const response = await apiClient.post("/groupMember/leave",{ groupId: leaveGroupDto });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to leave group." };
@@ -66,7 +66,7 @@ const apiGroupMemberService = {
 
     joinGroup: async (groupId) => {
         try {
-            const response = await apiClient.post("/groupMember/join",groupId);
+            const response = await apiClient.post("/groupMember/join",{ groupId });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to join group." };

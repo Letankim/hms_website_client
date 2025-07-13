@@ -284,23 +284,16 @@ const Navbar = () => {
                     }}
                   />
                 ) : (
-                  <div
+                  <img
+                    src="/placeholder-avatar.jpg"
+                    alt="avatar"
                     style={{
                       width: 44,
                       height: 44,
-                      background: "#F47C54",
-                      color: "#fff",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontWeight: 700,
-                      fontSize: 22,
+                      objectFit: "cover",
                       borderRadius: "50%",
-                      textTransform: "uppercase",
                     }}
-                  >
-                    {userProfile?.fullName ? userProfile.fullName[0] : "U"}
-                  </div>
+                  />
                 )}
               </button>
             </div>
@@ -858,23 +851,16 @@ const Navbar = () => {
                         }}
                       />
                     ) : (
-                      <div
+                      <img
+                        src="/placeholder-avatar.jpg"
+                        alt="avatar"
                         style={{
                           width: 44,
                           height: 44,
-                          background: "#F47C54",
-                          color: "#fff",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 700,
-                          fontSize: 22,
+                          objectFit: "cover",
                           borderRadius: "50%",
-                          textTransform: "uppercase",
                         }}
-                      >
-                        {userProfile?.fullName ? userProfile.fullName[0] : "U"}
-                      </div>
+                      />
                     )}
                   </button>
                   {avatarDropdown && (
@@ -1022,7 +1008,7 @@ const Navbar = () => {
                           </span>{" "}
                           My Reports
                         </NavLink>
-                        {user?.roles?.includes("Admin") && (
+                        {user?.roles?.includes("Trainer") && (
                           <>
                             <NavLink
                               to="/trainer/my-services"

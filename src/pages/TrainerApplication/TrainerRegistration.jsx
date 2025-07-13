@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect, useCallback } from "react";
 import {
   Box,
   Container,
@@ -17,7 +17,10 @@ import {
   Stack,
   FormHelperText,
 } from "@mui/material";
-import { FitnessCenter as FitnessCenterIcon } from "@mui/icons-material";
+import {
+  FitnessCenter as FitnessCenterIcon,
+  Warning as WarningIcon,
+} from "@mui/icons-material";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import { useNavigate } from "react-router-dom";
@@ -62,6 +65,31 @@ const TrainerRegistration = () => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
   const [formErrors, setFormErrors] = useState({});
+  const [canApply, setCanApply] = useState(false);
+  const [canApplyLoading, setCanApplyLoading] = useState(true);
+
+  const checkCanApply = useCallback(async () => {
+    if (!user?.userId) {
+      showInfoMessage("Please login to submit an application.");
+      setTimeout(() => navigate("/login"), 1000);
+      return;
+    }
+    setCanApplyLoading(true);
+    try {
+      const canApplyResult =
+        await apiTrainerApplicationService.canApplyNewApplication();
+      setCanApply(canApplyResult);
+    } catch (e) {
+      showErrorFetchAPI(e);
+      setCanApply(false);
+    } finally {
+      setCanApplyLoading(false);
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    checkCanApply();
+  }, [checkCanApply]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -200,7 +228,6 @@ const TrainerRegistration = () => {
       return;
     }
     const errors = validateForm(formData);
-    console.log(errors);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       showErrorMessage("Please correct the form errors before submitting.");
@@ -272,6 +299,67 @@ const TrainerRegistration = () => {
   const handleCloseSuccess = () => {
     setShowSuccess(false);
   };
+
+  if (canApplyLoading) {
+    return (
+      <Box
+        className="trainer-application-container"
+        sx={{
+          minHeight: "100vh",
+          background:
+            "linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%)",
+          py: 4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!canApply) {
+    return (
+      <Box
+        className="trainer-application-container"
+        sx={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)",
+          py: 4,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Container maxWidth="md">
+          <Box
+            sx={{
+              textAlign: "center",
+              bgcolor: "#FFF4D6",
+              p: 3,
+              borderRadius: 2,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 2,
+            }}
+          >
+            <WarningIcon sx={{ fontSize: 48, color: "#D97706" }} />{" "}
+            <Typography variant="h5" sx={{ color: "#D97706", fontWeight: 500 }}>
+              You're not eligible to submit a new application
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => navigate("/profile/application-history")}
+            >
+              View Application History
+            </Button>
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -456,7 +544,7 @@ const TrainerRegistration = () => {
             onChange={handleInputChange}
             fullWidth
             margin="normal"
-            placeholder="https://example.com/my-cv.pdf"
+            placeholder="https://3docorp.vn/my-cv.pdf"
             error={!!formErrors.cvFileUrl}
             helperText={formErrors.cvFileUrl}
           />

@@ -295,8 +295,8 @@ export default function UserProfile() {
               <div className="avatar-section">
                 <div className="avatar-container">
                   <img
-                    src={profile.avatar || "/placeholder-avatar.jpg"}
-                    alt={profile.fullName}
+                    src={profile?.avatar || "/placeholder-avatar.jpg"}
+                    alt={profile?.fullName}
                     className="avatar-image"
                     onError={(e) => {
                       e.target.style.display = "none";
@@ -304,7 +304,7 @@ export default function UserProfile() {
                     }}
                   />
                   <div className="avatar-fallback" style={{ display: "none" }}>
-                    {profile.fullName?.charAt(0)?.toUpperCase() || "U"}
+                    {profile?.fullName?.charAt(0)?.toUpperCase() || "U"}
                   </div>
                   <button
                     className="avatar-edit-btn"
@@ -324,11 +324,13 @@ export default function UserProfile() {
 
               {/* Profile Info */}
               <div className="profile-details">
-                <h2 className="profile-name">{profile.fullName || "N/A"}</h2>
-                <p className="profile-email">{profile.email || "N/A"}</p>
+                <h2 className="profile-name">{profile?.fullName || "N/A"}</h2>
+                <p className="profile-email">{profile?.email || "N/A"}</p>
                 <div className="profile-badges">
                   <span
-                    className={`status-badge ${getStatusColor(profile.status)}`}
+                    className={`status-badge ${getStatusColor(
+                      profile?.status
+                    )}`}
                   >
                     <svg
                       width="16"
@@ -338,7 +340,7 @@ export default function UserProfile() {
                     >
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                     </svg>
-                    {profile.status || "Unknown"}
+                    {profile?.status || "Unknown"}
                   </span>
                 </div>
               </div>
@@ -348,19 +350,19 @@ export default function UserProfile() {
                 <div className="stat-item">
                   <div className="stat-icon level">⭐</div>
                   <div className="stat-value">
-                    {profile.levelAccount || "N/A"}
+                    {profile?.levelAccount || "N/A"}
                   </div>
                   <div className="stat-label">Level</div>
                 </div>
                 <div className="stat-item">
                   <div className="stat-icon experience">📈</div>
-                  <div className="stat-value">{profile.experience || "0"}</div>
+                  <div className="stat-value">{profile?.experience || "0"}</div>
                   <div className="stat-label">XP</div>
                 </div>
                 <div className="stat-item">
                   <div className="stat-icon streak">🔥</div>
                   <div className="stat-value">
-                    {profile.currentStreak || "0"}
+                    {profile?.currentStreak || "0"}
                   </div>
                   <div className="stat-label">Streak</div>
                 </div>
@@ -413,14 +415,14 @@ export default function UserProfile() {
           </div>
           <div className="info-list">
             {[
-              { icon: "👤", label: "Username", value: profile.username },
-              { icon: "📧", label: "Email", value: profile.email },
-              { icon: "📱", label: "Phone", value: profile.phone },
-              { icon: "⚧", label: "Gender", value: profile.gender },
+              { icon: "👤", label: "Username", value: profile?.username },
+              { icon: "📧", label: "Email", value: profile?.email },
+              { icon: "📱", label: "Phone", value: profile?.phone },
+              { icon: "⚧", label: "Gender", value: profile?.gender },
               {
                 icon: "🎂",
                 label: "Birth Date",
-                value: formatDate(profile.birthDate),
+                value: formatDate(profile?.birthDate),
               },
             ].map((item, index) => (
               <div key={index} className="info-item">

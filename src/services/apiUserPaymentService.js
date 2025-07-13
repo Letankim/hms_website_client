@@ -21,7 +21,7 @@ apiClient.interceptors.request.use(
 const apiUserPaymentService = {
     getMyPayments: async (queryParams) => {
         try {
-            const response = await apiClient.get("/user-payment/my-payment",{ params: queryParams });
+            const response = await apiClient.get("/UserPayment/my-payment",{ params: queryParams });
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to fetch payments." };
@@ -30,7 +30,7 @@ const apiUserPaymentService = {
 
     subscribeToPackage: async (purchaseDto) => {
         try {
-            const response = await apiClient.post("/user-payment/purchase",purchaseDto);
+            const response = await apiClient.post("/UserPayment/purchase",purchaseDto);
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to create payment." };
@@ -39,7 +39,7 @@ const apiUserPaymentService = {
 
     updatePayment: async (id,paymentDto) => {
         try {
-            const response = await apiClient.put(`/user-payment/${id}`,paymentDto);
+            const response = await apiClient.put(`/UserPayment/${id}`,paymentDto);
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: "Failed to update payment." };
@@ -49,7 +49,7 @@ const apiUserPaymentService = {
     checkPaymentStatus: async (paymentCode,subscriptionId,status) => {
         try {
             const response = await apiClient.get(
-                `/user-payment/${paymentCode}/payment-status`,
+                `/UserPayment/${paymentCode}/payment-status`,
                 {
                     params: { subscriptionId,status },
                 }

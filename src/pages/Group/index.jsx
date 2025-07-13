@@ -493,12 +493,7 @@ const GroupPage = () => {
                     }}
                   >
                     <img
-                      src={
-                        group.creator?.avatar ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          group.creator?.fullName || "Admin"
-                        )}`
-                      }
+                      src={group.creator?.avatar || `/placeholder-avatar.jpg`}
                       alt={group.creator?.fullName || "Admin"}
                       style={{
                         width: 32,

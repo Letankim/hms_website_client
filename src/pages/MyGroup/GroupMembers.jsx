@@ -597,7 +597,7 @@ const GroupMembers = () => {
         {/* Back Button */}
         <Button
           variant="contained"
-          onClick={() => navigate("/my-groups")}
+          onClick={() => navigate("/my-groups/view")}
           sx={{
             mt: 3,
             fontWeight: "bold",

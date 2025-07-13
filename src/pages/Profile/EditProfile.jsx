@@ -15,6 +15,11 @@ import {
   Chip,
   InputAdornment,
   Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  FormHelperText,
 } from "@mui/material";
 import {
   Person as PersonIcon,
@@ -37,6 +42,9 @@ const EditProfile = () => {
     fullName: "",
     email: "",
     phone: "",
+    avatar: "",
+    gender: "",
+    birthDate: "",
     status: "",
     roles: [],
   });
@@ -69,12 +77,27 @@ const EditProfile = () => {
           fullName = "",
           email = "",
           phone = "",
+          avatar = "",
+          gender = "",
+          birthDate = "",
           status = "",
           roles = [],
         } = response.data;
-        setFormData({ fullName, email, phone, status, roles });
+        setFormData({
+          fullName,
+          email,
+          phone,
+          gender,
+          avatar,
+          birthDate: birthDate
+            ? new Date(birthDate).toISOString().split("T")[0]
+            : "",
+          status,
+          roles,
+        });
       } catch (err) {
         showErrorFetchAPI(err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -85,44 +108,41 @@ const EditProfile = () => {
 
   const validateForm = () => {
     const errors = {};
-    const {
-      fullName,
-      email,
-      phone,
-      gender,
-      birthDate,
-      avatar,
-      status,
-      levelAccount,
-      experience,
-      currentStreak,
-    } = formData;
 
     // Full Name
-    if (!fullName.trim()) {
+    if (!formData.fullName?.trim()) {
       errors.fullName = "Full name is required";
-    } else if (fullName.length > 255) {
+    } else if (formData.fullName.length > 255) {
       errors.fullName = "Full name cannot exceed 255 characters";
-    }
-
-    // Email
-    if (!email.trim()) {
-      errors.email = "Email is required";
-    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-      errors.email = "Invalid email format";
-    } else if (email.length > 255) {
-      errors.email = "Email cannot exceed 255 characters";
     }
 
     // Phone
     const regexPhoneNumber = /(84|0[3|5|7|8|9])+([0-9]{8})\b/g;
-    if (!formData.phone?.trim()) {
-      errors.phone = "Phone number is required.";
-    } else if (formData.phoneNumber.length > 20) {
+    if (formData.phone && formData.phone.length > 20) {
       errors.phone = "Phone number cannot exceed 20 characters.";
-    } else if (!formData?.phone.match(regexPhoneNumber)) {
+    } else if (formData.phone && !formData.phone.match(regexPhoneNumber)) {
       errors.phone = "Invalid phone number format.";
     }
+
+    // Gender
+    if (formData.gender && formData.gender.length > 10) {
+      errors.gender = "Gender cannot exceed 10 characters.";
+    }
+
+    // Birth Date
+    if (formData.birthDate) {
+      const birthDate = new Date(formData.birthDate);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      if (age < 18) {
+        errors.birthDate = "You must be at least 18 years old.";
+      }
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -135,9 +155,9 @@ const EditProfile = () => {
       const updateData = {
         userId: user.userId,
         fullName: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        status: formData.status || "active",
+        phone: formData.phone || null,
+        gender: formData.gender || null,
+        birthDate: formData.birthDate || null,
       };
 
       await apiUserService.updateUser(user.userId, updateData);
@@ -156,6 +176,12 @@ const EditProfile = () => {
 
   const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: null }));
   };
 
   const getStatusColor = (status) => {
@@ -273,10 +299,9 @@ const EditProfile = () => {
               <Grid item xs={12}>
                 <TextField
                   label="Full Name"
+                  name="fullName"
                   value={formData.fullName || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fullName: e.target.value })
-                  }
+                  onChange={handleInputChange}
                   fullWidth
                   variant="outlined"
                   error={!!formErrors.fullName}
@@ -302,15 +327,42 @@ const EditProfile = () => {
               <Grid item xs={12}>
                 <TextField
                   label="Email"
+                  name="email"
                   value={formData.email || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
-                  }
+                  disabled
                   fullWidth
                   type="email"
                   variant="outlined"
-                  error={!!formErrors.email}
-                  helperText={formErrors.email}
+                  helperText="Email cannot be changed."
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <HealthIcon sx={{ color: "var(--accent-info)" }} />
+                      </InputAdornment>
+                    ),
+                    readOnly: true,
+                  }}
+                  sx={{
+                    "& .MuiOutlinedInput-root": {
+                      bgcolor: "var(--background-white)",
+                      "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "var(--accent-info)",
+                      },
+                    },
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Phone"
+                  name="phone"
+                  value={formData.phone || ""}
+                  onChange={handleInputChange}
+                  fullWidth
+                  variant="outlined"
+                  error={!!formErrors.phone}
+                  helperText={formErrors.phone}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
@@ -330,23 +382,40 @@ const EditProfile = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <TextField
-                  label="Phone"
-                  value={formData.phone || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
+                <FormControl
                   fullWidth
                   variant="outlined"
-                  error={!!formErrors.phone}
-                  helperText={formErrors.phone}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <HealthIcon sx={{ color: "var(--accent-info)" }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  error={!!formErrors.gender}
+                >
+                  <InputLabel>Gender</InputLabel>
+                  <Select
+                    name="gender"
+                    value={formData.gender || ""}
+                    onChange={handleInputChange}
+                    label="Gender"
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    <MenuItem value="male">Male</MenuItem>
+                    <MenuItem value="female">Female</MenuItem>
+                    <MenuItem value="other">Other</MenuItem>
+                  </Select>
+                  {formErrors.gender && (
+                    <FormHelperText>{formErrors.gender}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  label="Date of Birth"
+                  name="birthDate"
+                  type="date"
+                  value={formData.birthDate || ""}
+                  onChange={handleInputChange}
+                  fullWidth
+                  variant="outlined"
+                  InputLabelProps={{ shrink: true }}
+                  error={!!formErrors.birthDate}
+                  helperText={formErrors.birthDate}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       bgcolor: "var(--background-white)",

@@ -25,7 +25,8 @@ const apiFoodService = {
 
   getAllActiveFoods: async (queryParams) => {
     try {
-      const response = await apiClient.get('/Food/all-active-food', { params: queryParams });
+      console.error(queryParams)
+      const response = await apiClient.get('/Food/all-active-food',{ params: queryParams });
       return response.data.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch active foods.' };
@@ -35,7 +36,7 @@ const apiFoodService = {
 
   getAllFoods: async (queryParams) => {
     try {
-      const response = await apiClient.get('/Food', { params: queryParams });
+      const response = await apiClient.get('/Food',{ params: queryParams });
       return response.data.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch foods.' };
@@ -54,7 +55,7 @@ const apiFoodService = {
 
   createFood: async (foodDto) => {
     try {
-      const response = await apiClient.post('/Food', foodDto);
+      const response = await apiClient.post('/Food',foodDto);
       return response.data.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to create food.' };
@@ -62,9 +63,9 @@ const apiFoodService = {
   },
 
 
-  updateFood: async (id, foodDto) => {
+  updateFood: async (id,foodDto) => {
     try {
-      const response = await apiClient.put(`/Food/${id}`, foodDto);
+      const response = await apiClient.put(`/Food/${id}`,foodDto);
       return response.data.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to update food.' };
@@ -84,7 +85,7 @@ const apiFoodService = {
 
   getFoodStatistics: async (queryParams) => {
     try {
-      const response = await apiClient.get('/Food/statistics', { params: queryParams });
+      const response = await apiClient.get('/Food/statistics',{ params: queryParams });
       return response.data.data;
     } catch (error) {
       throw error.response?.data || { message: 'Failed to fetch food statistics.' };

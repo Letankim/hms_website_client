@@ -1,9 +1,18 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import AuthContext from "contexts/AuthContext";
 import apiFoodCategoryService from "services/apiFoodCategoryService";
 import apiFoodService from "services/apiFoodService";
 import "./FoodListPage.css";
 import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
+
+// Hàm debounce tùy chỉnh
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
 
 const FoodListPage = () => {
   const { user } = useContext(AuthContext);
@@ -22,48 +31,54 @@ const FoodListPage = () => {
   const [selectedFood, setSelectedFood] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const categoryRes = await apiFoodCategoryService.getAllActiveCategories(
-          {
-            PageNumber: 1,
-            PageSize: 100,
-            Status: "active",
-          }
-        );
-        setCategories(categoryRes.categories || []);
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const categoryRes = await apiFoodCategoryService.getAllActiveCategories({
+        PageNumber: 1,
+        PageSize: 100,
+        Status: "active",
+      });
+      setCategories(categoryRes.categories || []);
 
-        const queryParams = {
-          PageNumber: pageNumber,
-          PageSize: pageSize,
-          SearchTerm: searchTerm || undefined,
-          CategoryId: selectedCategory !== "all" ? selectedCategory : undefined,
-          Status: selectedStatus !== "all" ? selectedStatus : undefined,
-        };
+      const queryParams = {
+        PageNumber: pageNumber,
+        PageSize: pageSize,
+        SearchTerm: searchTerm || undefined,
+        Category: selectedCategory !== "all" ? selectedCategory : 0,
+        Status: "active",
+      };
 
-        const foodRes = await apiFoodService.getAllActiveFoods(queryParams);
-        setFoods(foodRes.foods || []);
-        setTotalCount(foodRes.totalCount || 0);
-        setTotalPages(foodRes.totalPages || 1);
-      } catch (err) {
-        showErrorFetchAPI(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+      const foodRes = await apiFoodService.getAllActiveFoods(queryParams);
+      setFoods(foodRes.foods || []);
+      setTotalCount(foodRes.totalCount || 0);
+      setTotalPages(foodRes.totalPages || 1);
+    } catch (err) {
+      showErrorFetchAPI(err);
+    } finally {
+      setLoading(false);
+    }
   }, [
-    user,
     pageNumber,
     pageSize,
     searchTerm,
     selectedCategory,
     selectedStatus,
+    user,
   ]);
+
+  const debouncedSetSearchTerm = useCallback(
+    debounce((value) => {
+      setSearchTerm(value);
+      setPageNumber(1);
+    }, 500),
+    []
+  );
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handlePageChange = (page) => {
     setPageNumber(page);
@@ -75,8 +90,8 @@ const FoodListPage = () => {
   };
 
   const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-    setPageNumber(1);
+    const value = event.target.value;
+    debouncedSetSearchTerm(value);
   };
 
   const handleCategoryChange = (event) => {
@@ -176,7 +191,6 @@ const FoodListPage = () => {
       }
     }
 
-    // Visible pages
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <button
@@ -189,7 +203,6 @@ const FoodListPage = () => {
       );
     }
 
-    // Last page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
@@ -209,7 +222,6 @@ const FoodListPage = () => {
       );
     }
 
-    // Next button
     if (pageNumber < totalPages) {
       pages.push(
         <button
@@ -328,7 +340,7 @@ const FoodListPage = () => {
                 <input
                   type="text"
                   placeholder="Search foods..."
-                  value={searchTerm}
+                  defaultValue={searchTerm}
                   onChange={handleSearchChange}
                   className="search-input"
                 />
@@ -350,19 +362,6 @@ const FoodListPage = () => {
                       {category.categoryName}
                     </option>
                   ))}
-                </select>
-              </div>
-
-              <div className="select-container">
-                <label>Status</label>
-                <select
-                  value={selectedStatus}
-                  onChange={handleStatusChange}
-                  className="filter-select"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
                 </select>
               </div>
 

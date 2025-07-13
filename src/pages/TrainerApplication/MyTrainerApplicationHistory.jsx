@@ -13,7 +13,6 @@ import {
   Profile,
   Link,
   Document,
-  TickCircle,
   Bill,
 } from "iconsax-react";
 import { useNavigate } from "react-router-dom";
@@ -51,6 +50,8 @@ const MyTrainerApplicationHistory = () => {
   const [socialLinksDialogOpen, setSocialLinksDialogOpen] = useState(false);
   const [links, setLinks] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [canApply, setCanApply] = useState(false);
+  const [canApplyLoading, setCanApplyLoading] = useState(true);
 
   const fetchApplications = useCallback(async () => {
     if (!user?.userId) {
@@ -83,9 +84,25 @@ const MyTrainerApplicationHistory = () => {
     }
   }, [user, pageNumber, pageSize, search, status, navigate]);
 
+  const checkCanApply = useCallback(async () => {
+    if (!user?.userId) return;
+    setCanApplyLoading(true);
+    try {
+      const canApplyResult =
+        await apiTrainerApplicationService.canApplyNewApplication();
+      setCanApply(canApplyResult);
+    } catch (e) {
+      showErrorFetchAPI(e);
+      setCanApply(false);
+    } finally {
+      setCanApplyLoading(false);
+    }
+  }, [user]);
+
   useEffect(() => {
     fetchApplications();
-  }, [fetchApplications]);
+    checkCanApply();
+  }, [fetchApplications, checkCanApply]);
 
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
@@ -182,7 +199,6 @@ const MyTrainerApplicationHistory = () => {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    // Previous button
     if (pageNumber > 1) {
       pages.push(
         <button
@@ -195,7 +211,6 @@ const MyTrainerApplicationHistory = () => {
       );
     }
 
-    // First page
     if (startPage > 1) {
       pages.push(
         <button
@@ -215,7 +230,6 @@ const MyTrainerApplicationHistory = () => {
       }
     }
 
-    // Visible pages
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <button
@@ -228,7 +242,6 @@ const MyTrainerApplicationHistory = () => {
       );
     }
 
-    // Last page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
@@ -248,7 +261,6 @@ const MyTrainerApplicationHistory = () => {
       );
     }
 
-    // Next button
     if (pageNumber < totalPages) {
       pages.push(
         <button
@@ -333,13 +345,22 @@ const MyTrainerApplicationHistory = () => {
               <span>Search & Filter</span>
             </div>
             <div className="filter-actions">
-              <button
-                className="create-application-btn"
-                onClick={handleCreateNewApplication}
-              >
-                <Add size="20" color="#FFF" />
-                Create New Application
-              </button>
+              {canApplyLoading ? (
+                <div className="skeleton skeleton-button"></div>
+              ) : canApply ? (
+                <button
+                  className="create-application-btn"
+                  onClick={handleCreateNewApplication}
+                >
+                  <Add size="20" color="#FFF" />
+                  Create New Application
+                </button>
+              ) : (
+                <div className="ineligible-message">
+                  <Warning2 size="16" color="var(--accent-warning)" />
+                  <span>Not eligible to submit a new application</span>
+                </div>
+              )}
               <button
                 className="mobile-filter-toggle"
                 onClick={() => setShowFilters(!showFilters)}
@@ -448,7 +469,9 @@ const MyTrainerApplicationHistory = () => {
                       <div className="application-avatar">
                         {app.profileImageUrl ? (
                           <img
-                            src={app.profileImageUrl || "/placeholder.svg"}
+                            src={
+                              app.profileImageUrl || "/placeholder-avatar.jpg"
+                            }
                             alt={app.fullName || "Trainer"}
                             className="avatar-image"
                           />

@@ -813,6 +813,23 @@
     border-radius: var(--border-radius);
 }
 
+.ineligible-message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #FFF4D6;
+    color: #D97706;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.ineligible-message span {
+    white-space: nowrap;
+}
+
+
 @keyframes shimmer {
     0% {
         background-position: -200px 0;

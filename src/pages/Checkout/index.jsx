@@ -37,6 +37,7 @@ import apiServicePackageService from "services/apiServicePackageService";
 import apiUserPaymentService from "services/apiUserPaymentService";
 import { useNavigate, useParams } from "react-router-dom";
 import AuthContext from "contexts/AuthContext";
+import DOMPurify from "dompurify";
 import {
   showErrorFetchAPI,
   showErrorMessage,
@@ -376,9 +377,12 @@ const CheckoutPage = () => {
                 <Typography
                   variant="body1"
                   sx={{ lineHeight: 1.8, fontSize: "1.1rem" }}
-                >
-                  {pkg.description}
-                </Typography>
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(
+                      pkg.description || "<i>No description provided.</i>"
+                    ),
+                  }}
+                ></Typography>
               </Paper>
             </Box>
 
