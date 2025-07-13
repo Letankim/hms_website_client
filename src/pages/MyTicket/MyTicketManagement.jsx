@@ -1,5 +1,5 @@
 import styles from "./MyTicketManagement.module.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import {
   Activity,
   Eye,
@@ -54,6 +54,15 @@ const categoryOptions = [
   { value: "Other", label: "Other / Not Listed" },
 ];
 
+// Debounce function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const MyTicketManagement = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -64,6 +73,7 @@ const MyTicketManagement = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
   const [status, setStatus] = useState("");
   const [priority, setPriority] = useState("");
   const [category, setCategory] = useState("");
@@ -79,7 +89,7 @@ const MyTicketManagement = () => {
   const [formErrors, setFormErrors] = useState({});
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchTickets = async () => {
+  const fetchTickets = useCallback(async () => {
     if (!user) {
       showInfoMessage("Please login to view your tickets.");
       setTimeout(() => navigate("/login"), 1000);
@@ -90,7 +100,7 @@ const MyTicketManagement = () => {
       const params = {
         pageNumber,
         pageSize,
-        searchTerm: search,
+        searchTerm: search.trim(),
         status: status === "all" ? "" : status,
         priority: priority === "all" ? "" : priority,
         category: category === "all" ? "" : category,
@@ -110,20 +120,44 @@ const MyTicketManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchTickets();
   }, [
+    user,
     pageNumber,
     pageSize,
     search,
     status,
     priority,
     category,
-    user,
     navigate,
   ]);
+
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPageNumber(1);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
+  };
+
+  const handleClearFilters = () => {
+    setTempSearch("");
+    setSearch("");
+    setStatus("");
+    setPriority("");
+    setCategory("");
+    setPageNumber(1);
+  };
+
+  useEffect(() => {
+    setTempSearch(search);
+    fetchTickets();
+  }, [fetchTickets]);
 
   const handleViewDetails = (ticket) => {
     navigate(`/my-ticket/detail/${ticket.ticketId}`);
@@ -310,14 +344,6 @@ const MyTicketManagement = () => {
     document.body.style.overflow = "auto";
   };
 
-  const handleClearFilters = () => {
-    setSearch("");
-    setStatus("");
-    setPriority("");
-    setCategory("");
-    setPageNumber(1);
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -409,7 +435,9 @@ const MyTicketManagement = () => {
       pages.push(
         <button
           key={i}
-          className={`pagination-btn ${i === pageNumber ? "active" : ""}`}
+          className={`${styles["pagination-btn"]} ${
+            i === pageNumber ? styles["active"] : ""
+          }`}
           onClick={() => setPageNumber(i)}
         >
           {i}
@@ -456,54 +484,42 @@ const MyTicketManagement = () => {
   const renderSkeletonCard = (index) => (
     <div
       key={index}
-      className={styles["ticket-card"] + " " + styles["skeleton-card"]}
+      className={`${styles["ticket-card"]} ${styles["skeleton-card"]}`}
     >
       <div
-        className={
-          styles["ticket-avatar"] +
-          " " +
-          styles["skeleton"] +
-          " " +
-          styles["skeleton-avatar"]
-        }
+        className={`${styles["ticket-avatar"]} ${styles["skeleton"]} ${styles["skeleton-avatar"]}`}
       ></div>
       <div className={styles["ticket-content"]}>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-title"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-title"]}`}
         ></div>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-description"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-description"]}`}
         ></div>
         <div
-          className={
-            styles["skeleton"] +
-            " " +
-            styles["skeleton-description"] +
-            " " +
-            styles["short"]
-          }
+          className={`${styles["skeleton"]} ${styles["skeleton-description"]} ${styles["short"]}`}
         ></div>
         <div className={styles["ticket-meta"]}>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-chip"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-chip"]}`}
           ></div>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-chip"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-chip"]}`}
           ></div>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-date"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-date"]}`}
           ></div>
         </div>
       </div>
       <div className={styles["ticket-actions"]}>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-action-btn"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-action-btn"]}`}
         ></div>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-action-btn"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-action-btn"]}`}
         ></div>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-action-btn"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-action-btn"]}`}
         ></div>
       </div>
     </div>
@@ -515,14 +531,10 @@ const MyTicketManagement = () => {
         <div className={styles["container"]}>
           <div className={styles["header-section"]}>
             <div
-              className={
-                styles["skeleton"] + " " + styles["skeleton-header-title"]
-              }
+              className={`${styles["skeleton"]} ${styles["skeleton-header-title"]}`}
             ></div>
             <div
-              className={
-                styles["skeleton"] + " " + styles["skeleton-header-desc"]
-              }
+              className={`${styles["skeleton"]} ${styles["skeleton-header-desc"]}`}
             ></div>
           </div>
 
@@ -531,9 +543,7 @@ const MyTicketManagement = () => {
               {[...Array(6)].map((_, index) => (
                 <div
                   key={index}
-                  className={
-                    styles["skeleton"] + " " + styles["skeleton-filter"]
-                  }
+                  className={`${styles["skeleton"]} ${styles["skeleton-filter"]}`}
                 ></div>
               ))}
             </div>
@@ -600,8 +610,8 @@ const MyTicketManagement = () => {
                 <input
                   type="text"
                   placeholder="Search tickets..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  value={tempSearch}
+                  onChange={handleSearchChange}
                   className={styles["search-input"]}
                 />
               </div>
@@ -610,7 +620,10 @@ const MyTicketManagement = () => {
                 <label>Status</label>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    setPageNumber(1);
+                  }}
                   className={styles["filter-select"]}
                 >
                   <option value="">All Statuses</option>
@@ -624,7 +637,10 @@ const MyTicketManagement = () => {
                 <label>Priority</label>
                 <select
                   value={priority}
-                  onChange={(e) => setPriority(e.target.value)}
+                  onChange={(e) => {
+                    setPriority(e.target.value);
+                    setPageNumber(1);
+                  }}
                   className={styles["filter-select"]}
                 >
                   <option value="">All Priorities</option>
@@ -638,7 +654,10 @@ const MyTicketManagement = () => {
                 <label>Category</label>
                 <select
                   value={category}
-                  onChange={(e) => setCategory(e.target.value)}
+                  onChange={(e) => {
+                    setCategory(e.target.value);
+                    setPageNumber(1);
+                  }}
                   className={styles["filter-select"]}
                 >
                   <option value="">All Categories</option>
@@ -654,7 +673,10 @@ const MyTicketManagement = () => {
                 <label>Per Page</label>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPageNumber(1);
+                  }}
                   className={styles["filter-select"]}
                 >
                   <option value={5}>5</option>
@@ -783,27 +805,21 @@ const MyTicketManagement = () => {
 
                       <div className={styles["ticket-actions"]}>
                         <button
-                          className={
-                            styles["action-btn"] + " " + styles["view-btn"]
-                          }
+                          className={`${styles["action-btn"]} ${styles["view-btn"]}`}
                           onClick={() => handleViewDetails(ticket)}
                           title="View Details"
                         >
                           <Eye size="16" color="#FFF" />
                         </button>
                         <button
-                          className={
-                            styles["action-btn"] + " " + styles["edit-btn"]
-                          }
+                          className={`${styles["action-btn"]} ${styles["edit-btn"]}`}
                           onClick={() => handleEditTicket(ticket)}
                           title="Edit Ticket"
                         >
                           <Edit2 size="16" color="#FFF" />
                         </button>
                         <button
-                          className={
-                            styles["action-btn"] + " " + styles["delete-btn"]
-                          }
+                          className={`${styles["action-btn"]} ${styles["delete-btn"]}`}
                           onClick={() => handleConfirmDelete(ticket.ticketId)}
                           title="Delete Ticket"
                         >
@@ -820,7 +836,10 @@ const MyTicketManagement = () => {
                 <label>Items per page:</label>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPageNumber(1);
+                  }}
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -1031,11 +1050,11 @@ const MyTicketManagement = () => {
           onClick={() => handleConfirmDeleteDialogClose(false)}
         >
           <div
-            className={styles["modal-container"] + " " + styles["delete-modal"]}
+            className={`${styles["modal-container"]} ${styles["delete-modal"]}`}
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className={styles["modal-header"] + " " + styles["delete-header"]}
+              className={`${styles["modal-header"]} ${styles["delete-header"]}`}
             >
               <div className={styles["modal-header-content"]}>
                 <Warning2 size="24" color="white" variant="Bold" />
@@ -1072,7 +1091,7 @@ const MyTicketManagement = () => {
                 className={styles["delete-confirm-btn"]}
                 onClick={() => handleConfirmDeleteDialogClose(true)}
               >
-                <Trash size="18" color="#fff"/>
+                <Trash size="18" color="#fff" />
                 Delete Ticket
               </button>
             </div>
@@ -1082,7 +1101,7 @@ const MyTicketManagement = () => {
 
       {/* Success Notification */}
       {showSuccess && (
-        <div className={styles["snackbar"] + " " + styles["success"]}>
+        <div className={`${styles["snackbar"]} ${styles["success"]}`}>
           <div className={styles["snackbar-content"]}>
             <TickCircle size="20" color="white" variant="Bold" />
             <span>{successMessage}</span>
@@ -1098,7 +1117,7 @@ const MyTicketManagement = () => {
 
       {/* Error Notification */}
       {showError && (
-        <div className={styles["snackbar"] + " " + styles["error"]}>
+        <div className={`${styles["snackbar"]} ${styles["error"]}`}>
           <div className={styles["snackbar-content"]}>
             <Warning2 size="20" color="white" variant="Bold" />
             <span>{error}</span>

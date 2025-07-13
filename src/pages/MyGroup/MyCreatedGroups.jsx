@@ -1,5 +1,5 @@
 import styles from "./MyCreatedGroups.module.css";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import {
   People,
   Eye,
@@ -44,6 +44,15 @@ const statusColors = {
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/bmp"];
 
+// Custom debounce function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const MyCreatedGroups = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -87,7 +96,7 @@ const MyCreatedGroups = () => {
   const [formErrors, setFormErrors] = useState({});
   const [showFilters, setShowFilters] = useState(false);
 
-  const fetchGroups = async () => {
+  const fetchGroups = useCallback(async () => {
     if (!user) {
       showInfoMessage("Please login to view your created groups.");
       setTimeout(() => navigate("/login"), 1000);
@@ -98,7 +107,7 @@ const MyCreatedGroups = () => {
       const params = {
         pageNumber: pageNumber,
         pageSize: pageSize,
-        searchTerm: search,
+        searchTerm: search.trim(),
         status: status === "all" ? "" : status,
       };
       const res = await apiGroupService.getMyGroups(params);
@@ -111,18 +120,24 @@ const MyCreatedGroups = () => {
         setGroups([]);
       }
     } catch (e) {
-      const errorMessage = extractErrors(e);
-      setError(errorMessage);
-      setShowError(true);
+      showErrorFetchAPI(e);
       setGroups([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, pageNumber, pageSize, search, status, navigate]);
+
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPageNumber(1);
+    }, 500),
+    []
+  );
 
   useEffect(() => {
     fetchGroups();
-  }, [pageNumber, pageSize, search, status, user, navigate]);
+  }, [fetchGroups]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -169,7 +184,6 @@ const MyCreatedGroups = () => {
   };
 
   const validateAddForm = (groupData) => {
-    console.log(groupData);
     const errors = {};
 
     if (!groupData?.groupName?.trim()) {
@@ -259,8 +273,8 @@ const MyCreatedGroups = () => {
         formData.append("user", user.userId || "anonymous");
         const res = await apiUploadImageCloudService.uploadImage(formData);
         if (res.isError) {
-          setLoading(false);
           showErrorMessage(res.message);
+          setLoading(false);
           return;
         }
         thumbnailUrl = res.imageUrl;
@@ -424,6 +438,10 @@ const MyCreatedGroups = () => {
     setPageNumber(1);
   };
 
+  const handleSearchChange = (e) => {
+    debouncedSetSearch(e.target.value);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     try {
@@ -500,7 +518,9 @@ const MyCreatedGroups = () => {
       pages.push(
         <button
           key={i}
-          className={`pagination-btn ${i === pageNumber ? "active" : ""}`}
+          className={`${styles["pagination-btn"]} ${
+            i === pageNumber ? styles["active"] : ""
+          }`}
           onClick={() => setPageNumber(i)}
         >
           {i}
@@ -687,8 +707,8 @@ const MyCreatedGroups = () => {
                 <input
                   type="text"
                   placeholder="Search groups..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  defaultValue={search}
+                  onChange={handleSearchChange}
                   className={styles["search-input"]}
                 />
               </div>
@@ -697,7 +717,10 @@ const MyCreatedGroups = () => {
                 <label>Status</label>
                 <select
                   value={status}
-                  onChange={(e) => setStatus(e.target.value)}
+                  onChange={(e) => {
+                    setStatus(e.target.value);
+                    setPageNumber(1);
+                  }}
                   className={styles["filter-select"]}
                 >
                   <option value="">All Statuses</option>
@@ -710,7 +733,10 @@ const MyCreatedGroups = () => {
                 <label>Per Page</label>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPageNumber(1);
+                  }}
                   className={styles["filter-select"]}
                 >
                   <option value={5}>5</option>
@@ -923,7 +949,10 @@ const MyCreatedGroups = () => {
                 <label>Items per page:</label>
                 <select
                   value={pageSize}
-                  onChange={(e) => setPageSize(Number(e.target.value))}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPageNumber(1);
+                  }}
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>

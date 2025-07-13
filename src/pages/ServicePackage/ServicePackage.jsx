@@ -1,9 +1,19 @@
 import styles from "./ServicePackage.module.css";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import apiServicePackageService from "services/apiServicePackageService";
 import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
+import { Box, TextField, Button, InputAdornment } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
+
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
 
 const ServicePackage = () => {
   const navigate = useNavigate();
@@ -13,14 +23,17 @@ const ServicePackage = () => {
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(12);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
 
-  const fetchPackages = async () => {
+  const fetchPackages = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const params = {
         PageNumber: pageNumber,
         PageSize: pageSize,
+        SearchTerm: search.trim(),
         Status: "active",
       };
       const res = await apiServicePackageService.getAllActivePackages(params);
@@ -32,11 +45,32 @@ const ServicePackage = () => {
     } finally {
       setLoading(false);
     }
+  }, [pageNumber, pageSize, search]);
+
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPageNumber(1);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
+  };
+
+  const handleClearSearch = () => {
+    setTempSearch("");
+    setSearch("");
+    setPageNumber(1);
   };
 
   useEffect(() => {
+    setTempSearch(search);
     fetchPackages();
-  }, [pageNumber, pageSize]);
+  }, [fetchPackages]);
 
   const handleOpenDetail = (pkg) => {
     navigate(`/service-packages/${pkg.packageId}`);
@@ -60,7 +94,6 @@ const ServicePackage = () => {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    // Previous button
     if (pageNumber > 1) {
       pages.push(
         <button
@@ -74,7 +107,6 @@ const ServicePackage = () => {
       );
     }
 
-    // First page
     if (startPage > 1) {
       pages.push(
         <button
@@ -95,12 +127,13 @@ const ServicePackage = () => {
       }
     }
 
-    // Visible pages
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <button
           key={i}
-          className={`pagination-btn ${i === pageNumber ? "active" : ""}`}
+          className={`${styles["pagination-btn"]} ${
+            i === pageNumber ? styles["active"] : ""
+          }`}
           onClick={() => handlePageChange(i)}
           aria-label={`Page ${i}`}
         >
@@ -109,7 +142,7 @@ const ServicePackage = () => {
       );
     }
 
-    // Last page
+
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
@@ -150,61 +183,49 @@ const ServicePackage = () => {
   const renderSkeletonCard = (index) => (
     <div
       key={index}
-      className={styles["service-card"] + " " + styles["skeleton-card"]}
+      className={`${styles["service-card"]} ${styles["skeleton-card"]}`}
     >
       <div className={styles["card-header"]}>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-avatar"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-avatar"]}`}
         ></div>
         <div className={styles["card-title"]}>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-title"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-title"]}`}
           ></div>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-subtitle"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-subtitle"]}`}
           ></div>
         </div>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-icon"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-icon"]}`}
         ></div>
       </div>
       <div className={styles["card-content"]}>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-description"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-description"]}`}
         ></div>
         <div
-          className={
-            styles["skeleton"] +
-            " " +
-            styles["skeleton-description"] +
-            " " +
-            styles["short"]
-          }
+          className={`${styles["skeleton"]} ${styles["skeleton-description"]} ${styles["short"]}`}
         ></div>
         <div
-          className={
-            styles["skeleton"] +
-            " " +
-            styles["skeleton-description"] +
-            " " +
-            styles["shorter"]
-          }
+          className={`${styles["skeleton"]} ${styles["skeleton-description"]} ${styles["shorter"]}`}
         ></div>
         <div className={styles["card-chips"]}>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-chip"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-chip"]}`}
           ></div>
           <div
-            className={styles["skeleton"] + " " + styles["skeleton-chip"]}
+            className={`${styles["skeleton"]} ${styles["skeleton-chip"]}`}
           ></div>
         </div>
       </div>
       <div className={styles["card-footer"]}>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-price"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-price"]}`}
         ></div>
         <div
-          className={styles["skeleton"] + " " + styles["skeleton-button"]}
+          className={`${styles["skeleton"]} ${styles["skeleton-button"]}`}
         ></div>
       </div>
     </div>
@@ -239,6 +260,57 @@ const ServicePackage = () => {
           </p>
         </div>
 
+        {/* Search Section */}
+        <Box
+          sx={{
+            mb: 4,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 2,
+            justifyContent: "center",
+          }}
+        >
+          <TextField
+            placeholder="Search packages..."
+            size="small"
+            value={tempSearch}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: "var(--accent-info)" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{
+              minWidth: { xs: "100%", sm: 300 },
+              "& .MuiOutlinedInput-root": {
+                borderRadius: 3,
+                bgcolor: "var(--background-white)",
+                "&:hover fieldset": { borderColor: "var(--accent-info)" },
+                "&.Mui-focused fieldset": { borderColor: "var(--accent-info)" },
+              },
+            }}
+          />
+          <Button
+            variant="outlined"
+            onClick={handleClearSearch}
+            sx={{
+              borderRadius: 3,
+              textTransform: "none",
+              fontWeight: 600,
+              color: "var(--accent-error)",
+              borderColor: "var(--accent-error)",
+              "&:hover": {
+                bgcolor: "rgba(211, 47, 47, 0.04)",
+                borderColor: "var(--accent-error)",
+              },
+            }}
+          >
+            Clear Search
+          </Button>
+        </Box>
+
         {/* Error State */}
         {error && (
           <div className={styles["error-state"]}>
@@ -258,7 +330,7 @@ const ServicePackage = () => {
             </div>
             <h3 className={styles["empty-title"]}>No service packages found</h3>
             <p className={styles["empty-description"]}>
-              Try checking back later for new packages
+              Try adjusting your search or check back later for new packages
             </p>
           </div>
         ) : (
@@ -316,12 +388,12 @@ const ServicePackage = () => {
                   />
                   <div className={styles["card-chips"]}>
                     <span
-                      className={styles["chip"] + " " + styles["chip-info"]}
+                      className={`${styles["chip"]} ${styles["chip-info"]}`}
                     >
                       {pkg.durationDays || 0} days
                     </span>
                     <span
-                      className={styles["chip"] + " " + styles["chip-success"]}
+                      className={`${styles["chip"]} ${styles["chip-success"]}`}
                     >
                       {pkg.status
                         ? pkg.status.charAt(0).toUpperCase() +

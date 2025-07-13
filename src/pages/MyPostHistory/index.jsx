@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useContext } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import {
   Activity,
   Eye,
@@ -24,6 +24,15 @@ import {
 } from "components/ErrorHandler/showStatusMessage";
 import AuthContext from "contexts/AuthContext";
 
+// Debounce function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "active", label: "Active" },
@@ -38,6 +47,7 @@ const MyPostHistory = () => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -59,7 +69,7 @@ const MyPostHistory = () => {
     setLoading(true);
     try {
       const params = {
-        search,
+        search: search.trim(),
         status: status === "all" ? "" : status,
         startDate,
         endDate,
@@ -84,6 +94,7 @@ const MyPostHistory = () => {
       setLoading(false);
     }
   }, [
+    user,
     search,
     status,
     startDate,
@@ -95,14 +106,24 @@ const MyPostHistory = () => {
     refresh,
   ]);
 
-  useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPage(0);
+    }, 500),
+    []
+  );
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPage(0);
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
   };
+
+  useEffect(() => {
+    setTempSearch(search);
+    fetchPosts();
+  }, [fetchPosts]);
 
   const handleStatusChange = (e) => {
     setStatus(e.target.value);
@@ -146,6 +167,7 @@ const MyPostHistory = () => {
       setRefresh((r) => !r);
     } catch (e) {
       showErrorFetchAPI(e);
+      setError(e.message);
       setShowError(true);
     }
   };
@@ -166,6 +188,7 @@ const MyPostHistory = () => {
   };
 
   const handleClearFilters = () => {
+    setTempSearch("");
     setSearch("");
     setStatus("all");
     setStartDate("");
@@ -175,6 +198,12 @@ const MyPostHistory = () => {
 
   const handleCloseSuccess = () => {
     setShowSuccess(false);
+    setSuccessMessage(null);
+  };
+
+  const handleCloseError = () => {
+    setShowError(false);
+    setError(null);
   };
 
   const formatDate = (dateString) => {
@@ -279,7 +308,6 @@ const MyPostHistory = () => {
       );
     }
 
-    // Next button
     if (currentPage < totalPages) {
       pages.push(
         <button
@@ -384,7 +412,7 @@ const MyPostHistory = () => {
                 <input
                   type="text"
                   placeholder="Search posts..."
-                  value={search}
+                  value={tempSearch}
                   onChange={handleSearchChange}
                   className="search-input"
                 />
@@ -445,6 +473,19 @@ const MyPostHistory = () => {
             </div>
           </div>
         </div>
+
+        {/* Error Notification */}
+        {showError && (
+          <div className="snackbar error">
+            <div className="snackbar-content">
+              <Warning2 size="20" color="white" variant="Bold" />
+              <span>{error}</span>
+              <button className="snackbar-close" onClick={handleCloseError}>
+                <CloseCircle size="16" color="white" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Results Summary */}
         {!error && (
@@ -649,6 +690,19 @@ const MyPostHistory = () => {
             <Activity size="20" color="white" variant="Bold" />
             <span>{successMessage}</span>
             <button className="snackbar-close" onClick={handleCloseSuccess}>
+              <CloseCircle size="16" color="white" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Error Notification */}
+      {showError && (
+        <div className="snackbar error">
+          <div className="snackbar-content">
+            <Warning2 size="20" color="white" variant="Bold" />
+            <span>{error}</span>
+            <button className="snackbar-close" onClick={handleCloseError}>
               <CloseCircle size="16" color="white" />
             </button>
           </div>

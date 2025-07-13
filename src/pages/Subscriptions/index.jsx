@@ -36,6 +36,15 @@ import { useNavigate } from "react-router-dom";
 import "./index.css";
 import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
 
+// Debounce function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "active", label: "Active" },
@@ -54,6 +63,7 @@ const MySubscriptionsPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -72,7 +82,7 @@ const MySubscriptionsPage = () => {
       const params = {
         pageNumber: page + 1,
         pageSize: rowsPerPage,
-        searchTerm: searchTerm || undefined,
+        searchTerm: searchTerm.trim() || undefined,
         status: status === "all" ? undefined : status,
         startDate: startDate || undefined,
         endDate: endDate || undefined,
@@ -96,14 +106,33 @@ const MySubscriptionsPage = () => {
     }
   }, [user, page, rowsPerPage, searchTerm, status, startDate, endDate]);
 
-  useEffect(() => {
-    fetchSubscriptions();
-  }, [fetchSubscriptions]);
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearchTerm(value);
+      setPage(0);
+    }, 500),
+    []
+  );
 
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
+  };
+
+  const handleClearFilters = () => {
+    setTempSearch("");
+    setSearchTerm("");
+    setStatus("all");
+    setStartDate("");
+    setEndDate("");
     setPage(0);
   };
+
+  useEffect(() => {
+    setTempSearch(searchTerm);
+    fetchSubscriptions();
+  }, [fetchSubscriptions]);
 
   const handleStatusChange = (e) => {
     setStatus(e.target.value);
@@ -131,6 +160,7 @@ const MySubscriptionsPage = () => {
 
   const handleCloseError = () => {
     setShowError(false);
+    setError(null);
   };
 
   const handleViewDetails = (subscription) => {
@@ -294,7 +324,7 @@ const MySubscriptionsPage = () => {
               fullWidth
               size="small"
               placeholder="Search by email or name..."
-              value={searchTerm}
+              value={tempSearch}
               onChange={handleSearchChange}
               InputProps={{
                 startAdornment: (
@@ -350,6 +380,7 @@ const MySubscriptionsPage = () => {
               value={startDate}
               onChange={handleStartDateChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ max: endDate || undefined }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "var(--background-white)",
@@ -371,6 +402,7 @@ const MySubscriptionsPage = () => {
               value={endDate}
               onChange={handleEndDateChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: startDate || undefined }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "var(--background-white)",
@@ -382,6 +414,26 @@ const MySubscriptionsPage = () => {
                 },
               }}
             />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Button
+              variant="outlined"
+              onClick={handleClearFilters}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                color: "var(--accent-error)",
+                borderColor: "var(--accent-error)",
+                width: "100%",
+                "&:hover": {
+                  bgcolor: "rgba(211, 47, 47, 0.04)",
+                  borderColor: "var(--accent-error)",
+                },
+              }}
+            >
+              Clear Filters
+            </Button>
           </Grid>
         </Grid>
 

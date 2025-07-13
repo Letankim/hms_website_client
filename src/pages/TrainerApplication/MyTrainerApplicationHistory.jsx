@@ -25,6 +25,14 @@ import {
   showInfoMessage,
 } from "components/ErrorHandler/showStatusMessage";
 
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const statusColors = {
   pending: "var(--accent-warning)",
   approved: "var(--accent-success)",
@@ -42,6 +50,7 @@ const MyTrainerApplicationHistory = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
   const [status, setStatus] = useState("");
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -99,15 +108,25 @@ const MyTrainerApplicationHistory = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchApplications();
-    checkCanApply();
-  }, [fetchApplications, checkCanApply]);
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPageNumber(1);
+    }, 500),
+    []
+  );
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPageNumber(1);
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
   };
+
+  useEffect(() => {
+    setTempSearch(search);
+    fetchApplications();
+    checkCanApply();
+  }, [fetchApplications, checkCanApply, search]);
 
   const handleStatusChange = (e) => {
     setStatus(e.target.value);
@@ -164,6 +183,7 @@ const MyTrainerApplicationHistory = () => {
   };
 
   const handleClearFilters = () => {
+    setTempSearch("");
     setSearch("");
     setStatus("");
     setPageNumber(1);
@@ -378,7 +398,7 @@ const MyTrainerApplicationHistory = () => {
                 <input
                   type="text"
                   placeholder="Search Full Name/Email..."
-                  value={search}
+                  value={tempSearch}
                   onChange={handleSearchChange}
                   className="search-input"
                 />
@@ -410,6 +430,7 @@ const MyTrainerApplicationHistory = () => {
                 </select>
               </div>
               <button className="search-btn" onClick={fetchApplications}>
+                <SearchNormal1 size="16" color="#FFF" />
                 Search
               </button>
               <button

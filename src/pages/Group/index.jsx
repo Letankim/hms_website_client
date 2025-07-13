@@ -11,8 +11,6 @@ import {
   InputAdornment,
   Snackbar,
   Alert,
-  ToggleButton,
-  ToggleButtonGroup,
 } from "@mui/material";
 import {
   Search as SearchIcon,
@@ -30,6 +28,15 @@ import {
   showSuccessMessage,
 } from "components/ErrorHandler/showStatusMessage";
 
+// Debounce function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const GroupPage = () => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
@@ -41,6 +48,7 @@ const GroupPage = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [snackbar, setSnackbar] = useState({
@@ -52,14 +60,6 @@ const GroupPage = () => {
   const [pendingActions, setPendingActions] = useState(new Set());
   const [view, setView] = useState("all");
 
-  const debounce = (func, delay) => {
-    let timeoutId;
-    return (...args) => {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => func(...args), delay);
-    };
-  };
-
   const fetchGroups = useCallback(async () => {
     setLoading(true);
     try {
@@ -67,7 +67,7 @@ const GroupPage = () => {
         PageNumber: page,
         PageSize: pageSize,
         ValidPageSize: pageSize,
-        SearchTerm: search,
+        SearchTerm: search.trim(),
         Status: view === "all" ? "active" : undefined,
         StartDate: startDate,
         EndDate: endDate,
@@ -79,11 +79,18 @@ const GroupPage = () => {
         res = await apiGroupService.getAllActiveGroups(params);
       }
       const data = res.data || res;
-      setGroups(data.groups || []);
+      const processedGroups = (data.groups || []).map((group) => ({
+        ...group,
+        isOwner:
+          group.isOwner !== undefined
+            ? group.isOwner
+            : group.creator?.userId === user?.userId,
+      }));
+      setGroups(processedGroups);
       setTotalPages(data.totalPages || 1);
       setTotalCount(data.totalCount || 0);
       const joined = new Set(
-        data.groups?.filter((g) => g.isJoin).map((g) => g.groupId) || []
+        processedGroups.filter((g) => g.isJoin).map((g) => g.groupId)
       );
       setJoinedGroups(joined);
     } catch (e) {
@@ -92,12 +99,21 @@ const GroupPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, startDate, endDate, view]);
+  }, [page, pageSize, search, startDate, endDate, view, user]);
 
-  const handleSearchChange = debounce((value) => {
-    setSearch(value);
-    setPage(1);
-  }, 500);
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPage(1);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
+  };
 
   const handleJoinGroup = async (groupId, isJoined) => {
     if (!user) {
@@ -132,6 +148,14 @@ const GroupPage = () => {
     }
   };
 
+  const handleClearFilters = () => {
+    setTempSearch("");
+    setSearch("");
+    setStartDate("");
+    setEndDate("");
+    setPage(1);
+  };
+
   const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
@@ -144,6 +168,7 @@ const GroupPage = () => {
   };
 
   useEffect(() => {
+    setTempSearch(search);
     fetchGroups();
   }, [fetchGroups]);
 
@@ -191,30 +216,55 @@ const GroupPage = () => {
         </Box>
 
         {/* View Toggle Section */}
-        <div className={styles["toggle-container"]}>
-          <div className={styles["toggle-group"]}>
-            <button
-              className={`${styles["toggle-button"]} ${
-                view === "all" ? styles["selected"] : ""
-              }`}
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 4 }}>
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant={view === "all" ? "contained" : "outlined"}
               onClick={(e) => handleViewChange(e, "all")}
+              sx={{
+                borderRadius: 3,
+                textTransform: "none",
+                fontWeight: 600,
+                bgcolor: view === "all" ? "var(--accent-info)" : "transparent",
+                color:
+                  view === "all" ? "var(--text-white)" : "var(--accent-info)",
+                "&:hover": {
+                  bgcolor:
+                    view === "all"
+                      ? "var(--primary-hover)"
+                      : "var(--background-light)",
+                },
+              }}
             >
-              <span className={styles["button-text"]}>All Groups</span>
-              <div className={styles["button-bg"]}></div>
-            </button>
+              All Groups
+            </Button>
             {user && (
-              <button
-                className={`${styles["toggle-button"]} ${
-                  view === "joined" ? styles["selected"] : ""
-                }`}
+              <Button
+                variant={view === "joined" ? "contained" : "outlined"}
                 onClick={(e) => handleViewChange(e, "joined")}
+                sx={{
+                  borderRadius: 3,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  bgcolor:
+                    view === "joined" ? "var(--accent-info)" : "transparent",
+                  color:
+                    view === "joined"
+                      ? "var(--text-white)"
+                      : "var(--accent-info)",
+                  "&:hover": {
+                    bgcolor:
+                      view === "joined"
+                        ? "var(--primary-hover)"
+                        : "var(--background-light)",
+                  },
+                }}
               >
-                <span className={styles["button-text"]}>My Joined Groups</span>
-                <div className={styles["button-bg"]}></div>
-              </button>
+                My Joined Groups
+              </Button>
             )}
-          </div>
-        </div>
+          </Stack>
+        </Box>
 
         {/* Controls Section */}
         <Box
@@ -230,8 +280,8 @@ const GroupPage = () => {
           <TextField
             placeholder="Search groups..."
             size="small"
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={tempSearch}
+            onChange={handleSearchChange}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -305,6 +355,23 @@ const GroupPage = () => {
               },
             }}
           />
+          <Button
+            variant="outlined"
+            onClick={handleClearFilters}
+            sx={{
+              borderRadius: 3,
+              textTransform: "none",
+              fontWeight: 600,
+              color: "var(--accent-error)",
+              borderColor: "var(--accent-error)",
+              "&:hover": {
+                bgcolor: "rgba(211, 47, 47, 0.04)",
+                borderColor: "var(--accent-error)",
+              },
+            }}
+          >
+            Clear Filters
+          </Button>
         </Box>
 
         {/* Group List */}
@@ -575,6 +642,13 @@ const GroupPage = () => {
                         ? "Leaving..."
                         : "Joining..."}
                     </Button>
+                  ) : group.isOwner ? (
+                    <Typography
+                      variant="body2"
+                      sx={{ color: "var(--accent-info)", fontWeight: 700 }}
+                    >
+                      Owner
+                    </Typography>
                   ) : group.isRequested ? (
                     <Button
                       className={styles["group-join-btn"]}

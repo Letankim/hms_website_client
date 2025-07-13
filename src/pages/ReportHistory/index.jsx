@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useContext, useEffect, useState, useCallback } from "react";
 import {
   Eye,
   SearchNormal1,
@@ -11,12 +11,17 @@ import {
   ArrowLeft2,
   Flag,
 } from "iconsax-react";
+import { useNavigate } from "react-router-dom";
+import AuthContext from "contexts/AuthContext";
 import apiPostReportService from "services/apiPostReportService";
 import "./MyReportHistory.css";
-import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
+import {
+  showErrorFetchAPI,
+  showInfoMessage,
+} from "components/ErrorHandler/showStatusMessage";
 
 const statusOptions = [
-  { value: "all", label: "All Statuses" },
+  { value: "", label: "All Statuses" },
   { value: "pending", label: "Pending" },
   { value: "approved", label: "Approved" },
   { value: "rejected", label: "Rejected" },
@@ -25,11 +30,23 @@ const statusOptions = [
 
 const pageSizeOptions = [5, 10, 20, 50];
 
+// Debounce function
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const MyReportHistory = () => {
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [status, setStatus] = useState("all");
+  const [tempSearch, setTempSearch] = useState("");
+  const [status, setStatus] = useState("");
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -41,6 +58,11 @@ const MyReportHistory = () => {
   const [selectedReport, setSelectedReport] = useState(null);
 
   const fetchReports = useCallback(async () => {
+    if (!user?.userId) {
+      showInfoMessage("Please login to view your report history.");
+      setTimeout(() => navigate("/login"), 1500);
+      return;
+    }
     setLoading(true);
     try {
       const params = {
@@ -68,16 +90,26 @@ const MyReportHistory = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, status, pageNumber, pageSize]);
+  }, [user, pageNumber, pageSize, search, status, navigate]);
 
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearch(value);
+      setPageNumber(1);
+    }, 500),
+    []
+  );
 
   const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPageNumber(1);
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
   };
+
+  useEffect(() => {
+    setTempSearch(search);
+    fetchReports();
+  }, [fetchReports]);
 
   const handleStatusChange = (e) => {
     setStatus(e.target.value);
@@ -106,13 +138,15 @@ const MyReportHistory = () => {
   };
 
   const handleClearFilters = () => {
+    setTempSearch("");
     setSearch("");
-    setStatus("all");
+    setStatus("");
     setPageNumber(1);
   };
 
   const handleCloseError = () => {
     setShowError(false);
+    setError(null);
   };
 
   const formatDate = (dateString) => {
@@ -168,7 +202,6 @@ const MyReportHistory = () => {
       );
     }
 
-    // First page
     if (startPage > 1) {
       pages.push(
         <button
@@ -188,7 +221,6 @@ const MyReportHistory = () => {
       }
     }
 
-    // Visible pages
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <button
@@ -203,7 +235,6 @@ const MyReportHistory = () => {
       );
     }
 
-    // Last page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
@@ -223,7 +254,6 @@ const MyReportHistory = () => {
       );
     }
 
-    // Next button
     if (pageNumber < totalPages) {
       pages.push(
         <button
@@ -262,12 +292,14 @@ const MyReportHistory = () => {
       <div className="report-history-container">
         <div className="report-container">
           <div className="report-header-section">
-            <div className="report-skeleton report-skeleton-header-title"></div>
+            <div className="report-header-content">
+              <div className="report-skeleton report-skeleton-header-title"></div>
+            </div>
             <div className="report-skeleton report-skeleton-header-desc"></div>
           </div>
           <div className="report-filter-section">
             <div className="report-filter-grid">
-              {[...Array(6)].map((_, index) => (
+              {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
                   className="report-skeleton report-skeleton-filter"
@@ -324,7 +356,7 @@ const MyReportHistory = () => {
                 <input
                   type="text"
                   placeholder="Search reason/details..."
-                  value={search}
+                  value={tempSearch}
                   onChange={handleSearchChange}
                   className="report-search-input"
                 />
@@ -358,6 +390,7 @@ const MyReportHistory = () => {
                 </select>
               </div>
               <button className="report-search-btn" onClick={fetchReports}>
+                <SearchNormal1 size="16" color="#FFF" />
                 Search
               </button>
               <button
@@ -371,12 +404,22 @@ const MyReportHistory = () => {
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && showError && (
+          <div className="report-error-message">
+            <div className="report-error-content">
+              <Warning2 size="20" color="white" />
+              {error}
+            </div>
+          </div>
+        )}
+
         {/* Results Summary */}
         {!error && (
           <div className="report-results-summary">
             Found <strong>{totalCount}</strong> report
             {totalCount !== 1 ? "s" : ""}
-            {status !== "all" && ` with status "${status}"`}
+            {status && ` with status "${status}"`}
             {search && ` matching "${search}"`}
           </div>
         )}
@@ -406,18 +449,18 @@ const MyReportHistory = () => {
                       </div>
                       <div className="report-content">
                         <div className="report-number">
-                          #{(pageNumber - 1) * pageSize + index + 1}
+                          #REPORT{(pageNumber - 1) * pageSize + index + 1}
                         </div>
                         <h3 className="report-reason" title={report.reasonText}>
                           {report.reasonText || "No reason provided"}
                         </h3>
-                        <div className="report-details">
-                          {report.details ? (
-                            <span>{report.details}</span>
-                          ) : (
-                            <em>No details provided.</em>
-                          )}
-                        </div>
+                        <div
+                          className="report-details"
+                          dangerouslySetInnerHTML={{
+                            __html:
+                              report.details || "<em>No details provided.</em>",
+                          }}
+                        />
                         <div className="report-ids">
                           Report ID: #{report.reportId} | Post ID: #
                           {report.postId}
@@ -520,7 +563,13 @@ const MyReportHistory = () => {
                 </div>
                 <div className="report-detail-item report-full-width">
                   <label>Details</label>
-                  <span>{selectedReport.details || "No details provided"}</span>
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html:
+                        selectedReport.details ||
+                        "<em>No details provided.</em>",
+                    }}
+                  />
                 </div>
                 <div className="report-detail-item report-full-width">
                   <label>Note</label>
@@ -548,10 +597,26 @@ const MyReportHistory = () => {
             </div>
             <div className="report-modal-footer">
               <button className="report-cancel-btn" onClick={handleCloseDialog}>
-                <CloseCircle size="18" color="#dc3545" />
+                <CloseCircle size="18" color="var(--accent-error)" />
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error Notification */}
+      {showError && (
+        <div className="report-snackbar error">
+          <div className="report-snackbar-content">
+            <Warning2 size="20" color="white" variant="Bold" />
+            <span>{error}</span>
+            <button
+              className="report-snackbar-close"
+              onClick={handleCloseError}
+            >
+              <CloseCircle size="16" color="white" />
+            </button>
           </div>
         </div>
       )}

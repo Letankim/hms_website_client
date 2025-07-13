@@ -54,7 +54,6 @@ const ViewPostDetails = () => {
   const postMenuRef = useRef();
   const commentMenuRef = useRef();
 
-  // All API calls and handlers remain the same...
   const fetchPost = useCallback(async () => {
     setLoadingPost(true);
     try {
@@ -63,7 +62,6 @@ const ViewPostDetails = () => {
       return res.data;
     } catch (e) {
       showErrorFetchAPI(e);
-      setError("Failed to load post");
       return null;
     } finally {
       setLoadingPost(false);
@@ -103,8 +101,6 @@ const ViewPostDetails = () => {
     },
     [postId, hasMore, loadingComments]
   );
-
-  // All useEffects remain the same...
   useEffect(() => {
     const loadData = async () => {
       const postData = await fetchPost();

@@ -43,6 +43,14 @@ import {
   showSuccessMessage,
 } from "components/ErrorHandler/showStatusMessage";
 
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "active", label: "Active" },
@@ -59,6 +67,7 @@ const MyServicesPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tempSearch, setTempSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -90,7 +99,7 @@ const MyServicesPage = () => {
       const params = {
         PageNumber: page + 1,
         PageSize: rowsPerPage,
-        SearchTerm: searchTerm || undefined,
+        SearchTerm: searchTerm.trim() || undefined,
         Status: status === "all" ? undefined : status,
         StartDate: startDate || undefined,
         EndDate: endDate || undefined,
@@ -114,7 +123,31 @@ const MyServicesPage = () => {
     }
   }, [user, page, rowsPerPage, searchTerm, status, startDate, endDate]);
 
+  const debouncedSetSearch = useCallback(
+    debounce((value) => {
+      setSearchTerm(value);
+      setPage(0);
+    }, 500),
+    []
+  );
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setTempSearch(value);
+    debouncedSetSearch(value);
+  };
+
+  const handleClearFilters = () => {
+    setTempSearch("");
+    setSearchTerm("");
+    setStatus("all");
+    setStartDate("");
+    setEndDate("");
+    setPage(0);
+  };
+
   useEffect(() => {
+    setTempSearch(searchTerm);
     fetchPackages();
   }, [fetchPackages]);
 
@@ -127,10 +160,9 @@ const MyServicesPage = () => {
         statusData
       );
       if (response.statusCode === 200) {
-        setSuccessMessage(
+        showSuccessMessage(
           `Package status updated to ${newStatus} successfully.`
         );
-        setShowSuccess(true);
         fetchPackages();
       } else {
         throw new Error("Failed to update package status.");
@@ -228,7 +260,7 @@ const MyServicesPage = () => {
         ...newPackage,
         price: parseFloat(newPackage.price),
         durationDays: parseInt(newPackage.durationDays, 10),
-        maxSubscribers: parseInt(newPackage.maxSubscribers, 10),
+        maxSubscribers: parseInt(newPackage.maxSubscribers, 10) || null,
         trainerId: user.userId,
       };
       const response = await apiServicePackageService.addPackageByTrainer(
@@ -236,7 +268,6 @@ const MyServicesPage = () => {
       );
       if (response.statusCode === 201) {
         showSuccessMessage("Package added successfully.");
-        setShowSuccess(true);
         setAddDialogOpen(false);
         fetchPackages();
       } else {
@@ -245,11 +276,6 @@ const MyServicesPage = () => {
     } catch (e) {
       showErrorFetchAPI(e);
     }
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setPage(0);
   };
 
   const handleStatusChange = (e) => {
@@ -278,10 +304,12 @@ const MyServicesPage = () => {
 
   const handleCloseError = () => {
     setShowError(false);
+    setError(null);
   };
 
   const handleCloseSuccess = () => {
     setShowSuccess(false);
+    setSuccessMessage(null);
   };
 
   const handleViewDetails = (pkg) => {
@@ -467,7 +495,7 @@ const MyServicesPage = () => {
               fullWidth
               size="small"
               placeholder="Search by package name..."
-              value={searchTerm}
+              value={tempSearch}
               onChange={handleSearchChange}
               InputProps={{
                 startAdornment: (
@@ -523,6 +551,7 @@ const MyServicesPage = () => {
               value={startDate}
               onChange={handleStartDateChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ max: endDate || undefined }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "var(--background-white)",
@@ -544,6 +573,7 @@ const MyServicesPage = () => {
               value={endDate}
               onChange={handleEndDateChange}
               InputLabelProps={{ shrink: true }}
+              inputProps={{ min: startDate || undefined }}
               sx={{
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "var(--background-white)",
@@ -555,6 +585,26 @@ const MyServicesPage = () => {
                 },
               }}
             />
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Button
+              variant="outlined"
+              onClick={handleClearFilters}
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+                fontWeight: 600,
+                color: "var(--accent-error)",
+                borderColor: "var(--accent-error)",
+                width: "100%",
+                "&:hover": {
+                  bgcolor: "rgba(211, 47, 47, 0.04)",
+                  borderColor: "var(--accent-error)",
+                },
+              }}
+            >
+              Clear Filters
+            </Button>
           </Grid>
         </Grid>
 
