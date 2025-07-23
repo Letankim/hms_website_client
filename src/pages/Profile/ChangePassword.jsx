@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Lock, Shield } from "iconsax-react";
 import apiAuthService from "services/apiAuthService";
 import AuthContext from "contexts/AuthContext";
-import "./ChangePassword.css";
+import "./changePassword.css";
 import {
   showErrorFetchAPI,
   showErrorMessage,
