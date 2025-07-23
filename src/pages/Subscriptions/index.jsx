@@ -173,6 +173,12 @@ const MySubscriptionsPage = () => {
     setSelectedSubscription(null);
   };
 
+  const handleCheckout = (paymentLink) => {
+    if (paymentLink) {
+      window.open(paymentLink, "_blank", "noopener,noreferrer");
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case "active":
@@ -200,7 +206,7 @@ const MySubscriptionsPage = () => {
     }
   };
 
-  const skeletonRows = Array.from({ length: rowsPerPage }).map((_, idx) => (
+  const skeletonRows = Array.from({ length: rowsPerPage })?.map((_, idx) => (
     <TableRow key={idx}>
       <TableCell>
         <Skeleton variant="text" width={40} />
@@ -364,7 +370,7 @@ const MySubscriptionsPage = () => {
                 },
               }}
             >
-              {statusOptions.map((opt) => (
+              {statusOptions?.map((opt) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </MenuItem>
@@ -511,7 +517,7 @@ const MySubscriptionsPage = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                subscriptions.map((sub, index) => (
+                subscriptions?.map((sub, index) => (
                   <TableRow key={sub.subscriptionId} hover>
                     <TableCell sx={{ color: "var(--text-primary)" }}>
                       {page * rowsPerPage + index + 1}
@@ -526,6 +532,7 @@ const MySubscriptionsPage = () => {
                           ...getStatusColor(sub.status),
                           textTransform: "capitalize",
                           fontWeight: "bold",
+                          color: "#fff",
                         }}
                         onClick={(e) => e.stopPropagation()}
                       />
@@ -537,19 +544,41 @@ const MySubscriptionsPage = () => {
                       {new Date(sub.endDate).toLocaleDateString()}
                     </TableCell>
                     <TableCell align="center">
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleViewDetails(sub)}
-                        sx={{
-                          borderRadius: 0.5,
-                          color: "var(--accent-info)",
-                          borderColor: "var(--accent-info)",
-                          "&:hover": { bgcolor: "var(--background-light)" },
-                        }}
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        justifyContent="center"
                       >
-                        View Detail
-                      </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() => handleViewDetails(sub)}
+                          sx={{
+                            borderRadius: 0.5,
+                            color: "var(--accent-info)",
+                            borderColor: "var(--accent-info)",
+                            "&:hover": { bgcolor: "var(--background-light)" },
+                          }}
+                        >
+                          View Detail
+                        </Button>
+                        {sub.status?.toLowerCase() === "pending" && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleCheckout(sub.paymentLink)}
+                            sx={{
+                              borderRadius: 0.5,
+                              bgcolor: "var(--primary-color)",
+                              borderColor: "var(--primary-color)",
+                              color: "var(--text-white)",
+                              "&:hover": { bgcolor: "var(--primary-hover)" },
+                            }}
+                          >
+                            Checkout
+                          </Button>
+                        )}
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))

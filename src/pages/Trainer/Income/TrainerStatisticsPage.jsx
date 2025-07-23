@@ -123,7 +123,7 @@ const TrainerStatisticsPage = () => {
             />
           </Box>
           <Grid container spacing={4} sx={{ mb: 6 }}>
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3]?.map((i) => (
               <Grid item xs={12} md={4} key={i}>
                 <Skeleton
                   variant="rectangular"
@@ -209,13 +209,13 @@ const TrainerStatisticsPage = () => {
   if (!stats) return null;
 
   // Chart data preparation
-  const pieChartData = stats.subscriptionsByStatus.map((item) => ({
+  const pieChartData = stats.subscriptionsByStatus?.map((item) => ({
     name: item.status,
     value: item.count,
     color: COLORS[item.status],
   }));
 
-  const barChartData = stats.subscriptionsByCreationDate.map((item) => ({
+  const barChartData = stats.subscriptionsByCreationDate?.map((item) => ({
     name: `${item.month}/${item.year}`,
     subscriptions: item.count,
   }));
@@ -379,7 +379,7 @@ const TrainerStatisticsPage = () => {
                         fontSize: "2.5rem",
                       }}
                     >
-                      {formatCurrency(stats.totalRevenue)}
+                      {formatCurrency(stats?.totalRevenue)}
                     </Typography>
                   </Box>
                   <Box sx={{ p: 2, bgcolor: "#22c55e", borderRadius: "50%" }}>
@@ -446,7 +446,7 @@ const TrainerStatisticsPage = () => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {stats.mostPopularPackage.packageName}
+                      {stats.mostPopularPackage?.packageName}
                     </Typography>
                     <Typography
                       variant="body1"
@@ -458,8 +458,8 @@ const TrainerStatisticsPage = () => {
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {stats.mostPopularPackage.subscriptionCount} subs •{" "}
-                      {formatCurrency(stats.mostPopularPackage.totalRevenue)}
+                      {stats.mostPopularPackage?.subscriptionCount} subs •{" "}
+                      {formatCurrency(stats.mostPopularPackage?.totalRevenue)}
                     </Typography>
                   </Box>
                   <Box sx={{ p: 2, bgcolor: "#8b5cf6", borderRadius: "50%" }}>
@@ -553,7 +553,7 @@ const TrainerStatisticsPage = () => {
                         paddingAngle={5}
                         dataKey="value"
                       >
-                        {pieChartData.map((entry, index) => (
+                        {pieChartData?.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>

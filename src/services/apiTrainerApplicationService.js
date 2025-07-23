@@ -41,7 +41,7 @@ const apiTrainerApplicationService = {
     },
     canApplyNewApplication: async () => {
         try {
-            const response = await apiClient.get('/can-apply');
+            const response = await apiClient.get('/TrainerApplication/can-apply');
             return response.data;
         } catch (error) {
             throw error.response?.data || { message: 'Failed to fetch my application.' };

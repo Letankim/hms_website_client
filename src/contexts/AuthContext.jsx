@@ -5,6 +5,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [shouldLogout, setShouldLogout] = useState(false);
+  const [isProfileCompleted, setIsProfileCompleted] = useState(() => {
+    return localStorage.getItem("isProfileCompleted") === "true";
+  });
+
   const getTokenExpiration = useCallback((token) => {
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
@@ -81,7 +85,8 @@ export const AuthProvider = ({ children }) => {
       const response = await apiAuthService.login(email, password);
       if (response.status === "Success") {
         const userData = response.data;
-        console.log(userData);
+
+        // Kiểm tra role
         const validRoles = ["Trainer", "User"];
         if (
           !userData.roles ||
@@ -95,8 +100,13 @@ export const AuthProvider = ({ children }) => {
             message: "Access denied: Only Trainer or User roles are allowed",
           };
         }
+
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        localStorage.setItem(
+          "isProfileCompleted",
+          userData.profileCompleted?.toString() || "false"
+        );
         setShouldLogout(false);
         return { success: true };
       } else {
@@ -111,6 +121,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
   const register = async (email, password) => {
     setLoading(true);
     try {
@@ -132,6 +143,8 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {}
     setUser(null);
     localStorage.removeItem("user");
+    localStorage.removeItem("userProfile");
+    localStorage.removeItem("userProfileLastFetch");
     setShouldLogout(true);
   };
   const googleLogin = async (googleToken) => {
@@ -140,31 +153,20 @@ export const AuthProvider = ({ children }) => {
       const response = await apiAuthService.googleLogin(googleToken);
       if (response.status === "Success") {
         const userData = response.data;
-        const validRoles = ["Trainer", "User"];
-        if (
-          !userData.roles ||
-          !userData.roles.some((role) => validRoles.includes(role))
-        ) {
-          setUser(null);
-          localStorage.removeItem("user");
-          setShouldLogout(true);
-          return {
-            success: false,
-            message: "Access denied: Only Trainer or User roles are allowed",
-          };
+        if (userData?.accessToken) {
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
         }
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
         setShouldLogout(false);
-        return { success: true };
+        return response;
       } else {
-        throw new Error(response.message || "Google login failed");
+        return response;
       }
     } catch (err) {
       setUser(null);
       localStorage.removeItem("user");
       setShouldLogout(true);
-      return { success: false, message: err.message || "Google login failed" };
+      return err;
     } finally {
       setLoading(false);
     }
@@ -175,34 +177,20 @@ export const AuthProvider = ({ children }) => {
       const response = await apiAuthService.facebookLogin(facebookToken);
       if (response.status === "Success") {
         const userData = response.data;
-        const validRoles = ["Trainer", "User"];
-        if (
-          !userData.roles ||
-          !userData.roles.some((role) => validRoles.includes(role))
-        ) {
-          setUser(null);
-          localStorage.removeItem("user");
-          setShouldLogout(true);
-          return {
-            success: false,
-            message: "Access denied: Only Trainer or User roles are allowed",
-          };
+        if (userData?.accessToken) {
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
         }
-        setUser(userData);
-        localStorage.setItem("user", JSON.stringify(userData));
         setShouldLogout(false);
-        return { success: true };
+        return response;
       } else {
-        throw new Error(response.message || "Facebook login failed");
+        return response;
       }
     } catch (err) {
       setUser(null);
       localStorage.removeItem("user");
       setShouldLogout(true);
-      return {
-        success: false,
-        message: err.message || "Facebook login failed",
-      };
+      return err;
     } finally {
       setLoading(false);
     }
@@ -224,6 +212,8 @@ export const AuthProvider = ({ children }) => {
         googleLogin,
         facebookLogin,
         hasPermission,
+        isProfileCompleted,
+        setIsProfileCompleted,
       }}
     >
       {" "}

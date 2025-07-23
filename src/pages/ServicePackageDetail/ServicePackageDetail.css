@@ -1062,3 +1062,14 @@
 .service-package-snackbar {
     z-index: 99999;
 }
+
+.your-service-label {
+    width: 100%;
+    font-weight: bold;
+    color: #4caf50;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background-color: #e8f5e9;
+    text-align: center;
+    display: inline-block;
+}

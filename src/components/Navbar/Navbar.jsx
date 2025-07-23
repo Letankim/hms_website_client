@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import AuthContext from "contexts/AuthContext";
 import apiUserService from "services/apiUserService";
 import apiNotificationService from "services/apiNotificationService";
@@ -30,6 +30,24 @@ const Navbar = () => {
   const NOTIF_CACHE_MINUTES = 15;
   const userId = user?.userId;
   const avatarRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkProfileCompletion = () => {
+      if (user) {
+        const isProfileCompleted = localStorage.getItem("isProfileCompleted");
+        if (
+          isProfileCompleted &&
+          isProfileCompleted === "false" &&
+          isProfileCompleted !== undefined
+        ) {
+          navigate("/provide-profile");
+        }
+      }
+    };
+
+    checkProfileCompletion();
+  }, [user, navigate]);
 
   const fetchUserProfile = async () => {
     if (!userId) return;

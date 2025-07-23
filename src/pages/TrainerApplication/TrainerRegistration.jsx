@@ -78,7 +78,7 @@ const TrainerRegistration = () => {
     try {
       const canApplyResult =
         await apiTrainerApplicationService.canApplyNewApplication();
-      setCanApply(canApplyResult);
+      setCanApply(canApplyResult?.data);
     } catch (e) {
       showErrorFetchAPI(e);
       setCanApply(false);

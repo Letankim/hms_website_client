@@ -30,6 +30,8 @@ const FoodListPage = () => {
   const [openDetailsDialog, setOpenDetailsDialog] = useState(false);
   const [selectedFood, setSelectedFood] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("ID");
+  const [sortDescending, setSortDescending] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -48,6 +50,8 @@ const FoodListPage = () => {
         SearchTerm: searchTerm || undefined,
         Category: selectedCategory !== "all" ? selectedCategory : 0,
         Status: "active",
+        SortBy: sortBy,
+        SortDescending: sortDescending,
       };
 
       const foodRes = await apiFoodService.getAllActiveFoods(queryParams);
@@ -66,6 +70,8 @@ const FoodListPage = () => {
     selectedCategory,
     selectedStatus,
     user,
+    sortDescending,
+    sortBy,
   ]);
 
   const debouncedSetSearchTerm = useCallback(
@@ -108,6 +114,8 @@ const FoodListPage = () => {
     setSearchTerm("");
     setSelectedCategory("all");
     setSelectedStatus("active");
+    setSortBy("ID");
+    setSortDescending(false);
     setPageNumber(1);
   };
 
@@ -115,6 +123,19 @@ const FoodListPage = () => {
     setSelectedFood(food);
     setOpenDetailsDialog(true);
     document.body.style.overflow = "hidden";
+  };
+
+  const handleSortChange = (event) => {
+    const value = event.target.value;
+    if (value === "ID") {
+      setSortBy("ID");
+      setSortDescending(false);
+    } else {
+      const [field, direction] = value.split("-");
+      setSortBy(field);
+      setSortDescending(direction === "desc");
+    }
+    setPageNumber(1);
   };
 
   const handleCloseDetailsDialog = () => {
@@ -365,6 +386,30 @@ const FoodListPage = () => {
                 </select>
               </div>
 
+              <div className={"select-container"}>
+                <label htmlFor="sort-select">Sort By</label>
+                <select
+                  id="sort-select"
+                  value={`${sortBy}-${sortDescending ? "desc" : "asc"}`}
+                  onChange={handleSortChange}
+                  className={"filter-select"}
+                >
+                  <option value="id-asc">Default</option>
+                  <option value="name-asc">Name (A → Z)</option>
+                  <option value="name-desc">Name (Z → A)</option>
+                  <option value="calories-asc">Calories (Low → High)</option>
+                  <option value="calories-desc">Calories (High → Low)</option>
+                  <option value="protein-asc">Protein (Low → High)</option>
+                  <option value="protein-desc">Protein (High → Low)</option>
+                  <option value="carbs-asc">Carbs (Low → High)</option>
+                  <option value="carbs-desc">Carbs (High → Low)</option>
+                  <option value="fats-asc">Fats (Low → High)</option>
+                  <option value="fats-desc">Fats (High → Low)</option>
+                  <option value="createdat-asc">Created At (Oldest)</option>
+                  <option value="createdat-desc">Created At (Newest)</option>
+                </select>
+              </div>
+
               <button
                 className="clear-filters-btn"
                 onClick={handleClearFilters}
@@ -439,15 +484,11 @@ const FoodListPage = () => {
                 <div key={food.foodId} className="food-card">
                   <div className="food-image-container">
                     <img
-                      src={
-                        food.image ||
-                        "https://via.placeholder.com/300x180?text=No+Image"
-                      }
+                      src={food.image || "/default_image.png"}
                       alt={food.foodName}
                       className="food-image"
                       onError={(e) => {
-                        e.target.src =
-                          "https://via.placeholder.com/300x180?text=No+Image";
+                        e.target.src = "/default_image.png";
                       }}
                     />
                     <span className="category-chip">

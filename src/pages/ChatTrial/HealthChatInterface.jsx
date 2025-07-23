@@ -7,6 +7,7 @@ import {
   showErrorMessage,
   showInfoMessage,
 } from "components/ErrorHandler/showStatusMessage";
+import Select from "react-select";
 
 const HeartIcon = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -115,7 +116,27 @@ const VolumeUpIcon = () => (
     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z" />
   </svg>
 );
+const fitnessGoalOptions = [
+  { value: "Weight Loss", label: "Weight Loss" },
+  { value: "Muscle Gain", label: "Muscle Gain" },
+  { value: "Endurance", label: "Endurance" },
+  { value: "Weight Gain", label: "Weight Gain" },
+  { value: "Fat Loss", label: "Fat Loss" },
+  { value: "Muscle Definition", label: "Muscle Definition" },
+  { value: "Cutting", label: "Cutting" },
+  { value: "Bulking", label: "Bulking" },
+];
 
+const dietaryOptions = [
+  { value: "Vegetarian", label: "Vegetarian" },
+  { value: "Vegan", label: "Vegan" },
+  { value: "Low-carb", label: "Low-carb" },
+  { value: "High-protein", label: "High-protein" },
+  { value: "No dairy", label: "No dairy" },
+  { value: "Gluten-free", label: "Gluten-free" },
+  { value: "Keto", label: "Keto" },
+  { value: "Pescatarian", label: "Pescatarian" },
+];
 const HealthChatInterface = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -135,6 +156,11 @@ const HealthChatInterface = () => {
     fitnessGoal: "",
     dietaryPreferences: "",
     email: "",
+  });
+
+  const [formDataMultiple, setFormDataMultiple] = useState({
+    fitnessGoals: [],
+    dietaryPreferences: [],
   });
 
   const [sessionId, setSessionId] = useState(
@@ -1056,6 +1082,20 @@ const HealthChatInterface = () => {
             <form onSubmit={handleFormSubmit}>
               <div className={styles["form-grid"]}>
                 <div className={styles["form-group"]}>
+                  <label className={styles["form-label"]}>Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleFormChange}
+                    className={styles["form-input"]}
+                    placeholder="your.email@example.com"
+                  />
+                  <span className={styles["form-helper"]}>
+                    For updates and progress tracking
+                  </span>
+                </div>
+                <div className={styles["form-group"]}>
                   <label className={styles["form-label"]}>
                     Gender{" "}
                     <span className={styles["required-indicator"]}>*</span>
@@ -1171,19 +1211,26 @@ const HealthChatInterface = () => {
                     Fitness Goal{" "}
                     <span className={styles["required-indicator"]}>*</span>
                   </label>
-                  <select
-                    name="fitnessGoal"
-                    value={formData.fitnessGoal}
-                    onChange={handleFormChange}
-                    className={styles["form-select"]}
-                    required
-                  >
-                    <option value="">Select your goal</option>
-                    <option value="weight loss">Weight Loss</option>
-                    <option value="muscle gain">Muscle Gain</option>
-                    <option value="endurance">Endurance</option>
-                    <option value="weight gain">Weight Gain</option>
-                  </select>
+                  <Select
+                    isMulti
+                    name="fitnessGoals"
+                    options={fitnessGoalOptions}
+                    classNamePrefix="select"
+                    value={fitnessGoalOptions.filter((opt) =>
+                      formDataMultiple.fitnessGoals.includes(opt.value)
+                    )}
+                    onChange={(selected) => {
+                      const selectedValues = selected.map((s) => s.value);
+                      setFormDataMultiple((prev) => ({
+                        ...prev,
+                        fitnessGoals: selectedValues,
+                      }));
+                      setFormData((prev) => ({
+                        ...prev,
+                        fitnessGoal: selected.map((s) => s.value).join(", "),
+                      }));
+                    }}
+                  />
                   <span className={styles["form-helper"]}>
                     What do you want to achieve?
                   </span>
@@ -1193,31 +1240,29 @@ const HealthChatInterface = () => {
                   <label className={styles["form-label"]}>
                     Dietary Preferences
                   </label>
-                  <input
-                    type="text"
+                  <Select
+                    isMulti
                     name="dietaryPreferences"
-                    value={formData.dietaryPreferences}
-                    onChange={handleFormChange}
-                    className={styles["form-input"]}
-                    placeholder="e.g., vegetarian, low-carb, no dairy"
+                    options={dietaryOptions}
+                    classNamePrefix="select"
+                    value={dietaryOptions.filter((opt) =>
+                      formDataMultiple.dietaryPreferences.includes(opt.value)
+                    )}
+                    onChange={(selected) => {
+                      const selectedValues = selected.map((s) => s.value);
+                      setFormDataMultiple((prev) => ({
+                        ...prev,
+                        dietaryPreferences: selectedValues,
+                      }));
+
+                      setFormData((prev) => ({
+                        ...prev,
+                        dietaryPreferences: selectedValues.join(", "),
+                      }));
+                    }}
                   />
                   <span className={styles["form-helper"]}>
                     Any dietary restrictions or preferences
-                  </span>
-                </div>
-
-                <div className={styles["form-group"]}>
-                  <label className={styles["form-label"]}>Email</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleFormChange}
-                    className={styles["form-input"]}
-                    placeholder="your.email@example.com"
-                  />
-                  <span className={styles["form-helper"]}>
-                    For updates and progress tracking
                   </span>
                 </div>
               </div>

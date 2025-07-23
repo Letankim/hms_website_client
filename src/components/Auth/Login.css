@@ -566,7 +566,7 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.stat-number {
+.stat-item .stat-number {
     display: block;
     font-size: 1.5rem;
     font-weight: 800;
@@ -574,7 +574,7 @@
     margin-bottom: 0.25rem;
 }
 
-.stat-label {
+.stat-item .stat-label {
     font-size: 0.75rem;
     opacity: 0.8;
     font-weight: 600;

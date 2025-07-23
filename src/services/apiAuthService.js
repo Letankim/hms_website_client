@@ -90,11 +90,11 @@ const apiAuthService = {
 
     activate: async (userId,token) => {
         try {
-            const response = await apiClient.get("/auth/activate",{
-                params: {
-                    userId: userId,
-                    token: token
-                }
+            const encodedToken = encodeURIComponent(token);
+
+            const response = await apiClient.post("/auth/activate",{
+                userId,
+                token: encodedToken
             });
             return response.data;
         } catch (error) {

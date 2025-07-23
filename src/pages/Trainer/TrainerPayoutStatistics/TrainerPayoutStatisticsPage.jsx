@@ -191,13 +191,13 @@ const TrainerPayoutStatisticsPage = () => {
     }).format(amount);
   };
 
-  const pieChartData = (stats?.payoutsByStatus || []).map((item) => ({
+  const pieChartData = (stats?.payoutsByStatus || [])?.map((item) => ({
     name: item.status,
     value: item.count,
     color: COLORS[item.status] || "#6b7280",
   }));
 
-  const barChartData = (stats?.payoutsByCreationDate || []).map((item) => ({
+  const barChartData = (stats?.payoutsByCreationDate || [])?.map((item) => ({
     name: `${item.month}/${item.year}`,
     payouts: item.count,
   }));
@@ -496,7 +496,7 @@ const TrainerPayoutStatisticsPage = () => {
                 },
               }}
             >
-              {statusOptions.map((opt) => (
+              {statusOptions?.map((opt) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </MenuItem>
@@ -866,7 +866,7 @@ const TrainerPayoutStatisticsPage = () => {
                           paddingAngle={5}
                           dataKey="value"
                         >
-                          {pieChartData.map((entry, index) => (
+                          {pieChartData?.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -1011,7 +1011,7 @@ const TrainerPayoutStatisticsPage = () => {
               onChange={(e) => setNewStatus(e.target.value)}
               sx={{ mb: 2 }}
             >
-              {payoutStatusOptions.map((opt) => (
+              {payoutStatusOptions?.map((opt) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </MenuItem>

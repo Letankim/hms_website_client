@@ -27,6 +27,7 @@
     "@tiptap/extension-link": "^2.14.0",
     "@tiptap/react": "^2.14.0",
     "@tiptap/starter-kit": "^2.14.0",
+    "@zegocloud/zego-uikit-prebuilt": "^2.15.0",
     "axios": "^1.9.0",
     "chart.js": "^4.4.9",
     "chartjs-plugin-annotation": "^3.1.0",
@@ -45,6 +46,7 @@
     "react-fancybox": "^0.2.5",
     "react-router-dom": "^7.6.2",
     "react-scripts": "5.0.1",
+    "react-select": "^5.10.2",
     "recharts": "^3.0.2",
     "sweetalert2": "^11.22.2",
     "web-vitals": "^2.1.4"
@@ -72,5 +74,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "vite-plugin-mkcert": "^1.17.8"
   }
 }

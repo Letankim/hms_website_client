@@ -313,7 +313,7 @@ const Services = () => {
               onMouseEnter={() => setHoveredCard(index)}
               onMouseLeave={() => setHoveredCard(null)}
             >
-              <a href={service.link} className={styles["service-link"]}>
+              <a className={styles["service-link"]}>
                 <div className={styles["service-icon"]}>
                   <img
                     src={service.icon || "/placeholder.svg"}
@@ -327,19 +327,6 @@ const Services = () => {
                   <p className={styles["service-description"]}>
                     {service.description}
                   </p>
-                </div>
-                <div className={styles["service-button"]}>
-                  <span className={styles["service-button-text"]}>
-                    Learn More
-                  </span>
-                  <img
-                    src="https://cdn.prod.website-files.com/675931be48143bd8073dddc4/675992b5bc21f90656177dd5_arrow-icon.svg"
-                    alt="Arrow"
-                    className={`${styles["service-arrow"]} ${
-                      hoveredCard === index ? styles["arrow-move"] : ""
-                    }`}
-                    loading="lazy"
-                  />
                 </div>
                 <div className={styles["card-shine"]} />
               </a>

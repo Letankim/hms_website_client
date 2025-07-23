@@ -64,8 +64,7 @@
 }
 
 .input-wrapper.password-wrapper input {
-    padding-left: 3rem;
-    padding-right: 3rem;
+    padding-left: 1rem;
 }
 
 /* Enhanced Error States */
@@ -84,11 +83,6 @@
     font-size: 0.75rem;
 }
 
-/* Success State for Valid Inputs */
-.input-wrapper input:valid:not(:placeholder-shown):not(.input-error) {
-    border-color: #10b981;
-    background: rgba(16, 185, 129, 0.05);
-}
 
 /* Enhanced Button States */
 .auth-submit-btn:disabled {
@@ -97,12 +91,16 @@
     transform: none;
 }
 
+.form-group {
+    margin-bottom: 0.75rem;
+}
+
 /* Timer Display Enhancement */
 .resend-btn.disabled {
     background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-    color: var(--primary-color);
-    border-color: rgba(244, 124, 84, 0.3);
+    color: #000;
     font-size: 0.8rem;
+    height: 100%;
 }
 
 /* Loading States */
@@ -140,7 +138,7 @@
     }
 
     .auth-form-block {
-        padding: 2rem 1.5rem;
+        padding: 0.75rem 0.5rem;
     }
 }
 
@@ -239,6 +237,15 @@
 
 .password-strength.strong {
     color: #10b981;
+}
+
+.auth-form {
+    gap: 1rem;
+}
+
+.input-wrapper.password-wrapper {
+    display: flex;
+    align-items: center;
 }
 
 /* Enhanced Accessibility */

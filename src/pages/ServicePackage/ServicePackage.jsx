@@ -1,11 +1,9 @@
 import styles from "./ServicePackage.module.css";
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import apiServicePackageService from "services/apiServicePackageService";
 import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
-import { Box, TextField, Button, InputAdornment } from "@mui/material";
-import { Search as SearchIcon } from "@mui/icons-material";
 
 const debounce = (func, delay) => {
   let timeoutId;
@@ -21,10 +19,13 @@ const ServicePackage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize] = useState(12);
+  const [pageSize, setPageSize] = useState(12);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState("");
-  const [tempSearch, setTempSearch] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("ID");
+  const [sortDescending, setSortDescending] = useState(false);
 
   const fetchPackages = useCallback(async () => {
     setLoading(true);
@@ -35,17 +36,20 @@ const ServicePackage = () => {
         PageSize: pageSize,
         SearchTerm: search.trim(),
         Status: "active",
+        SortBy: sortBy,
+        SortDescending: sortDescending,
       };
       const res = await apiServicePackageService.getAllActivePackages(params);
       setPackages(res.data?.packages || []);
       setTotalPages(res.data?.totalPages || 1);
+      setTotalCount(res.data?.totalCount || 0);
     } catch (e) {
       setPackages([]);
       showErrorFetchAPI(e);
     } finally {
       setLoading(false);
     }
-  }, [pageNumber, pageSize, search]);
+  }, [pageNumber, pageSize, search, sortBy, sortDescending]);
 
   const debouncedSetSearch = useCallback(
     debounce((value) => {
@@ -55,20 +59,37 @@ const ServicePackage = () => {
     []
   );
 
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setTempSearch(value);
+  const handleSearchChange = (event) => {
+    const value = event.target.value;
     debouncedSetSearch(value);
   };
 
-  const handleClearSearch = () => {
-    setTempSearch("");
+  const handleClearFilters = () => {
     setSearch("");
+    setSortBy("ID");
+    setSortDescending(false);
+    setPageNumber(1);
+  };
+
+  const handlePageSizeChange = (event) => {
+    setPageSize(Number(event.target.value));
+    setPageNumber(1);
+  };
+
+  const handleSortChange = (event) => {
+    const value = event.target.value;
+    if (value === "ID") {
+      setSortBy("ID");
+      setSortDescending(false);
+    } else {
+      const [field, direction] = value.split("-");
+      setSortBy(field);
+      setSortDescending(direction === "desc");
+    }
     setPageNumber(1);
   };
 
   useEffect(() => {
-    setTempSearch(search);
     fetchPackages();
   }, [fetchPackages]);
 
@@ -88,7 +109,7 @@ const ServicePackage = () => {
     const pages = [];
     const maxVisiblePages = 5;
     let startPage = Math.max(1, pageNumber - Math.floor(maxVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
@@ -100,7 +121,6 @@ const ServicePackage = () => {
           key="prev"
           className={styles["pagination-btn"]}
           onClick={() => handlePageChange(pageNumber - 1)}
-          aria-label="Previous page"
         >
           ‹
         </button>
@@ -113,7 +133,6 @@ const ServicePackage = () => {
           key={1}
           className={styles["pagination-btn"]}
           onClick={() => handlePageChange(1)}
-          aria-label="Page 1"
         >
           1
         </button>
@@ -135,13 +154,11 @@ const ServicePackage = () => {
             i === pageNumber ? styles["active"] : ""
           }`}
           onClick={() => handlePageChange(i)}
-          aria-label={`Page ${i}`}
         >
           {i}
         </button>
       );
     }
-
 
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
@@ -156,21 +173,18 @@ const ServicePackage = () => {
           key={totalPages}
           className={styles["pagination-btn"]}
           onClick={() => handlePageChange(totalPages)}
-          aria-label={`Page ${totalPages}`}
         >
           {totalPages}
         </button>
       );
     }
 
-    // Next button
     if (pageNumber < totalPages) {
       pages.push(
         <button
           key="next"
           className={styles["pagination-btn"]}
           onClick={() => handlePageChange(pageNumber + 1)}
-          aria-label="Next page"
         >
           ›
         </button>
@@ -243,6 +257,36 @@ const ServicePackage = () => {
     </svg>
   );
 
+  if (loading) {
+    return (
+      <div className={styles["service-package-container"]}>
+        <div className={styles["container"]}>
+          <div className={styles["header-section"]}>
+            <div
+              className={`${styles["skeleton"]} ${styles["skeleton-header-title"]}`}
+            ></div>
+            <div
+              className={`${styles["skeleton"]} ${styles["skeleton-header-desc"]}`}
+            ></div>
+          </div>
+          <div className={styles["filter-section"]}>
+            <div className={styles["filter-grid"]}>
+              {[...Array(2)].map((_, index) => (
+                <div
+                  key={index}
+                  className={`${styles["skeleton"]} ${styles["skeleton-filter"]}`}
+                ></div>
+              ))}
+            </div>
+          </div>
+          <div className={styles["packages-grid"]}>
+            {[...Array(8)].map((_, i) => renderSkeletonCard(i))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles["service-package-container"]}>
       <div className={styles["container"]}>
@@ -260,167 +304,241 @@ const ServicePackage = () => {
           </p>
         </div>
 
-        {/* Search Section */}
-        <Box
-          sx={{
-            mb: 4,
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 2,
-            justifyContent: "center",
-          }}
-        >
-          <TextField
-            placeholder="Search packages..."
-            size="small"
-            value={tempSearch}
-            onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: "var(--accent-info)" }} />
-                </InputAdornment>
-              ),
-            }}
-            sx={{
-              minWidth: { xs: "100%", sm: 300 },
-              "& .MuiOutlinedInput-root": {
-                borderRadius: 3,
-                bgcolor: "var(--background-white)",
-                "&:hover fieldset": { borderColor: "var(--accent-info)" },
-                "&.Mui-focused fieldset": { borderColor: "var(--accent-info)" },
-              },
-            }}
-          />
-          <Button
-            variant="outlined"
-            onClick={handleClearSearch}
-            sx={{
-              borderRadius: 3,
-              textTransform: "none",
-              fontWeight: 600,
-              color: "var(--accent-error)",
-              borderColor: "var(--accent-error)",
-              "&:hover": {
-                bgcolor: "rgba(211, 47, 47, 0.04)",
-                borderColor: "var(--accent-error)",
-              },
-            }}
+        {/* Filter Section */}
+        <div className={styles["filter-section"]}>
+          <div className={styles["filter-header"]}>
+            <div className={styles["filter-title"]}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
+              </svg>
+              <span>Search & Filter</span>
+            </div>
+            <button
+              className={styles["mobile-filter-toggle"]}
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              {showFilters ? "Hide" : "Show"} Filters
+            </button>
+          </div>
+          <div
+            className={`${styles["filter-content"]} ${
+              showFilters ? styles["show"] : ""
+            }`}
           >
-            Clear Search
-          </Button>
-        </Box>
+            <div className={styles["filter-grid"]}>
+              <div className={styles["search-input-container"]}>
+                <div className={styles["search-icon"]}>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search packages..."
+                  defaultValue={search}
+                  onChange={handleSearchChange}
+                  className={styles["search-input"]}
+                />
+              </div>
+              <div className={styles["select-container"]}>
+                <label>Sort By</label>
+                <select
+                  value={
+                    sortBy ? `${sortBy}-${sortDescending ? "desc" : "asc"}` : ""
+                  }
+                  onChange={handleSortChange}
+                  className={styles["filter-select"]}
+                >
+                  <option value="ID">Default</option>
+                  <option value="packagename-asc">Package Name (A-Z)</option>
+                  <option value="packagename-desc">Package Name (Z-A)</option>
+                  <option value="trainer-asc">Trainer Name (A-Z)</option>
+                  <option value="trainer-desc">Trainer Name (Z-A)</option>
+                  <option value="price-asc">Price (Low to High)</option>
+                  <option value="price-desc">Price (High to Low)</option>
+                  <option value="duration-asc">Duration (Short to Long)</option>
+                  <option value="duration-desc">
+                    Duration (Long to Short)
+                  </option>
+                  <option value="subscribers-asc">
+                    Subscribers (Low to High)
+                  </option>
+                  <option value="subscribers-desc">
+                    Subscribers (High to Low)
+                  </option>
+                </select>
+              </div>
+              <button
+                className={styles["clear-filters-btn"]}
+                onClick={handleClearFilters}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </div>
 
-        {/* Error State */}
+        {/* Error Message */}
         {error && (
-          <div className={styles["error-state"]}>
-            <p className={styles["error-message"]}>{error}</p>
+          <div className={styles["error-message"]}>
+            <div className={styles["error-content"]}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              </svg>
+              {error}
+            </div>
+          </div>
+        )}
+
+        {/* Results Summary */}
+        {!error && (
+          <div className={styles["results-summary"]}>
+            Found <strong>{totalCount}</strong> service package
+            {totalCount !== 1 ? "s" : ""}
+            {search && ` matching "${search}"`}
           </div>
         )}
 
         {/* Package Grid */}
-        {loading ? (
-          <div className={styles["packages-grid"]}>
-            {[...Array(pageSize)].map((_, i) => renderSkeletonCard(i))}
-          </div>
-        ) : packages.length === 0 ? (
+        {packages.length === 0 && !error ? (
           <div className={styles["empty-state"]}>
             <div className={styles["empty-icon"]}>
               <PackageIcon />
             </div>
             <h3 className={styles["empty-title"]}>No service packages found</h3>
             <p className={styles["empty-description"]}>
-              Try adjusting your search or check back later for new packages
+              Try adjusting your search criteria or clear the filters
             </p>
           </div>
         ) : (
-          <div className={styles["packages-grid"]}>
-            {packages.map((pkg) => (
-              <div key={pkg.packageId} className={styles["service-card"]}>
-                <div className={styles["card-header"]}>
-                  <div className={styles["trainer-avatar"]}>
-                    <img
-                      src={pkg.trainerAvatar || "/placeholder-avatar.jpg"}
-                      alt={pkg.trainerFullName || "Trainer avatar"}
-                      onError={(e) => {
-                        e.target.src = "/placeholder-avatar.jpg";
+          <>
+            <div className={styles["packages-grid"]}>
+              {packages.map((pkg) => (
+                <div key={pkg.packageId} className={styles["service-card"]}>
+                  <div className={styles["card-header"]}>
+                    <div className={styles["trainer-avatar"]}>
+                      <img
+                        src={pkg.trainerAvatar || "/placeholder-avatar.jpg"}
+                        alt={pkg.trainerFullName || "Trainer avatar"}
+                        onError={(e) => {
+                          e.target.src = "/placeholder-avatar.jpg";
+                        }}
+                      />
+                    </div>
+                    <div className={styles["card-title"]}>
+                      <h3
+                        className={styles["package-name"]}
+                        title={pkg.packageName}
+                      >
+                        {pkg.packageName || "Unnamed Package"}
+                      </h3>
+                      <p
+                        className={styles["trainer-name"]}
+                        title={`by ${pkg.trainerFullName}`}
+                      >
+                        by {pkg.trainerFullName || "Unknown Trainer"}
+                      </p>
+                    </div>
+                    <button
+                      className={styles["info-button"]}
+                      onClick={() => handleOpenDetail(pkg)}
+                      aria-label={`View details for ${pkg.packageName}`}
+                    >
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className={styles["card-content"]}>
+                    <div
+                      className={styles["package-description"]}
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(
+                          pkg.description || "No description available"
+                        ),
                       }}
                     />
+                    <div className={styles["card-chips"]}>
+                      <span
+                        className={`${styles["chip"]} ${styles["chip-info"]}`}
+                      >
+                        {pkg.durationDays || 0} days
+                      </span>
+                      <span
+                        className={`${styles["chip"]} ${styles["chip-success"]}`}
+                      >
+                        {pkg.status
+                          ? pkg.status.charAt(0).toUpperCase() +
+                            pkg.status.slice(1)
+                          : "N/A"}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles["card-title"]}>
-                    <h3
-                      className={styles["package-name"]}
-                      title={pkg.packageName}
+                  <div className={styles["card-footer"]}>
+                    <div className={styles["package-price"]}>
+                      {(pkg.price || 0).toLocaleString()} VND
+                    </div>
+                    <button
+                      className={styles["view-details-btn"]}
+                      onClick={() => handleOpenDetail(pkg)}
+                      aria-label={`View details for ${pkg.packageName}`}
                     >
-                      {pkg.packageName || "Unnamed Package"}
-                    </h3>
-                    <p
-                      className={styles["trainer-name"]}
-                      title={`by ${pkg.trainerFullName}`}
-                    >
-                      by {pkg.trainerFullName || "Unknown Trainer"}
-                    </p>
-                  </div>
-                  <button
-                    className={styles["info-button"]}
-                    onClick={() => handleOpenDetail(pkg)}
-                    aria-label={`View details for ${pkg.packageName}`}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
-                    </svg>
-                  </button>
-                </div>
-                <div className={styles["card-content"]}>
-                  <div
-                    className={styles["package-description"]}
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(
-                        pkg.description || "No description available"
-                      ),
-                    }}
-                  />
-                  <div className={styles["card-chips"]}>
-                    <span
-                      className={`${styles["chip"]} ${styles["chip-info"]}`}
-                    >
-                      {pkg.durationDays || 0} days
-                    </span>
-                    <span
-                      className={`${styles["chip"]} ${styles["chip-success"]}`}
-                    >
-                      {pkg.status
-                        ? pkg.status.charAt(0).toUpperCase() +
-                          pkg.status.slice(1)
-                        : "N/A"}
-                    </span>
+                      View Details
+                    </button>
                   </div>
                 </div>
-                <div className={styles["card-footer"]}>
-                  <div className={styles["package-price"]}>
-                    {(pkg.price || 0).toLocaleString()} VND
-                  </div>
-                  <button
-                    className={styles["view-details-btn"]}
-                    onClick={() => handleOpenDetail(pkg)}
-                    aria-label={`View details for ${pkg.packageName}`}
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
 
-        {/* Pagination */}
-        {renderPagination()}
+            {/* Pagination */}
+            <div className={styles["pagination-section"]}>
+              <div className={styles["page-size-selector"]}>
+                <label>Items per page:</label>
+                <select value={pageSize} onChange={handlePageSizeChange}>
+                  <option value={8}>8</option>
+                  <option value={12}>12</option>
+                  <option value={16}>16</option>
+                  <option value={20}>20</option>
+                </select>
+              </div>
+              {renderPagination()}
+              <div className={styles["pagination-info"]}>
+                Showing {(pageNumber - 1) * pageSize + 1} to{" "}
+                {Math.min(pageNumber * pageSize, totalCount)} of {totalCount}{" "}
+                packages
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

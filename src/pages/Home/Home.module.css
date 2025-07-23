@@ -544,7 +544,6 @@ body {
 
 .service-description {
     color: var(--text-secondary);
-    margin-bottom: 2rem;
     line-height: 1.6;
 }
 

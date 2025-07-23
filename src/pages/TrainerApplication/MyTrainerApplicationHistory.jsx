@@ -99,7 +99,7 @@ const MyTrainerApplicationHistory = () => {
     try {
       const canApplyResult =
         await apiTrainerApplicationService.canApplyNewApplication();
-      setCanApply(canApplyResult);
+      setCanApply(canApplyResult?.data);
     } catch (e) {
       showErrorFetchAPI(e);
       setCanApply(false);
@@ -585,154 +585,325 @@ const MyTrainerApplicationHistory = () => {
       {/* Details Modal */}
       {detailDialogOpen && selectedApplication && (
         <div className="modal-overlay" onClick={handleCloseDialog}>
-          <div
-            className="modal-container details-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
             <div className="modal-header">
-              <div className="modal-header-content">
-                <DocumentText size="24" color="white" variant="Bold" />
-                <h2>Application Details</h2>
+              <div className="header-content">
+                <div className="header-icon">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+                    <polyline points="14,2 14,8 20,8" />
+                  </svg>
+                </div>
+                <h2 className="modal-title">Application Details</h2>
               </div>
-              <button className="modal-close-btn" onClick={handleCloseDialog}>
-                <CloseCircle size="24" color="white" />
+              <button className="close-btn" onClick={handleCloseDialog}>
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               </button>
             </div>
+
+            {/* Content */}
             <div className="modal-content">
               <div className="details-grid">
-                <div className="detail-item">
-                  <label>Full Name</label>
-                  <span>{selectedApplication.fullName || "N/A"}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Email</label>
-                  <span>{selectedApplication.email || "N/A"}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Phone Number</label>
-                  <span>{selectedApplication.phoneNumber || "N/A"}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Date of Birth</label>
-                  <span>
-                    {selectedApplication.dateOfBirth
-                      ? new Date(
-                          selectedApplication.dateOfBirth
-                        ).toLocaleDateString()
-                      : "N/A"}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <label>Gender</label>
-                  <span>{selectedApplication.gender || "N/A"}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Experience Years</label>
-                  <span>{selectedApplication.experienceYears || "N/A"}</span>
-                </div>
-                <div className="detail-item full-width">
-                  <label>Bio</label>
-                  <span>{selectedApplication.bio || "No bio provided"}</span>
-                </div>
-                <div className="detail-item full-width">
-                  <label>Specialties</label>
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html:
-                        selectedApplication.specialties ||
-                        "No specialties provided",
-                    }}
-                  ></span>
-                </div>
-                <div className="detail-item full-width">
-                  <label>Certifications</label>
-                  <span
-                    dangerouslySetInnerHTML={{
-                      __html:
-                        selectedApplication.certifications ||
-                        "No certifications provided",
-                    }}
-                  ></span>
-                </div>
-                <div className="detail-item">
-                  <label>Status</label>
-                  <span
-                    className="status-chip"
-                    style={{
-                      backgroundColor: getStatusColor(
-                        selectedApplication.status
-                      ),
-                    }}
-                  >
-                    {selectedApplication.status
-                      ? selectedApplication.status.charAt(0).toUpperCase() +
-                        selectedApplication.status.slice(1)
-                      : "N/A"}
-                  </span>
-                </div>
-                <div className="detail-item">
-                  <label>Submitted At</label>
-                  <span>{formatDate(selectedApplication.submittedAt)}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Reviewed At</label>
-                  <span>
-                    {selectedApplication.reviewedAt
-                      ? formatDate(selectedApplication.reviewedAt)
-                      : "Not reviewed"}
-                  </span>
-                </div>
-                <div className="detail-item full-width">
-                  <label>Notes</label>
-                  <span>
-                    {selectedApplication.notes || "No notes provided"}
-                  </span>
-                </div>
-                {selectedApplication.cvFileUrl && (
-                  <div className="detail-item full-width">
-                    <label>CV</label>
-                    <div className="file-link">
-                      <Document size="16" />
-                      <a
-                        href={selectedApplication.cvFileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        View CV
-                      </a>
+                {/* Personal Information */}
+                <div className="section">
+                  <h3 className="section-title">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    Personal Information
+                  </h3>
+                  <div className="section-grid">
+                    <div className="detail-item">
+                      <label className="detail-label">Full Name</label>
+                      <span className="detail-value">
+                        {selectedApplication.fullName || "N/A"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Email</label>
+                      <span className="detail-value">
+                        {selectedApplication.email || "N/A"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Phone Number</label>
+                      <span className="detail-value">
+                        {selectedApplication.phoneNumber || "N/A"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Date of Birth</label>
+                      <span className="detail-value">
+                        {selectedApplication.dateOfBirth
+                          ? new Date(
+                              selectedApplication.dateOfBirth
+                            ).toLocaleDateString()
+                          : "N/A"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Gender</label>
+                      <span className="detail-value">
+                        {selectedApplication.gender || "N/A"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Experience Years</label>
+                      <span className="detail-value">
+                        {selectedApplication.experienceYears || "N/A"}
+                      </span>
                     </div>
                   </div>
-                )}
-                {selectedApplication.socialLinks && (
-                  <div className="detail-item full-width">
-                    <label>Social Links</label>
-                    <div className="social-links">
-                      <Link size="16" />
-                      <button
-                        onClick={handleOpenSocialLinks}
-                        className="link-btn"
+                </div>
+
+                {/* Professional Information */}
+                <div className="section">
+                  <h3 className="section-title">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                    Professional Information
+                  </h3>
+                  <div className="section-content">
+                    <div className="detail-item-full">
+                      <label className="detail-label">Bio</label>
+                      <div className="detail-value-text">
+                        {selectedApplication.bio || "No bio provided"}
+                      </div>
+                    </div>
+                    <div className="detail-item-full">
+                      <label className="detail-label">Specialties</label>
+                      <div
+                        className="detail-value-html"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            selectedApplication.specialties ||
+                            "No specialties provided",
+                        }}
+                      />
+                    </div>
+                    <div className="detail-item-full">
+                      <label className="detail-label">Certifications</label>
+                      <div
+                        className="detail-value-html"
+                        dangerouslySetInnerHTML={{
+                          __html:
+                            selectedApplication.certifications ||
+                            "No certifications provided",
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Application Status */}
+                <div className="section">
+                  <h3 className="section-title">
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <polyline points="9,11 12,14 22,4" />
+                      <path d="m21,3l-6.5,18a.55.55,0,0,1-1,0l-3.5-7l-7-3.5a.55.55,0,0,1,0-1z" />
+                    </svg>
+                    Application Status
+                  </h3>
+                  <div className="section-grid">
+                    <div className="detail-item">
+                      <label className="detail-label">Status</label>
+                      <span
+                        className="status-chip"
+                        style={{
+                          backgroundColor: getStatusColor(
+                            selectedApplication.status
+                          ),
+                        }}
                       >
-                        View Social Links
-                      </button>
+                        {selectedApplication.status
+                          ? selectedApplication.status.charAt(0).toUpperCase() +
+                            selectedApplication.status.slice(1)
+                          : "N/A"}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Submitted At</label>
+                      <span className="detail-value">
+                        {formatDate(selectedApplication.submittedAt)}
+                      </span>
+                    </div>
+                    <div className="detail-item">
+                      <label className="detail-label">Reviewed At</label>
+                      <span className="detail-value">
+                        {selectedApplication.reviewedAt
+                          ? formatDate(selectedApplication.reviewedAt)
+                          : "Not reviewed"}
+                      </span>
+                    </div>
+                    <div className="detail-item-full">
+                      <label className="detail-label">Notes</label>
+                      <div className="detail-value-text">
+                        {selectedApplication.notes || "No notes provided"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Documents & Links */}
+                {(selectedApplication.cvFileUrl ||
+                  selectedApplication.socialLinks) && (
+                  <div className="section">
+                    <h3 className="section-title">
+                      <svg
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                      </svg>
+                      Documents & Links
+                    </h3>
+                    <div className="section-content">
+                      {selectedApplication.cvFileUrl && (
+                        <div className="file-item">
+                          <div className="file-icon">
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" />
+                              <polyline points="14,2 14,8 20,8" />
+                            </svg>
+                          </div>
+                          <div className="file-content">
+                            <label className="detail-label">CV Document</label>
+                            <a
+                              href={selectedApplication.cvFileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="file-link"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <polyline points="15,3 21,3 21,9" />
+                                <line x1="10" y1="14" x2="21" y2="3" />
+                              </svg>
+                              View CV Document
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {selectedApplication.socialLinks && (
+                        <div className="file-item">
+                          <div className="file-icon">
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                          </div>
+                          <div className="file-content">
+                            <label className="detail-label">Social Links</label>
+                            <button
+                              onClick={handleOpenSocialLinks}
+                              className="file-link"
+                            >
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <polyline points="15,3 21,3 21,9" />
+                                <line x1="10" y1="14" x2="21" y2="3" />
+                              </svg>
+                              View Social Links
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Footer */}
             <div className="modal-footer">
               {selectedApplication.status === "approved" && (
                 <button
-                  className="trainer-profile-btn"
+                  className="primary-btn"
                   onClick={() =>
                     handleViewTrainerDetails(selectedApplication.userId)
                   }
                 >
-                  <Profile size="18" />
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
                   View Trainer Profile
                 </button>
               )}
-              <button className="cancel-btn" onClick={handleCloseDialog}>
-                <CloseCircle size="18" color="#dc3545" />
+              <button className="secondary-btn" onClick={handleCloseDialog}>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
                 Close
               </button>
             </div>

@@ -50,6 +50,9 @@ import styled from '@emotion/styled';
 import ActivateAccount from 'pages/activateAccount/ActivateAccount';
 import PrivacyPolicy from 'pages/Privacy/PrivacyPolicy';
 import TermsOfService from 'pages/TermsOfService/TermsOfService';
+import AppPreviewLanding from 'pages/AppPreview/appPreviewLanding';
+import ChatSupport from 'pages/ChatSupport/ChatSupport';
+import ProfilePage from 'components/Auth/ProfilePage';
 
 function SnackbarSetup() {
     const { closeSnackbar } = useSnackbar();
@@ -69,6 +72,7 @@ function App() {
                     <Routes>
                         <Route element={<MainLayout />}>
                             <Route path="/" element={<Home />} />
+                            <Route path="/experience" element={<AppPreviewLanding />} />
                             <Route path="/Auth/activate" element={<ActivateAccount />} />
                             <Route path="/chat" element={<ChatInterface />} />
                             <Route path="/services" element={<ServicePackage />} />
@@ -317,7 +321,9 @@ function App() {
                         </Route>
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
+                        <Route path="/provide-profile" element={<ProfilePage />} />
                         <Route path="/forgot-password" element={<Forgot />} />
+                        <Route path="/chat-room-support/:joinNow/:roomId" element={<ChatSupport />} />
                     </Routes>
                 </BrowserRouter>
             </SnackbarProvider>

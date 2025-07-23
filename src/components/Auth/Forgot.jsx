@@ -144,9 +144,7 @@ const Forgot = () => {
       setShowResetForm(true);
       startResendTimer();
     } catch (err) {
-      showErrorFetchAPI({
-        message: err?.response?.data?.message || "Failed to send reset link",
-      });
+      showErrorFetchAPI(err);
     } finally {
       setLoadingSend(false);
     }
@@ -165,9 +163,7 @@ const Forgot = () => {
       showInfoMessage("Password reset successful! You can now log in.");
       navigate("/login");
     } catch (err) {
-      showErrorFetchAPI({
-        message: err?.response?.data?.message || "Failed to reset password",
-      });
+      showErrorFetchAPI(err);
     } finally {
       setLoadingReset(false);
     }
@@ -182,9 +178,7 @@ const Forgot = () => {
       showInfoMessage("OTP resent! Check your email.");
       startResendTimer();
     } catch (err) {
-      showErrorFetchAPI({
-        message: err?.response?.data?.message || "Failed to resend OTP",
-      });
+      showErrorFetchAPI(err);
     } finally {
       setResendLoading(false);
     }
@@ -397,15 +391,11 @@ const Forgot = () => {
                 {inputErrors.otpCode && (
                   <span className="error-message">{inputErrors.otpCode}</span>
                 )}
-                <p className="otp-help-text">
-                  Check your email for the 6-digit verification code
-                </p>
               </div>
 
               <div className="form-group">
                 <label htmlFor="newPassword">New Password</label>
                 <div className="input-wrapper password-wrapper">
-                  <Lock size="18" color="#64748B" className="input-icon" />
                   <input
                     type={showNewPassword ? "text" : "password"}
                     id="newPassword"
@@ -447,7 +437,6 @@ const Forgot = () => {
               <div className="form-group">
                 <label htmlFor="confirmPassword">Confirm New Password</label>
                 <div className="input-wrapper password-wrapper">
-                  <Lock size="18" color="#64748B" className="input-icon" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     id="confirmPassword"

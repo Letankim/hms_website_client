@@ -8,6 +8,7 @@ import {
   showInfoMessage,
 } from "components/ErrorHandler/showStatusMessage";
 import apiTrialRecommendationService from "services/apiTrialRecommendationService";
+import Select from "react-select";
 
 const HeartIcon = () => (
   <svg
@@ -111,7 +112,27 @@ const ChatIcon = () => (
     <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v3c0 .6.4 1 1 1 .2 0 .5-.1.7-.3L14.4 18H20c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12H5v-2h8v2zm3-3H5V9h11v2zm0-3H5V6h11v2z" />
   </svg>
 );
+const fitnessGoalOptions = [
+  { value: "Weight Loss", label: "Weight Loss" },
+  { value: "Muscle Gain", label: "Muscle Gain" },
+  { value: "Endurance", label: "Endurance" },
+  { value: "Weight Gain", label: "Weight Gain" },
+  { value: "Fat Loss", label: "Fat Loss" },
+  { value: "Muscle Definition", label: "Muscle Definition" },
+  { value: "Cutting", label: "Cutting" },
+  { value: "Bulking", label: "Bulking" },
+];
 
+const dietaryOptions = [
+  { value: "Vegetarian", label: "Vegetarian" },
+  { value: "Vegan", label: "Vegan" },
+  { value: "Low-carb", label: "Low-carb" },
+  { value: "High-protein", label: "High-protein" },
+  { value: "No dairy", label: "No dairy" },
+  { value: "Gluten-free", label: "Gluten-free" },
+  { value: "Keto", label: "Keto" },
+  { value: "Pescatarian", label: "Pescatarian" },
+];
 const FloatingHealthChat = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -132,6 +153,11 @@ const FloatingHealthChat = () => {
     dietaryPreferences: "",
     email: "",
   });
+  const [formDataMultiple, setFormDataMultiple] = useState({
+    fitnessGoals: [],
+    dietaryPreferences: [],
+  });
+
   const [sessionId, setSessionId] = useState(
     localStorage.getItem("trialSessionId") || ""
   );
@@ -927,6 +953,17 @@ const FloatingHealthChat = () => {
                   <form onSubmit={handleFormSubmit}>
                     <div className={styles["form-grid"]}>
                       <div className={styles["form-group"]}>
+                        <label className={styles["form-label"]}>Email</label>
+                        <input
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleFormChange}
+                          className={styles["form-input"]}
+                          placeholder="your.email@example.com"
+                        />
+                      </div>
+                      <div className={styles["form-group"]}>
                         <label className={styles["form-label"]}>
                           Gender{" "}
                           <span className={styles["required-indicator"]}>
@@ -1021,56 +1058,66 @@ const FloatingHealthChat = () => {
                             Sedentary (little to no exercise)
                           </option>
                           <option value="moderate">
-                            Moderate (light exercise 1-3 days/week)
+                            Moderate (1-3 days/week)
                           </option>
-                          <option value="active">
-                            Active (moderate exercise 3-5 days/week)
-                          </option>
+                          <option value="active">Active (3-5 days/week)</option>
                         </select>
                       </div>
                       <div className={styles["form-group"]}>
                         <label className={styles["form-label"]}>
-                          Fitness Goal{" "}
+                          Fitness Goals{" "}
                           <span className={styles["required-indicator"]}>
                             *
                           </span>
                         </label>
-                        <select
-                          name="fitnessGoal"
-                          value={formData.fitnessGoal}
-                          onChange={handleFormChange}
-                          className={styles["form-select"]}
-                          required
-                        >
-                          <option value="">Select your goal</option>
-                          <option value="weight loss">Weight Loss</option>
-                          <option value="muscle gain">Muscle Gain</option>
-                          <option value="endurance">Endurance</option>
-                          <option value="weight gain">Weight Gain</option>
-                        </select>
+                        <Select
+                          isMulti
+                          name="fitnessGoals"
+                          options={fitnessGoalOptions}
+                          classNamePrefix="select"
+                          value={fitnessGoalOptions.filter((opt) =>
+                            formDataMultiple.fitnessGoals.includes(opt.value)
+                          )}
+                          onChange={(selected) => {
+                            const selectedValues = selected.map((s) => s.value);
+                            setFormDataMultiple((prev) => ({
+                              ...prev,
+                              fitnessGoals: selectedValues,
+                            }));
+
+                            setFormData((prev) => ({
+                              ...prev,
+                              fitnessGoal: selectedValues.join(", "),
+                            }));
+                          }}
+                        />
                       </div>
                       <div className={styles["form-group"]}>
                         <label className={styles["form-label"]}>
                           Dietary Preferences
                         </label>
-                        <input
-                          type="text"
+                        <Select
+                          isMulti
                           name="dietaryPreferences"
-                          value={formData.dietaryPreferences}
-                          onChange={handleFormChange}
-                          className={styles["form-input"]}
-                          placeholder="e.g., vegetarian, low-carb, no dairy"
-                        />
-                      </div>
-                      <div className={styles["form-group"]}>
-                        <label className={styles["form-label"]}>Email</label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleFormChange}
-                          className={styles["form-input"]}
-                          placeholder="your.email@example.com"
+                          options={dietaryOptions}
+                          classNamePrefix="select"
+                          value={dietaryOptions.filter((opt) =>
+                            formDataMultiple.dietaryPreferences.includes(
+                              opt.value
+                            )
+                          )}
+                          onChange={(selected) => {
+                            const selectedValues = selected.map((s) => s.value);
+                            setFormDataMultiple((prev) => ({
+                              ...prev,
+                              dietaryPreferences: selectedValues,
+                            }));
+
+                            setFormData((prev) => ({
+                              ...prev,
+                              dietaryPreferences: selectedValues.join(", "),
+                            }));
+                          }}
                         />
                       </div>
                     </div>

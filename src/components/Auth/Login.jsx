@@ -6,12 +6,14 @@ import AuthContext from "contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
   showErrorFetchAPI,
+  showErrorMessage,
   showInfoMessage,
+  showSuccessMessage,
 } from "components/ErrorHandler/showStatusMessage";
 import "./Login.css";
 
 const GOOGLE_CLIENT_ID =
-  "336337631794-cil4f7sd9oj7dcsqflf6u7buambcsukk.apps.googleusercontent.com";
+  "1005255181896-ms3rp7n4s0p734n2b59dt6ngaf082ep2.apps.googleusercontent.com";
 
 const ParticleBackground = () => {
   const [particles, setParticles] = useState([]);
@@ -49,8 +51,14 @@ const ParticleBackground = () => {
 };
 
 const Login = () => {
-  const { login, googleLogin, facebookLogin, loading, user } =
-    useContext(AuthContext);
+  const {
+    login,
+    googleLogin,
+    facebookLogin,
+    loading,
+    user,
+    setIsProfileCompleted,
+  } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -58,15 +66,17 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Animate in the login box
     const timer = setTimeout(() => {
       setIsVisible(true);
     }, 100);
 
-    // Redirect if user is already logged in
     if (user) {
-      showInfoMessage("Welcome back! Redirecting to dashboard...");
-      navigate("/");
+      const profileCompleted = localStorage.getItem("isProfileCompleted");
+      navigate(
+        profileCompleted === "true" || profileCompleted == null
+          ? "/"
+          : "/provide-profile"
+      );
     }
 
     return () => clearTimeout(timer);
@@ -83,9 +93,13 @@ const Login = () => {
     try {
       const result = await login(email, password);
       if (!result.success) {
+        const profileCompleted = result?.data?.isProfileCompleted;
+        setIsProfileCompleted(profileCompleted);
+        localStorage.setItem("isProfileCompleted", profileCompleted);
+        navigate(profileCompleted === true ? "/" : "/provide-profile");
         showErrorFetchAPI(result);
       } else {
-        showInfoMessage("Login successful! Welcome back!");
+        showSuccessMessage("Login successful! Welcome back!");
       }
     } catch (error) {
       showErrorFetchAPI({ message: "An unexpected error occurred" });
@@ -100,36 +114,60 @@ const Login = () => {
 
     try {
       const result = await googleLogin(credentialResponse.credential);
-      if (result.success) {
-        showInfoMessage("Google login successful!");
+      if (result.status === "Success") {
+        if (result?.data) {
+          const profileCompleted = result?.data?.isProfileCompleted;
+          setIsProfileCompleted(profileCompleted);
+          localStorage.setItem("isProfileCompleted", profileCompleted);
+          navigate(
+            profileCompleted === true || !result?.data.accessToken
+              ? "/login"
+              : "/provide-profile"
+          );
+        }
+        showSuccessMessage(result.message);
+      } else {
+        showErrorFetchAPI(result);
       }
     } catch (error) {
-      showErrorFetchAPI({ message: "Google login failed" });
+      showErrorFetchAPI(error);
     }
   };
 
   const handleGoogleFailure = () => {
-    showErrorFetchAPI({ message: "Google login was cancelled or failed" });
+    showErrorMessage("Google login was cancelled or failed");
   };
 
   const handleFacebookSuccess = async (response) => {
     if (!response.accessToken) {
-      showErrorFetchAPI({ message: "Facebook authentication failed" });
+      showErrorMessage("Facebook authentication failed");
       return;
     }
 
     try {
       const result = await facebookLogin(response.accessToken);
-      if (result.success) {
-        showInfoMessage("Facebook login successful!");
+      if (result.status === "Success") {
+        if (result?.data) {
+          const profileCompleted = result?.data?.isProfileCompleted;
+          setIsProfileCompleted(profileCompleted);
+          localStorage.setItem("isProfileCompleted", profileCompleted);
+          navigate(
+            profileCompleted === true || !result?.data.accessToken
+              ? "/login"
+              : "/provide-profile"
+          );
+        }
+        showInfoMessage(result.message);
+      } else {
+        showErrorFetchAPI(result);
       }
     } catch (error) {
-      showErrorFetchAPI({ message: "Facebook login failed" });
+      showErrorFetchAPI(error);
     }
   };
 
   const handleFacebookFailure = () => {
-    showErrorFetchAPI({ message: "Facebook login was cancelled or failed" });
+    showErrorMessage("Facebook login was cancelled or failed");
   };
 
   const handleHomeClick = () => {
@@ -330,15 +368,24 @@ const Login = () => {
                   text="continue_with"
                   shape="rectangular"
                   logo_alignment="left"
+                  style={{
+                    backgroundColor: "#4267b2",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    fontSize: "16px",
+                  }}
                   disabled={loading}
                 />
               </div>
             </GoogleOAuthProvider>
 
             <FacebookLogin
-              appId="1669047477285810"
-              callback={handleFacebookSuccess}
-              onFailure={handleFacebookFailure}
+              appId="589418934210916"
+              onSuccess={handleFacebookSuccess}
+              onFail={handleFacebookFailure}
               autoLoad={false}
               fields="name,email,picture"
               render={(renderProps) => (
@@ -348,9 +395,19 @@ const Login = () => {
                   onClick={renderProps.onClick}
                   disabled={loading || renderProps.disabled}
                   aria-label="Continue with Facebook"
+                  style={{
+                    backgroundColor: "#4267b2",
+                    display: "flex",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    padding: "10px 20px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                  }}
                 >
                   <img
-                    src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
+                    src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
                     alt=""
                     className="social-icon"
                     aria-hidden="true"

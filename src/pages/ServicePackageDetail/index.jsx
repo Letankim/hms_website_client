@@ -572,21 +572,27 @@ const ServicePackageDetail = () => {
 
             {/* Action Buttons */}
             <div className="service-package-actions">
-              <button
-                className={`service-package-book-btn ${
-                  isFullyBooked() ? "disabled" : ""
-                }`}
-                onClick={handleBookNow}
-                disabled={isFullyBooked()}
-              >
-                {isFullyBooked() ? "Fully Booked" : "Book Now"}
-              </button>
-              <button
-                className="service-package-contact-btn"
-                onClick={handleViewTrainerDetails}
-              >
-                Contact Trainer
-              </button>
+              {user?.userId === pkg.trainerId ? (
+                <span className="your-service-label">Your Service</span>
+              ) : (
+                <>
+                  <button
+                    className={`service-package-book-btn ${
+                      isFullyBooked() ? "disabled" : ""
+                    }`}
+                    onClick={handleBookNow}
+                    disabled={isFullyBooked()}
+                  >
+                    {isFullyBooked() ? "Fully Booked" : "Book Now"}
+                  </button>
+                  <button
+                    className="service-package-contact-btn"
+                    onClick={handleViewTrainerDetails}
+                  >
+                    Contact Trainer
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
