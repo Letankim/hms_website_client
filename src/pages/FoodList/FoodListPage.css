@@ -63,7 +63,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
 }
 
 .filter-title {
@@ -97,6 +96,7 @@
 
 .filter-content {
     display: block;
+    margin-top: 1.5rem;
 }
 
 .filter-grid {
@@ -861,6 +861,85 @@
         flex-wrap: wrap;
         justify-content: center;
     }
+
+    .header-description {
+        font-size: 1rem;
+    }
+
+    .filter-title {
+        font-size: 0.9rem;
+    }
+
+    .filter-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .search-input-container,
+    .select-container,
+    .clear-filters-btn {
+        width: 100%;
+    }
+
+    .clear-filters-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.50rem;
+        font-size: 1rem;
+        max-width: 150px;
+    }
+
+    .search-input,
+    .filter-select {
+        padding: 0.5rem;
+    }
+
+    .search-input {
+        padding-left: 3rem;
+    }
+
+    .page-size-selector {
+        justify-content: center;
+    }
+
+    .page-size-selector select {
+        padding: 0.3rem 1rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        text-align: center;
+        text-align-last: center;
+        width: auto;
+    }
+
+    .modal-container {
+        height: 90vh;
+    }
+
+    .modal-content {
+        flex: 1;
+        max-height: unset;
+    }
+
+    .food-list-container .detail-item {
+        flex-direction: row;
+    }
+
+    .food-list-container .detail-item .detail-label {
+        font-size: 14px;
+        text-transform: unset;
+    }
+
+    .food-description {
+        font-size: 14px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -878,6 +957,85 @@
 
     .modal-container {
         margin: 0.25rem;
+    }
+
+    .header-description {
+        font-size: 1rem;
+    }
+
+    .filter-title {
+        font-size: 0.9rem;
+    }
+
+    .filter-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .search-input-container,
+    .select-container,
+    .clear-filters-btn {
+        width: 100%;
+    }
+
+    .clear-filters-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.50rem;
+        font-size: 1rem;
+        max-width: 150px;
+    }
+
+    .search-input,
+    .filter-select {
+        padding: 0.5rem;
+    }
+
+    .search-input {
+        padding-left: 3rem;
+    }
+
+    .page-size-selector {
+        justify-content: center;
+    }
+
+    .page-size-selector select {
+        padding: 0.3rem 1rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        text-align: center;
+        text-align-last: center;
+        width: auto;
+    }
+
+    .modal-container {
+        height: 90vh;
+    }
+
+    .modal-content {
+        flex: 1;
+        max-height: unset;
+    }
+
+    .food-list-container .detail-item {
+        flex-direction: row;
+    }
+
+    .food-list-container .detail-item .detail-label {
+        font-size: 14px;
+        text-transform: unset;
+    }
+
+    .food-description {
+        font-size: 14px;
     }
 }
 

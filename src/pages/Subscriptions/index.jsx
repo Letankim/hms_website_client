@@ -289,20 +289,30 @@ const MySubscriptionsPage = () => {
       }}
     >
       <Container maxWidth="xl">
-        {/* Header Section */}
-        <Box sx={{ textAlign: "center", mb: 6, pt: "100px" }}>
+        <Box
+          sx={{
+            textAlign: "center",
+            mb: { xs: 4, md: 6 },
+            pt: { xs: 6, md: "100px", sx: "100px" },
+            px: 2,
+          }}
+        >
           <Stack
-            direction="row"
+            direction={{ xs: "column", sm: "row" }}
             alignItems="center"
             justifyContent="center"
             spacing={2}
             sx={{ mb: 2 }}
           >
             <SubscriptionsIcon
-              sx={{ fontSize: 40, color: "var(--secondary-color)" }}
+              sx={{
+                fontSize: { xs: 32, sm: 40 },
+                color: "var(--secondary-color)",
+                mb: { xs: 1, sm: 0 },
+              }}
             />
             <Typography
-              variant="h3"
+              variant="h4"
               sx={{
                 fontWeight: 700,
                 background:
@@ -315,9 +325,15 @@ const MySubscriptionsPage = () => {
               My Subscriptions
             </Typography>
           </Stack>
+
           <Typography
-            variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            variant="body1"
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              px: 1,
+            }}
           >
             View and manage your active and past subscription plans
           </Typography>
@@ -351,6 +367,7 @@ const MySubscriptionsPage = () => {
               }}
             />
           </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -377,6 +394,7 @@ const MySubscriptionsPage = () => {
               ))}
             </TextField>
           </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -399,6 +417,7 @@ const MySubscriptionsPage = () => {
               }}
             />
           </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -421,6 +440,7 @@ const MySubscriptionsPage = () => {
               }}
             />
           </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <Button
               variant="outlined"
@@ -444,168 +464,178 @@ const MySubscriptionsPage = () => {
         </Grid>
 
         {/* Subscriptions Table */}
-        <TableContainer
-          component={Paper}
-          sx={{ borderRadius: 2, boxShadow: "0 4px 12px var(--shadow-color)" }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  No
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Package
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Status
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Start Date
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  End Date
-                </TableCell>
-                <TableCell
-                  sx={{
-                    color: "var(--text-primary)",
-                    fontWeight: 600,
-                    textAlign: "center",
-                  }}
-                >
-                  Action
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                skeletonRows
-              ) : subscriptions.length === 0 ? (
+        <Box sx={{ width: "100%", overflowX: "auto" }}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              borderRadius: 2,
+              boxShadow: "0 4px 12px var(--shadow-color)",
+              minWidth: "600px",
+            }}
+          >
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
-                    <Box sx={{ p: 4, textAlign: "center" }}>
-                      <SubscriptionsIcon
-                        sx={{
-                          fontSize: 80,
-                          color: "var(--text-secondary)",
-                          mb: 2,
-                        }}
-                      />
-                      <Typography
-                        variant="h5"
-                        sx={{ color: "var(--text-secondary)", mb: 1 }}
-                      >
-                        No subscriptions found
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: "var(--text-secondary)" }}
-                      >
-                        Try adjusting your search or date filters
-                      </Typography>
-                    </Box>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    No
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Package
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Status
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Start Date
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    End Date
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      color: "var(--text-primary)",
+                      fontWeight: 600,
+                      textAlign: "center",
+                    }}
+                  >
+                    Action
                   </TableCell>
                 </TableRow>
-              ) : (
-                subscriptions?.map((sub, index) => (
-                  <TableRow key={sub.subscriptionId} hover>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {page * rowsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {sub.packageName}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={sub.status}
-                        sx={{
-                          ...getStatusColor(sub.status),
-                          textTransform: "capitalize",
-                          fontWeight: "bold",
-                          color: "#fff",
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {new Date(sub.startDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {new Date(sub.endDate).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Stack
-                        direction="row"
-                        spacing={1}
-                        justifyContent="center"
-                      >
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={() => handleViewDetails(sub)}
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  skeletonRows
+                ) : subscriptions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center">
+                      <Box sx={{ p: 4, textAlign: "center" }}>
+                        <SubscriptionsIcon
                           sx={{
-                            borderRadius: 0.5,
-                            color: "var(--accent-info)",
-                            borderColor: "var(--accent-info)",
-                            "&:hover": { bgcolor: "var(--background-light)" },
+                            fontSize: 80,
+                            color: "var(--text-secondary)",
+                            mb: 2,
                           }}
+                        />
+                        <Typography
+                          variant="h5"
+                          sx={{ color: "var(--text-secondary)", mb: 1 }}
                         >
-                          View Detail
-                        </Button>
-                        {sub.status?.toLowerCase() === "pending" && (
+                          No subscriptions found
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "var(--text-secondary)" }}
+                        >
+                          Try adjusting your search or date filters
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  subscriptions?.map((sub, index) => (
+                    <TableRow key={sub.subscriptionId} hover>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {sub.packageName}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={sub.status}
+                          sx={{
+                            ...getStatusColor(sub.status),
+                            textTransform: "capitalize",
+                            fontWeight: "bold",
+                            color: "#fff",
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {new Date(sub.startDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {new Date(sub.endDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell align="center">
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          justifyContent="center"
+                        >
                           <Button
                             variant="outlined"
                             size="small"
-                            onClick={() => handleCheckout(sub.paymentLink)}
+                            onClick={() => handleViewDetails(sub)}
                             sx={{
                               borderRadius: 0.5,
-                              bgcolor: "var(--primary-color)",
-                              borderColor: "var(--primary-color)",
-                              color: "var(--text-white)",
-                              "&:hover": { bgcolor: "var(--primary-hover)" },
+                              color: "var(--accent-info)",
+                              borderColor: "var(--accent-info)",
+                              "&:hover": { bgcolor: "var(--background-light)" },
                             }}
                           >
-                            Checkout
+                            View Detail
                           </Button>
-                        )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={pageSizeOptions}
-            labelRowsPerPage="Subscriptions per page:"
-            sx={{
-              "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                {
-                  color: "var(--text-secondary)",
-                },
-              "& .MuiTablePagination-select": {
-                color: "var(--text-primary)",
+                          {sub.status?.toLowerCase() === "pending" && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => handleCheckout(sub.paymentLink)}
+                              sx={{
+                                borderRadius: 0.5,
+                                bgcolor: "var(--primary-color)",
+                                borderColor: "var(--primary-color)",
+                                color: "var(--text-white)",
+                                "&:hover": { bgcolor: "var(--primary-hover)" },
+                              }}
+                            >
+                              Checkout
+                            </Button>
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+        <TablePagination
+          component="div"
+          count={totalCount}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={pageSizeOptions}
+          labelRowsPerPage="Subscriptions per page:"
+          sx={{
+            mt: 1,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            px: 2,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+              {
+                color: "var(--text-secondary)",
               },
-            }}
-          />
-        </TableContainer>
-
+            "& .MuiTablePagination-select": {
+              color: "var(--text-primary)",
+            },
+          }}
+        />
         {/* Details Dialog */}
         <Dialog
           open={openDetailDialog}

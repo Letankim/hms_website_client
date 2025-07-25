@@ -2,26 +2,50 @@ import styles from "./ViewPostDetails.module.css";
 import { useEffect, useState, useRef, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  MoreVertical,
-  ThumbsUp,
-  MessageCircle,
-  Share2,
+  Box,
+  Typography,
+  Avatar,
+  Button,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Card,
+  CardContent,
+  TextField,
+  Chip,
+  IconButton,
+  Popover,
+  Tabs,
+  Tab,
+  Menu,
+  MenuItem,
+  Tooltip,
+} from "@mui/material";
+import {
+  MoreHoriz,
+  Comment as CommentIcon,
+  Share as ShareIcon,
   Send,
-  MoreHorizontal,
-  Edit3,
-  Trash2,
-  EyeOff,
-  X,
-  AlertCircle,
-  RefreshCw,
-} from "lucide-react";
+  Edit,
+  Delete,
+  VisibilityOff,
+} from "@mui/icons-material";
 import { Fancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import AuthContext from "contexts/AuthContext";
 import apiPostService from "services/apiPostService";
 import apiPostCommentService from "services/apiPostCommentService";
-import { showErrorFetchAPI } from "components/ErrorHandler/showStatusMessage";
-import "./ViewPostDetails.module.css";
+import apiPostReactService from "services/apiPostReactService";
+import apiReactionTypeService from "services/apiReactionTypeService";
+import DOMPurify from "dompurify";
+import {
+  showErrorFetchAPI,
+  showErrorMessage,
+  showSuccessMessage,
+  showWarningMessage,
+  showInfoMessage,
+} from "components/ErrorHandler/showStatusMessage";
+import Swal from "sweetalert2";
 
 const ViewPostDetails = () => {
   const { groupId, postId } = useParams();
@@ -30,87 +54,95 @@ const ViewPostDetails = () => {
 
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
+  const [reactionTypes, setReactionTypes] = useState([]);
   const [loadingPost, setLoadingPost] = useState(true);
   const [loadingComments, setLoadingComments] = useState(false);
-  const [loadingCommentsError, setLoadingCommentsError] = useState(null);
+  const [commentPage, setCommentPage] = useState(1);
+  const [commentTotalPages, setCommentTotalPages] = useState(1);
+  const [newComment, setNewComment] = useState("");
+  const [editingComment, setEditingComment] = useState(null);
+  const [editCommentText, setEditCommentText] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
     severity: "success",
   });
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [newComment, setNewComment] = useState("");
-  const [editingComment, setEditingComment] = useState(null);
-  const [editCommentText, setEditCommentText] = useState("");
-  const [reactionDialogOpen, setReactionDialogOpen] = useState(false);
-  const [selectedTab, setSelectedTab] = useState(0);
-  const [showPostMenu, setShowPostMenu] = useState(false);
-  const [showCommentMenu, setShowCommentMenu] = useState(false);
+  const [reactionAnchorEl, setReactionAnchorEl] = useState(null);
+  const [previewAnchorEl, setPreviewAnchorEl] = useState(null);
+  const [previewTab, setPreviewTab] = useState("all");
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
-  const [error, setError] = useState(null);
+  const commentListRef = useRef();
 
-  const observer = useRef();
-  const postMenuRef = useRef();
-  const commentMenuRef = useRef();
+  const COMMENTS_PAGE_SIZE = 10;
 
   const fetchPost = useCallback(async () => {
     setLoadingPost(true);
     try {
       const res = await apiPostService.getActivePostByIdForUser(postId);
-      setPost(res.data);
-      return res.data;
+      const data = res.data || res;
+      setPost(data);
+      setIsAdmin(data.createdBy === user?.userId);
+      return data;
     } catch (e) {
       showErrorFetchAPI(e);
+      setPost(null);
       return null;
     } finally {
       setLoadingPost(false);
     }
-  }, [postId]);
+  }, [postId, user]);
+
+  const fetchReactionTypes = useCallback(async () => {
+    try {
+      const res = await apiReactionTypeService.getAllReactionTypes();
+      setReactionTypes(res?.data?.reactionTypes || []);
+    } catch (e) {
+      showErrorFetchAPI(e);
+      setReactionTypes([]);
+    }
+  }, []);
 
   const fetchComments = useCallback(
-    async (pageNum, reset = false, retryCount = 0) => {
-      const maxRetries = 3;
-      if (!postId || loadingComments || !hasMore) return;
-
+    async (page = 1, replace = false) => {
+      if (!postId || loadingComments || page > commentTotalPages) return;
       setLoadingComments(true);
-      setLoadingCommentsError(null);
-
       try {
         const res = await apiPostCommentService.getCommentsByPostId(postId, {
-          pageNumber: pageNum,
-          pageSize: 10,
+          PageNumber: page,
+          PageSize: COMMENTS_PAGE_SIZE,
         });
-        const newComments = res.data.comments || [];
-        setComments((prev) =>
-          reset ? newComments : [...prev, ...newComments]
-        );
-        setHasMore(newComments.length === 10 && pageNum < res.data.totalPages);
-      } catch (e) {
-        if (retryCount < maxRetries) {
-          setTimeout(() => {
-            fetchComments(pageNum, reset, retryCount + 1);
-          }, 1000 * (retryCount + 1));
-          return;
+        const data = res.data || res;
+        if (!data || !data.comments || !Number.isInteger(data.totalPages)) {
+          throw new Error("Invalid API response for comments");
         }
-        setLoadingCommentsError("Failed to load comments");
+        setComments((prev) =>
+          replace ? data.comments || [] : [...prev, ...(data.comments || [])]
+        );
+        setCommentTotalPages(data.totalPages || 1);
+      } catch (e) {
         showErrorFetchAPI(e);
       } finally {
         setLoadingComments(false);
       }
     },
-    [postId, hasMore, loadingComments]
+    [postId]
   );
+
+  // Initialize data
   useEffect(() => {
     const loadData = async () => {
       const postData = await fetchPost();
-      if (postData) {
+      if (postData && user) {
         await fetchComments(1, true);
+        await fetchReactionTypes();
       }
     };
     loadData();
-  }, [fetchPost, fetchComments]);
+  }, [fetchPost, fetchComments, fetchReactionTypes, user]);
 
+  // Initialize Fancybox for image zoom
   useEffect(() => {
     Fancybox.bind("[data-fancybox]", {
       animated: true,
@@ -133,597 +165,969 @@ const ViewPostDetails = () => {
     };
   }, [postId]);
 
-  const lastCommentRef = useCallback(
-    (node) => {
-      if (loadingComments) return;
-      if (observer.current) observer.current.disconnect();
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          setPage((prev) => prev + 1);
-        }
-      });
-      if (node) observer.current.observe(node);
-    },
-    [loadingComments, hasMore]
-  );
-
+  // Infinite scroll for comments
   useEffect(() => {
-    if (page > 1) {
-      fetchComments(page);
+    const el = commentListRef.current;
+    if (!el) return;
+
+    const handleScroll = () => {
+      if (
+        el.scrollHeight - el.scrollTop - el.clientHeight < 120 &&
+        !loadingComments &&
+        commentPage < commentTotalPages
+      ) {
+        setCommentPage((prev) => prev + 1);
+      }
+    };
+
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [loadingComments, commentPage, commentTotalPages]);
+
+  // Fetch comments when commentPage changes
+  useEffect(() => {
+    if (commentPage > 1) {
+      fetchComments(commentPage);
     }
-  }, [page, fetchComments]);
+  }, [commentPage, fetchComments]);
 
-  const handleAddComment = async () => {
-    if (!newComment.trim()) return;
-
+  // Handle reaction
+  const handleReact = async (reactionType) => {
+    if (!user) {
+      showInfoMessage("Please login to react.");
+      setTimeout(
+        () =>
+          navigate("/login", {
+            state: { from: `/group/${groupId}/post/${postId}` },
+          }),
+        1200
+      );
+      return;
+    }
     try {
+      const userReaction = getUserReaction();
+      if (userReaction?.reactionTypeId === reactionType.reactionTypeId) {
+        await apiPostReactService.unreactToPost(postId);
+        setPost((prev) => ({
+          ...prev,
+          reactions: prev.reactions.filter((r) => r.userId !== user.userId),
+        }));
+        showSuccessMessage("Reaction removed!");
+      } else {
+        await apiPostReactService.reactToPost({
+          postId: Number.parseInt(postId),
+          reactionTypeId: reactionType.reactionTypeId,
+          reactionText: reactionType.reactionName,
+        });
+        setPost((prev) => ({
+          ...prev,
+          reactions: userReaction
+            ? prev.reactions.map((r) =>
+                r.userId === user.userId
+                  ? {
+                      ...r,
+                      reactionTypeId: reactionType.reactionTypeId,
+                      reactionTypeEmojiUnicode: reactionType.emojiUnicode,
+                      reactionTypeName: reactionType.reactionName,
+                    }
+                  : r
+              )
+            : [
+                ...prev.reactions,
+                {
+                  userId: user.userId,
+                  reactionTypeId: reactionType.reactionTypeId,
+                  reactionTypeEmojiUnicode: reactionType.emojiUnicode,
+                  reactionTypeName: reactionType.reactionName,
+                },
+              ],
+        }));
+        showSuccessMessage(`Reacted with ${reactionType.reactionName}!`);
+      }
+    } catch (e) {
+      showErrorFetchAPI(e);
+    } finally {
+      setReactionAnchorEl(null);
+    }
+  };
+
+  // Get user reaction
+  const getUserReaction = () => {
+    if (!user || !post?.reactions) return null;
+    return post.reactions.find((r) => r.userId === user.userId) || null;
+  };
+
+  // Get reaction counts
+  const getReactionCounts = () => {
+    const counts = {};
+    if (!post?.reactions) return counts;
+    post.reactions.forEach((r) => {
+      counts[r.reactionTypeEmojiUnicode] =
+        (counts[r.reactionTypeEmojiUnicode] || 0) + 1;
+    });
+    return counts;
+  };
+
+  // Convert Unicode to Emoji
+  const unicodeToEmoji = (unicode) => {
+    if (!unicode) return "";
+    try {
+      return unicode
+        .trim()
+        .split(/\s+/)
+        .map((u) => {
+          const hex = u.trim().toUpperCase().replace(/^U\+/, "");
+          const code = Number.parseInt(hex, 16);
+          if (Number.isNaN(code)) return "";
+          return String.fromCodePoint(code);
+        })
+        .join("");
+    } catch (error) {
+      console.error("Error converting emoji:", error);
+      return "";
+    }
+  };
+
+  // Handle comment submission
+  const handleAddComment = async () => {
+    const commentText = newComment.trim();
+    if (!commentText) {
+      showWarningMessage("Comment cannot be empty.");
+      return;
+    }
+    if (commentText.length > 500) {
+      showWarningMessage("Comment must be 500 characters or fewer.");
+      return;
+    }
+    try {
+      Swal.fire({
+        title: "Adding comment...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       await apiPostCommentService.addCommentByUser({
         postId: Number.parseInt(postId),
-        commentText: newComment,
+        commentText,
       });
       setNewComment("");
-      setPage(1);
-      setHasMore(true);
-      fetchComments(1, true);
-      setSnackbar({
-        open: true,
-        message: "Comment added successfully.",
-        severity: "success",
-      });
+      setPost((prev) => ({
+        ...prev,
+        totalComment: (prev.totalComment || 0) + 1,
+      }));
+      setCommentPage(1);
+      await fetchComments(1, true);
+      showSuccessMessage("Comment added successfully.");
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: "Failed to add comment.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
     }
   };
 
+  // Handle comment editing
   const handleEditComment = async () => {
-    if (!editCommentText.trim() || !editingComment) return;
-
+    const trimmedText = editCommentText.trim();
+    if (!trimmedText) {
+      showWarningMessage("Comment cannot be empty.");
+      return;
+    }
+    if (trimmedText.length > 500) {
+      showWarningMessage("Comment must be 500 characters or fewer.");
+      return;
+    }
     try {
+      Swal.fire({
+        title: "Updating comment...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       await apiPostCommentService.editCommentByUser(editingComment.commentId, {
         postId: Number.parseInt(postId),
-        commentText: editCommentText,
+        commentText: trimmedText,
       });
-      setPage(1);
-      setHasMore(true);
-      fetchComments(1, true);
+      setComments((prev) =>
+        prev.map((com) =>
+          com.commentId === editingComment.commentId
+            ? { ...com, commentText: trimmedText }
+            : com
+        )
+      );
       setEditingComment(null);
       setEditCommentText("");
-      setSnackbar({
-        open: true,
-        message: "Comment edited successfully.",
-        severity: "success",
-      });
+      showSuccessMessage("Comment updated successfully.");
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: "Failed to edit comment.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
     }
   };
 
+  // Handle comment deletion
   const handleDeleteComment = async (commentId) => {
     try {
+      Swal.fire({
+        title: "Deleting comment...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       await apiPostCommentService.deleteCommentByUser(commentId);
-      setPage(1);
-      setHasMore(true);
-      fetchComments(1, true);
-      setSnackbar({
-        open: true,
-        message: "Comment deleted successfully.",
-        severity: "success",
-      });
+      setComments((prev) =>
+        prev.filter((comment) => comment.commentId !== commentId)
+      );
+      setPost((prev) => ({
+        ...prev,
+        totalComment: (prev.totalComment || 1) - 1,
+      }));
+      showSuccessMessage("Comment deleted successfully.");
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: "Failed to delete comment.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
+      setMenuAnchorEl(null);
+      setSelectedComment(null);
     }
-    setShowCommentMenu(false);
   };
 
+  // Handle post deletion
   const handleDeletePost = async () => {
-    if (!window.confirm("Are you sure you want to delete this post?")) return;
-
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+    if (!result.isConfirmed) return;
     try {
+      Swal.fire({
+        title: "Deleting post...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
       await apiPostService.deletePost(postId);
-      navigate(`/group/${groupId}`);
-      setSnackbar({
-        open: true,
-        message: "Post deleted successfully.",
-        severity: "success",
-      });
+      navigate(`/groups/${groupId}`);
+      showSuccessMessage("Post deleted successfully.");
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: "Failed to delete post.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
+      setMenuAnchorEl(null);
     }
-    setShowPostMenu(false);
   };
 
+  // Handle post hiding
   const handleHidePost = async () => {
     try {
-      await apiPostService.hidePost(postId);
-      navigate(`/group/${groupId}`);
-      setSnackbar({
-        open: true,
-        message: "Post hidden successfully.",
-        severity: "success",
+      Swal.fire({
+        title: "Processing...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
       });
+      setPost((prev) => ({
+        ...prev,
+        status: "inactive",
+      }));
+
+      let dataPost = {
+        postId: post.postId,
+        userId: post.userId,
+        groupId: post.groupId,
+        thumbnail: post.thumbnail,
+        content: post.content,
+        status: "inactive",
+        tagIds: post.tagIds,
+      };
+      await apiPostService.updatePost(postId, dataPost);
+      showSuccessMessage("Post hidden successfully.");
     } catch (e) {
-      setSnackbar({
-        open: true,
-        message: "Failed to hide post.",
-        severity: "error",
-      });
+      showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
+      setMenuAnchorEl(null);
     }
-    setShowPostMenu(false);
   };
 
-  const handleSharePost = () => {
-    const postUrl = `${window.location.origin}/group/${groupId}/post/${postId}`;
-    navigator.clipboard.writeText(postUrl);
-    setSnackbar({
-      open: true,
-      message: "Post URL copied to clipboard!",
-      severity: "success",
-    });
-    setShowPostMenu(false);
+  const handleSharePost = async () => {
+    const postUrl = `${window.location.origin}/groups/${groupId}/post/${postId}`;
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(postUrl);
+        showSuccessMessage("Post URL copied to clipboard!");
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = postUrl;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          showSuccessMessage("Post URL copied to clipboard!");
+        } catch {
+          throw new Error("Failed to copy link.");
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    } catch {
+      showErrorMessage("Failed to copy link.");
+    } finally {
+      setMenuAnchorEl(null);
+    }
   };
 
-  const handleRetryComments = () => {
-    setPage(1);
-    setHasMore(true);
-    fetchComments(1, true);
+  // Handle snackbar close
+  const handleCloseSnackbar = () => {
+    setSnackbar((prev) => ({ ...prev, open: false }));
   };
-
-  const reactionCount = post?.reactions?.length || 0;
-  const reactionTypes = post?.reactions
-    ? [...new Set(post.reactions.map((r) => r.reactionTypeName))]
-    : [];
 
   if (loadingPost) {
     return (
-      <div className={styles["loading-container"]}>
-        <div className={styles["loading-spinner"]}></div>
-      </div>
+      <Box className={styles["loading-container"]}>
+        <CircularProgress />
+      </Box>
     );
   }
 
-  // Error state
-  if (error || !post) {
+  if (!post) {
     return (
-      <div className={styles["error-container"]}>
-        <AlertCircle className={styles["error-icon"]} />
-        <h2 className={styles["error-title"]}>Post Not Found</h2>
-        <p className={styles["error-message"]}>
-          {error || "The post you're looking for doesn't exist."}
-        </p>
-      </div>
+      <Box className={styles["error-container"]}>
+        <Typography variant="h6" color="error">
+          Post Not Found
+        </Typography>
+        <Typography color="text.secondary">
+          The post you're looking for doesn't exist.
+        </Typography>
+        <Button
+          variant="outlined"
+          onClick={() => navigate(`/groups/${groupId}`)}
+          sx={{ mt: 2 }}
+        >
+          Back to Group
+        </Button>
+      </Box>
     );
   }
+
+  const userReaction = getUserReaction();
+  const reactionCounts = getReactionCounts();
+  const totalReactions = Object.values(reactionCounts).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+  const reactionUsers = {};
+  if (post.reactions) {
+    post.reactions.forEach((r) => {
+      if (!reactionUsers[r.reactionTypeEmojiUnicode])
+        reactionUsers[r.reactionTypeEmojiUnicode] = [];
+      reactionUsers[r.reactionTypeEmojiUnicode].push(r);
+    });
+  }
+  const usersToShow =
+    previewTab === "all"
+      ? Object.values(reactionUsers).flat()
+      : reactionUsers[previewTab] || [];
+
+  const commentListStyles = {
+    maxHeight: 400,
+    overflowY: "auto",
+    scrollbarWidth: "thin",
+    scrollbarColor: "var(--border-light) var(--background-light)",
+    "&::-webkit-scrollbar": {
+      width: 8,
+      background: "var(--background-light)",
+      borderRadius: 8,
+    },
+    "&::-webkit-scrollbar-thumb": {
+      background: "var(--border-light)",
+      borderRadius: 8,
+      minHeight: 40,
+    },
+    "&::-webkit-scrollbar-thumb:hover": {
+      background: "var(--text-secondary)",
+    },
+  };
 
   return (
-    <div className={styles["view-post-details-container"]}>
-      <div className={styles["facebook-layout"]}>
-        <div className={styles["main-content"]}>
-          {/* Main Post Card */}
-          <div className={styles["post-card"]}>
+    <Box className={styles["view-post-details-container"]}>
+      <Box className={styles["main-content"]}>
+        <Card className={styles["post-card"]}>
+          <CardContent sx={{ pb: 1 }}>
             {/* Post Header */}
-            <div className={styles["post-header"]}>
-              <div className={styles["post-header-content"]}>
-                <div className={styles["post-user-info"]}>
-                  <img
-                    src={post.user?.avatar || "/default-avatar.png"}
-                    alt="User Avatar"
-                    className={styles["user-avatar"]}
-                  />
-                  <div className={styles["user-details"]}>
-                    <h3>{post.user?.fullName || "Unknown User"}</h3>
-                    <p>{new Date(post.createdAt).toLocaleString()}</p>
-                  </div>
-                </div>
-
-                <div style={{ position: "relative" }} ref={postMenuRef}>
-                  <button
-                    onClick={() => setShowPostMenu(!showPostMenu)}
-                    className={styles["post-menu-button"]}
+            <Box className={styles["post-header"]}>
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Avatar
+                  src={post.user?.avatar || "/placeholder-avatar.jpg"}
+                  alt={post.user?.fullName || "User"}
+                  className={styles["post-author-avatar"]}
+                />
+                <Box>
+                  <Typography
+                    variant="subtitle2"
+                    className={styles["post-author-name"]}
                   >
-                    <MoreVertical />
-                  </button>
-
-                  {showPostMenu && (
-                    <div className={styles["dropdown-menu"]}>
-                      <button
-                        onClick={() => {
-                          navigate(`/my-posts/${postId}/edit`);
-                          setShowPostMenu(false);
-                        }}
-                        className={styles["dropdown-item"]}
-                      >
-                        <Edit3 />
-                        <span>Edit</span>
-                      </button>
-                      <button
-                        onClick={handleDeletePost}
-                        className={
-                          styles["dropdown-item"] + " " + styles["danger"]
-                        }
-                      >
-                        <Trash2 />
-                        <span>Delete</span>
-                      </button>
-                      <button
-                        onClick={handleSharePost}
-                        className={styles["dropdown-item"]}
-                      >
-                        <Share2 />
-                        <span>Share</span>
-                      </button>
-                      <button
-                        onClick={handleHidePost}
-                        className={styles["dropdown-item"]}
-                      >
-                        <EyeOff />
-                        <span>Hide Post</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Post Content */}
-            <div className={styles["post-content"]}>
-              <div
-                className={styles["post-text"]}
-                dangerouslySetInnerHTML={{ __html: post.content }}
-              />
-
-              {post.thumbnail && (
-                <a href={post.thumbnail} data-fancybox="gallery">
-                  <img
-                    src={post.thumbnail || "/placeholder.svg"}
-                    alt="Post Thumbnail"
-                    className={styles["post-image"]}
-                  />
-                </a>
-              )}
-            </div>
+                    {post.user?.fullName || "Anonymous"}
+                  </Typography>
+                  <Typography variant="caption" className={styles["post-date"]}>
+                    {new Date(post.createdAt).toLocaleString()}
+                  </Typography>
+                </Box>
+              </Box>
+              <IconButton
+                size="small"
+                onClick={(e) => setMenuAnchorEl(e.currentTarget)}
+                className={styles["post-menu-button"]}
+              >
+                <MoreHoriz fontSize="small" />
+              </IconButton>
+              <Menu
+                anchorEl={menuAnchorEl}
+                open={Boolean(menuAnchorEl) && !selectedComment}
+                onClose={() => setMenuAnchorEl(null)}
+                PaperProps={{ className: "post-menu" }}
+              >
+                {post.userId === user?.userId && (
+                  <MenuItem
+                    onClick={() => navigate(`/my-posts/${postId}/edit`)}
+                    className={styles["edit-menu-item"]}
+                  >
+                    <Edit sx={{ mr: 1 }} />
+                    Edit Post
+                  </MenuItem>
+                )}
+                {(post.userId === user?.userId || isAdmin) && (
+                  <MenuItem
+                    onClick={handleDeletePost}
+                    className={styles["delete-menu-item"]}
+                  >
+                    <Delete sx={{ mr: 1 }} />
+                    Delete Post
+                  </MenuItem>
+                )}
+                {isAdmin && (
+                  <MenuItem
+                    onClick={handleHidePost}
+                    className={styles["hide-menu-item"]}
+                  >
+                    <VisibilityOff sx={{ mr: 1 }} />
+                    Hide Post
+                  </MenuItem>
+                )}
+                <MenuItem
+                  onClick={handleSharePost}
+                  className={styles["share-menu-item"]}
+                >
+                  <ShareIcon sx={{ mr: 1 }} />
+                  Share Post
+                </MenuItem>
+              </Menu>
+            </Box>
 
             {/* Post Tags */}
-            <div className={styles["post-tags"]}>
-              {post.tags && post.tags.length > 0 ? (
-                <div className={styles["tags-container"]}>
-                  {post.tags.map((tag) => (
-                    <span key={tag.tagId} className={styles["post-tag"]}>
-                      {tag.tagName}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles["no-tags"]}>No tags</p>
-              )}
-            </div>
+            {post?.tags && post?.tags?.length > 0 && (
+              <Box sx={{ display: "flex", gap: 1, mb: 1.5 }}>
+                {post.tags.map((tag) => (
+                  <Chip
+                    key={tag.tagId}
+                    label={`#${tag.tagName}`}
+                    size="small"
+                    className={styles["post-tag"]}
+                  />
+                ))}
+              </Box>
+            )}
 
-            {/* Post Stats */}
-            <div className={styles["post-stats"]}>
-              <div className={styles["stats-content"]}>
-                <div className={styles["stats-left"]}>
-                  <button
-                    onClick={() => setReactionDialogOpen(true)}
-                    className={styles["stat-item"]}
+            {/* Post Content */}
+            <Typography
+              variant="body2"
+              className={styles["post-content"]}
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(post.content),
+              }}
+            />
+            {post.thumbnail && (
+              <Box className={styles["post-image-container"]}>
+                <a
+                  href={post.thumbnail}
+                  data-fancybox="gallery"
+                  data-caption={post.content || "Post Image"}
+                  className={styles["post-image-link"]}
+                >
+                  <img
+                    src={post.thumbnail || "/default_image.png"}
+                    alt="Post Thumbnail"
+                    className={styles["post-image"]}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = "/default_image.png";
+                    }}
+                  />
+                </a>
+              </Box>
+            )}
+
+            {/* Post Reactions and Actions */}
+            <Box className={styles["group-post-reactions"]}>
+              {totalReactions > 0 ? (
+                <Box className={styles["reactions-summary"]}>
+                  <Box className={styles["reaction-emojis"]}>
+                    {Object.entries(reactionCounts).map(
+                      ([emojiUnicode, count]) => (
+                        <span
+                          key={emojiUnicode}
+                          style={{ fontSize: 18, marginRight: 4 }}
+                        >
+                          {unicodeToEmoji(emojiUnicode)}
+                        </span>
+                      )
+                    )}
+                  </Box>
+                  <Typography
+                    variant="caption"
+                    className={styles["reactions-count"]}
+                    onClick={(e) => setPreviewAnchorEl(e.currentTarget)}
                   >
-                    <ThumbsUp />
-                    <span>{reactionCount} Reactions</span>
-                  </button>
+                    {totalReactions} reactions
+                  </Typography>
+                  <Popover
+                    open={Boolean(previewAnchorEl)}
+                    anchorEl={previewAnchorEl}
+                    onClose={() => setPreviewAnchorEl(null)}
+                    anchorReference="anchorPosition"
+                    anchorPosition={{
+                      top: window.innerHeight / 2,
+                      left: window.innerWidth / 2,
+                    }}
+                    transformOrigin={{
+                      vertical: "center",
+                      horizontal: "center",
+                    }}
+                    PaperProps={{
+                      className: "reactions-popover",
+                      sx: { width: 400, maxHeight: 500, p: 2 },
+                    }}
+                  >
+                    <Tabs
+                      value={previewTab}
+                      onChange={(_, v) => setPreviewTab(v)}
+                      variant="scrollable"
+                      scrollButtons="auto"
+                      sx={{ mb: 1, minHeight: 36 }}
+                      TabIndicatorProps={{
+                        style: {
+                          height: 3,
+                          background: "var(--primary-color)",
+                        },
+                      }}
+                    >
+                      <Tab
+                        label={
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.5,
+                            }}
+                          >
+                            <Typography variant="caption">All</Typography>
+                          </Box>
+                        }
+                        value="all"
+                        sx={{
+                          minHeight: 36,
+                          px: 1.5,
+                          borderRadius: 1,
+                          fontWeight: 600,
+                        }}
+                      />
+                      {Object.entries(reactionUsers).map(
+                        ([emojiUnicode, users]) => (
+                          <Tab
+                            key={emojiUnicode}
+                            label={
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.5,
+                                }}
+                              >
+                                <span style={{ fontSize: 18 }}>
+                                  {unicodeToEmoji(emojiUnicode)}
+                                </span>
+                                <Typography variant="caption">
+                                  {users[0]?.reactionTypeName}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  sx={{ color: "var(--text-secondary)" }}
+                                >
+                                  ({users.length})
+                                </Typography>
+                              </Box>
+                            }
+                            value={emojiUnicode}
+                            sx={{
+                              minHeight: 36,
+                              px: 1.5,
+                              borderRadius: 1,
+                              fontWeight: 600,
+                            }}
+                          />
+                        )
+                      )}
+                    </Tabs>
+                    <Box sx={{ width: "100%", mt: 1 }}>
+                      {usersToShow.length > 0 ? (
+                        usersToShow.map((u, idx) => (
+                          <Box
+                            key={idx}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              mb: 1.5,
+                            }}
+                          >
+                            <Avatar
+                              src={u.userAvatar || "/placeholder-avatar.jpg"}
+                              alt={u.userFullName || "User"}
+                              sx={{ width: 28, height: 28, mr: 1 }}
+                            />
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "var(--text-primary)",
+                                fontWeight: 500,
+                              }}
+                            >
+                              {u.userFullName || "User"}
+                            </Typography>
+                            <Box sx={{ ml: 1 }}>
+                              <span style={{ fontSize: 16 }}>
+                                {unicodeToEmoji(u.reactionTypeEmojiUnicode)}
+                              </span>
+                            </Box>
+                          </Box>
+                        ))
+                      ) : (
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "var(--text-secondary)" }}
+                        >
+                          No reactions yet.
+                        </Typography>
+                      )}
+                    </Box>
+                  </Popover>
+                </Box>
+              ) : (
+                <Typography
+                  variant="caption"
+                  className={styles["no-reactions"]}
+                >
+                  No one has expressed any reactions to this post yet.
+                </Typography>
+              )}
 
-                  <div className={styles["stat-item"]}>
-                    <MessageCircle />
-                    <span>{post.totalComment} Comments</span>
-                  </div>
-                </div>
-
-                <span
-                  className={`post-status ${
-                    post.status === "active" ? "active" : "deleted"
+              <Box className={styles["post-actions"]}>
+                <Button
+                  size="small"
+                  color={userReaction ? "secondary" : "primary"}
+                  startIcon={
+                    <span
+                      role="img"
+                      aria-label={userReaction?.reactionTypeName || "Like"}
+                      style={{ fontSize: 18 }}
+                    >
+                      {userReaction
+                        ? unicodeToEmoji(userReaction.reactionTypeEmojiUnicode)
+                        : "👍"}
+                    </span>
+                  }
+                  onClick={(e) => setReactionAnchorEl(e.currentTarget)}
+                  className={`${styles["reaction-btn"]} ${
+                    userReaction ? styles["reacted"] : ""
                   }`}
+                  aria-label={userReaction ? "Change reaction" : "Add reaction"}
                 >
-                  {post.status === "active" ? "Active" : "Deleted"}
-                </span>
-              </div>
-
-              {/* Action Buttons - Facebook Style */}
-              <div className={styles["post-actions"]}>
-                <button className={styles["action-button"]}>
-                  <ThumbsUp />
-                  <span>Like</span>
-                </button>
-                <button className={styles["action-button"]}>
-                  <MessageCircle />
-                  <span>Comment</span>
-                </button>
-                <button
-                  onClick={handleSharePost}
-                  className={styles["action-button"]}
+                  {userReaction ? userReaction.reactionTypeName : "Like"}
+                </Button>
+                <Popover
+                  open={Boolean(reactionAnchorEl)}
+                  anchorEl={reactionAnchorEl}
+                  onClose={() => setReactionAnchorEl(null)}
+                  anchorOrigin={{ vertical: "top", horizontal: "center" }}
+                  transformOrigin={{ vertical: "bottom", horizontal: "center" }}
+                  PaperProps={{ className: "reaction-picker" }}
+                  disableRestoreFocus
                 >
-                  <Share2 />
-                  <span>Share</span>
-                </button>
-              </div>
-            </div>
+                  {reactionTypes
+                    ?.filter((rt) => rt.status === "active")
+                    .map((rt) => (
+                      <Tooltip
+                        key={rt.reactionTypeId}
+                        title={rt.reactionName}
+                        arrow
+                        placement="top"
+                      >
+                        <IconButton
+                          onClick={() => handleReact(rt)}
+                          className={`reaction-option ${
+                            userReaction?.reactionTypeId === rt.reactionTypeId
+                              ? "active"
+                              : ""
+                          }`}
+                          aria-label={`React with ${rt.reactionName}`}
+                        >
+                          <span>{unicodeToEmoji(rt.emojiUnicode)}</span>
+                        </IconButton>
+                      </Tooltip>
+                    ))}
+                </Popover>
+                <Button
+                  size="small"
+                  color="primary"
+                  startIcon={<CommentIcon />}
+                  className={styles["comment-button"]}
+                  aria-label={`Comment on post with ${
+                    post.totalComment || 0
+                  } comments`}
+                >
+                  Comment ({post.totalComment || 0})
+                </Button>
+              </Box>
+            </Box>
 
             {/* Comment Section */}
-            <div className={styles["comment-section"]}>
-              {/* Add Comment */}
-              <div className={styles["comment-input-container"]}>
-                <div className={styles["comment-input-wrapper"]}>
-                  <img
-                    src={post?.user?.avatar || "/default-avatar.png"}
-                    alt="Your Avatar"
-                    className={styles["comment-avatar"]}
-                  />
-                  <div className={styles["comment-input-group"]}>
-                    <input
-                      type="text"
-                      placeholder="Write a comment..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      onKeyPress={(e) =>
-                        e.key === "Enter" && handleAddComment()
-                      }
-                      className={styles["comment-input"]}
-                    />
-                    <button
-                      onClick={handleAddComment}
-                      disabled={!newComment.trim()}
-                      className={styles["comment-send-button"]}
+            <Box className={styles["comment-section"]}>
+              <Box className={styles["comment-input-container"]}>
+                <Avatar
+                  src={user?.avatar || "/placeholder-avatar.jpg"}
+                  alt="Your Avatar"
+                  className={styles["comment-avatar"]}
+                />
+                <TextField
+                  size="small"
+                  placeholder="Write a comment..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  fullWidth
+                  multiline
+                  minRows={1}
+                  maxRows={4}
+                  className={styles["comment-input"]}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddComment();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleAddComment}
+                  variant="contained"
+                  color="primary"
+                  className={styles["comment-submit-button"]}
+                  disabled={!newComment.trim()}
+                >
+                  <Send />
+                </Button>
+              </Box>
+
+              <Box ref={commentListRef} sx={commentListStyles}>
+                {comments.length === 0 && !loadingComments ? (
+                  <Typography className={styles["no-comments"]}>
+                    No comments yet. Be the first to comment!
+                  </Typography>
+                ) : (
+                  comments.map((comment) => (
+                    <Box
+                      key={comment.commentId}
+                      className={`${styles["comment-item"]} ${
+                        comment.userId === user?.userId
+                          ? styles["own-comment"]
+                          : ""
+                      }`}
                     >
-                      <Send />
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comments Error */}
-              {loadingCommentsError && (
-                <div className={styles["comments-error"]}>
-                  <p>{loadingCommentsError}</p>
-                  <button
-                    onClick={handleRetryComments}
-                    className={styles["retry-button"]}
-                  >
-                    <RefreshCw />
-                    <span>Retry Loading Comments</span>
-                  </button>
-                </div>
-              )}
-
-              {/* Comments List */}
-              <div className={styles["comments-list"]}>
-                {comments.map((comment, index) => (
-                  <div
-                    key={comment.commentId}
-                    ref={index === comments.length - 1 ? lastCommentRef : null}
-                    className={styles["comment-item"]}
-                  >
-                    <div className={styles["comment-content"]}>
-                      <img
-                        src={comment.userAvatar || "/default-avatar.png"}
-                        alt="Commenter Avatar"
+                      <Avatar
+                        src={comment.userAvatar || "/placeholder-avatar.jpg"}
+                        alt={comment.userFullName || "User"}
                         className={styles["comment-avatar"]}
+                        onError={(e) =>
+                          (e.target.src = "/placeholder-avatar.jpg")
+                        }
                       />
-                      <div className={styles["comment-main"]}>
-                        <div className={styles["comment-header"]}>
-                          <div className={styles["comment-user-info"]}>
-                            <h4>{comment.userFullName || "Unknown User"}</h4>
-                            <p>
-                              {new Date(comment.createdAt).toLocaleString()}
-                            </p>
-                          </div>
-
-                          {comment.userId === user.userId && (
-                            <div
-                              style={{ position: "relative" }}
-                              ref={commentMenuRef}
-                            >
-                              <button
-                                onClick={() => {
-                                  setSelectedComment(comment);
-                                  setShowCommentMenu(!showCommentMenu);
-                                }}
-                                className={styles["comment-menu-button"]}
-                              >
-                                <MoreHorizontal />
-                              </button>
-
-                              {showCommentMenu &&
-                                selectedComment?.commentId ===
-                                  comment.commentId && (
-                                  <div className={styles["dropdown-menu"]}>
-                                    <button
-                                      onClick={() => {
-                                        setEditingComment(selectedComment);
-                                        setEditCommentText(
-                                          selectedComment.commentText
-                                        );
-                                        setShowCommentMenu(false);
-                                      }}
-                                      className={styles["dropdown-item"]}
-                                    >
-                                      <Edit3 />
-                                      <span>Edit</span>
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        handleDeleteComment(
-                                          selectedComment.commentId
-                                        )
-                                      }
-                                      className={
-                                        styles["dropdown-item"] +
-                                        " " +
-                                        styles["danger"]
-                                      }
-                                    >
-                                      <Trash2 />
-                                      <span>Delete</span>
-                                    </button>
-                                  </div>
-                                )}
-                            </div>
-                          )}
-                        </div>
-
+                      <Box sx={{ flex: 1 }}>
                         {editingComment?.commentId === comment.commentId ? (
-                          <div className={styles["comment-edit-form"]}>
-                            <input
+                          <Box className={styles["editing-comment"]}>
+                            <TextField
+                              autoFocus
+                              margin="dense"
+                              label="Edit your comment"
                               type="text"
+                              fullWidth
+                              multiline
+                              minRows={2}
+                              maxRows={6}
                               value={editCommentText}
                               onChange={(e) =>
                                 setEditCommentText(e.target.value)
                               }
-                              className={styles["comment-edit-input"]}
+                              sx={{ mb: 1 }}
                             />
-                            <button
-                              onClick={handleEditComment}
-                              disabled={!editCommentText.trim()}
-                              className={
-                                styles["comment-edit-button"] +
-                                " " +
-                                styles["save"]
-                              }
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={() => setEditingComment(null)}
-                              className={
-                                styles["comment-edit-button"] +
-                                " " +
-                                styles["cancel"]
-                              }
-                            >
-                              Cancel
-                            </button>
-                          </div>
+                            <Box className={styles["edit-actions"]}>
+                              <Button
+                                size="small"
+                                onClick={() => {
+                                  setEditingComment(null);
+                                  setEditCommentText("");
+                                }}
+                                color="secondary"
+                              >
+                                Cancel
+                              </Button>
+                              <Button
+                                size="small"
+                                onClick={handleEditComment}
+                                variant="contained"
+                                color="primary"
+                                disabled={!editCommentText.trim()}
+                              >
+                                Save
+                              </Button>
+                            </Box>
+                          </Box>
                         ) : (
-                          <div className={styles["comment-text"]}>
-                            {comment.commentText}
-                          </div>
+                          <>
+                            <Box className={styles["comment-header"]}>
+                              <Typography
+                                variant="subtitle2"
+                                className={styles["comment-author"]}
+                              >
+                                {comment.userFullName || "User"}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                className={styles["comment-date"]}
+                              >
+                                {new Date(comment.createdAt).toLocaleString()}
+                              </Typography>
+                              {comment.userId === user?.userId && (
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    setMenuAnchorEl(e.currentTarget);
+                                    setSelectedComment(comment);
+                                  }}
+                                  aria-label="Comment actions"
+                                >
+                                  <MoreHoriz fontSize="small" />
+                                </IconButton>
+                              )}
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              className={styles["comment-text"]}
+                            >
+                              {comment.commentText}
+                            </Typography>
+                          </>
                         )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                      </Box>
+                      {comment.userId === user?.userId && (
+                        <Menu
+                          anchorEl={menuAnchorEl}
+                          open={
+                            Boolean(menuAnchorEl) &&
+                            selectedComment?.commentId === comment.commentId
+                          }
+                          onClose={() => {
+                            setMenuAnchorEl(null);
+                            setSelectedComment(null);
+                          }}
+                          anchorOrigin={{
+                            vertical: "bottom",
+                            horizontal: "right",
+                          }}
+                          transformOrigin={{
+                            vertical: "top",
+                            horizontal: "right",
+                          }}
+                          PaperProps={{
+                            sx: {
+                              borderRadius: 2,
+                              minWidth: 140,
+                              boxShadow: 3,
+                            },
+                          }}
+                        >
+                          <MenuItem
+                            onClick={() => {
+                              setEditingComment(comment);
+                              setEditCommentText(comment.commentText);
+                              setMenuAnchorEl(null);
+                              setSelectedComment(null);
+                            }}
+                          >
+                            Edit
+                          </MenuItem>
+                          <MenuItem
+                            onClick={() =>
+                              handleDeleteComment(comment.commentId)
+                            }
+                            sx={{ color: "var(--accent-error)" }}
+                          >
+                            Delete
+                          </MenuItem>
+                        </Menu>
+                      )}
+                    </Box>
+                  ))
+                )}
+                {loadingComments && (
+                  <Box
+                    sx={{ display: "flex", justifyContent: "center", mt: 2 }}
+                  >
+                    <CircularProgress size={24} />
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
 
-              {/* Loading Comments */}
-              {loadingComments && (
-                <div className={styles["loading-comments"]}>
-                  <div className={styles["loading-spinner"]}></div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* All dialogs and overlays remain the same... */}
-      {reactionDialogOpen && (
-        <div className={styles["reaction-dialog-overlay"]}>
-          <div className={styles["reaction-dialog"]}>
-            <div className={styles["reaction-dialog-header"]}>
-              <h3 className={styles["reaction-dialog-title"]}>Reactions</h3>
-              <button
-                onClick={() => setReactionDialogOpen(false)}
-                className={styles["reaction-dialog-close"]}
-              >
-                <X />
-              </button>
-            </div>
-
-            <div className={styles["reaction-dialog-content"]}>
-              {reactionTypes.length > 0 ? (
-                <div className={styles["reaction-section"]}>
-                  <h4>All Reactions ({reactionCount})</h4>
-                  <div className={styles["reaction-list"]}>
-                    {post.reactions.map((reaction) => (
-                      <div
-                        key={reaction.reactionId}
-                        className={styles["reaction-item"]}
-                      >
-                        <img
-                          src={reaction.userAvatar || "/default-avatar.png"}
-                          alt="User Avatar"
-                          className={styles["reaction-user-avatar"]}
-                        />
-                        <div className={styles["reaction-user-info"]}>
-                          <p className={styles["reaction-user-name"]}>
-                            {reaction.userFullName || "Unknown User"}
-                          </p>
-                        </div>
-                        <span className={styles["reaction-emoji"]}>
-                          {reaction.reactionTypeEmojiUnicode
-                            ? String.fromCodePoint(
-                                Number.parseInt(
-                                  reaction.reactionTypeEmojiUnicode.replace(
-                                    "U+",
-                                    ""
-                                  ),
-                                  16
-                                )
-                              )
-                            : reaction.reactionTypeName}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className={styles["no-reactions"]}>No reactions yet.</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {snackbar.open && (
-        <div className={styles["snackbar"]}>
-          <div className={`snackbar-content ${snackbar.severity}`}>
-            <span className={styles["snackbar-message"]}>
-              {snackbar.message}
-            </span>
-            <button
-              onClick={() => setSnackbar({ ...snackbar, open: false })}
-              className={styles["snackbar-close"]}
-            >
-              <X />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {showPostMenu && (
-        <div
-          className={styles["click-outside-overlay"]}
-          onClick={() => setShowPostMenu(false)}
-        />
-      )}
-      {showCommentMenu && (
-        <div
-          className={styles["click-outside-overlay"]}
-          onClick={() => setShowCommentMenu(false)}
-        />
-      )}
-    </div>
+      {/* Snackbar */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+          elevation={6}
+          variant="filled"
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 

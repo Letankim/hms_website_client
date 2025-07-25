@@ -184,10 +184,9 @@ body {
     color: var(--text-primary);
     margin-bottom: 1rem;
     line-height: 1.2;
-    background: linear-gradient(135deg, var(--text-primary), var(--secondary-color));
+    background: linear-gradient(45deg, var(--secondary-color), var(--primary-color));
     -webkit-background-clip: text;
-
-    background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 .section-description {
@@ -1108,6 +1107,7 @@ body {
     .features-layout {
         grid-template-columns: 1fr;
         gap: 3rem;
+        overflow: hidden;
     }
 
     .features-content .section-header {
@@ -1124,6 +1124,9 @@ body {
 }
 
 @media (max-width: 768px) {
+    .home-page {
+        padding-top: 0;
+    }
 
     .hero-section,
     .services-section,
@@ -1131,6 +1134,17 @@ body {
     .benefits-section,
     .cta-section {
         padding: 4rem 0;
+        padding-top: 0;
+    }
+
+    .services-section,
+    .benefits-section,
+    .cta-section {
+        padding: 20px 10px;
+    }
+
+    .features-layout {
+        padding: 10px 0;
     }
 
     .services-grid,
@@ -1164,17 +1178,128 @@ body {
         margin: 1.5rem auto;
     }
 
+    .cta-description {
+        font-size: 1rem;
+    }
+
     .floating-stats {
         position: static;
         flex-direction: row;
         justify-content: center;
         margin-top: 1rem;
     }
+
+    .badge {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .service-title,
+    .feature-title,
+    .benefit-title {
+        font-size: 1.2rem;
+    }
+
+    .service-description,
+    .feature-description,
+    .benefit-description {
+        font-size: 14px;
+    }
+
+
+    .hero-description {
+        font-size: 16px;
+    }
+
+    .section-title-enhanced {
+        font-size: 25px;
+    }
+
+    .section-description-enhanced {
+        font-size: 14px;
+    }
+
+    .primary-button,
+    .secondary-button {
+        padding: 0.65rem 1rem;
+    }
 }
 
 @media (max-width: 480px) {
     .container {
         padding: 0 0.75rem;
+    }
+
+    .home-page {
+        padding-top: 80px;
+    }
+
+    .badge {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .service-title,
+    .feature-title,
+    .benefit-title {
+        font-size: 1.2rem;
+    }
+
+    .service-description,
+    .feature-description,
+    .benefit-description {
+        font-size: 14px;
+    }
+
+    .hero-description {
+        font-size: 16px;
+    }
+
+    .section-title-enhanced {
+        font-size: 25px;
+    }
+
+    .section-description-enhanced {
+        font-size: 14px;
+    }
+
+    .hero-section,
+    .services-section,
+    .features-section,
+    .benefits-section,
+    .cta-section {
+        padding: 4rem 0;
+        padding-top: 0;
+    }
+
+    .services-section,
+    .benefits-section,
+    .cta-section {
+        padding: 10px 5px;
+    }
+
+    .features-layout {
+        padding: 5px 0;
+    }
+
+    .cta-description {
+        font-size: 0.9rem;
     }
 
     .service-card,
@@ -1188,6 +1313,12 @@ body {
 
     .cta-description-container {
         padding: 1rem;
+    }
+
+    .primary-button,
+    .secondary-button {
+        padding: 0.65rem 1rem;
+        font-size: 14px;
     }
 }
 

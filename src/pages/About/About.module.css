@@ -430,6 +430,11 @@ body {
     .team-grid {
         grid-template-columns: 1fr;
     }
+
+    .story-text p,
+    .mission-text p {
+        text-align: center;
+    }
 }
 
 @media (max-width: 480px) {
@@ -440,5 +445,10 @@ body {
     .tech-card,
     .team-card {
         padding: 1.5rem;
+    }
+
+    .story-text p,
+    .mission-text p {
+        text-align: center;
     }
 }

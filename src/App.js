@@ -53,6 +53,7 @@ import TermsOfService from 'pages/TermsOfService/TermsOfService';
 import AppPreviewLanding from 'pages/AppPreview/appPreviewLanding';
 import ChatSupport from 'pages/ChatSupport/ChatSupport';
 import ProfilePage from 'components/Auth/ProfilePage';
+import Verify from 'pages/Verify/Verify';
 
 function SnackbarSetup() {
     const { closeSnackbar } = useSnackbar();
@@ -320,6 +321,7 @@ function App() {
                             <Route path="*" element={<NotFound />} />
                         </Route>
                         <Route path="/login" element={<Login />} />
+                        <Route path="/verify" element={<Verify />} />
                         <Route path="/register" element={<Register />} />
                         <Route path="/provide-profile" element={<ProfilePage />} />
                         <Route path="/forgot-password" element={<Forgot />} />

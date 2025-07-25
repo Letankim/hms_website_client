@@ -521,9 +521,13 @@ const MyPostHistory = () => {
                       <div className="post-thumbnail">
                         {post.thumbnail ? (
                           <img
-                            src={post.thumbnail || "/placeholder.svg"}
+                            src={post.thumbnail || "/placeholder.png"}
                             alt="Post thumbnail"
                             className="thumbnail-image"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "/placeholder.png";
+                            }}
                           />
                         ) : (
                           <div className="thumbnail-placeholder">

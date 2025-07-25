@@ -518,9 +518,12 @@ const AppPreview = () => {
                   </button>
                   <button
                     className="btn-secondary"
+                    sx={{
+                      color: "#000",
+                    }}
                     onClick={() => setVideoModalOpen(true)}
                   >
-                    <Play size={18} />
+                    <Play size={18} color="#000" />
                     Watch Demo
                   </button>
                 </div>

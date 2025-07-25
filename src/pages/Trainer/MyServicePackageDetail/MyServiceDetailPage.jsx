@@ -20,8 +20,9 @@ import {
   Snackbar,
   Stack,
   Skeleton,
+  IconButton,
 } from "@mui/material";
-import { Work as WorkIcon } from "@mui/icons-material";
+import { Visibility, Work as WorkIcon } from "@mui/icons-material";
 import { useParams, useNavigate } from "react-router-dom";
 import { CheckCircleIcon, EditIcon } from "lucide-react";
 import apiServicePackageService from "services/apiServicePackageService";
@@ -226,13 +227,19 @@ const MyServiceDetailPage = () => {
         {/* Header Section */}
         <Box sx={{ textAlign: "center", mb: 6, pt: "100px" }}>
           <Stack
-            direction="row"
+            direction={{ xs: "column", sm: "row" }}
             alignItems="center"
             justifyContent="center"
             spacing={2}
             sx={{ mb: 2 }}
           >
-            <WorkIcon sx={{ fontSize: 40, color: "var(--secondary-color)" }} />
+            <WorkIcon
+              sx={{
+                fontSize: { xs: 32, sm: 40 },
+                color: "var(--secondary-color)",
+                mb: { xs: 1, sm: 0 },
+              }}
+            />
             <Typography
               variant="h3"
               sx={{
@@ -244,12 +251,17 @@ const MyServiceDetailPage = () => {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              My Service Details
+              Service Details
             </Typography>
           </Stack>
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              px: 1,
+            }}
           >
             View details of this service package and its subscriptions
           </Typography>
@@ -298,7 +310,7 @@ const MyServiceDetailPage = () => {
               />
               <TextField
                 label="Price"
-                value={`${packageData.price.toLocaleString()} VND`}
+                value={`${packageData?.price?.toLocaleString()} VND`}
                 fullWidth
                 InputProps={{ readOnly: true }}
                 variant="outlined"
@@ -493,26 +505,21 @@ const MyServiceDetailPage = () => {
                         {new Date(sub.endDate).toLocaleDateString()}
                       </TableCell>
                       <TableCell align="center">
-                        <Button
-                          variant="outlined"
+                        <IconButton
                           size="small"
                           onClick={() => handleDetailOpen(sub)}
                           sx={{
-                            borderRadius: "20px",
-                            minWidth: "80px",
-                            height: "36px",
-                            padding: "6px 12px",
                             color: "var(--accent-info)",
-                            borderColor: "var(--accent-info)",
+                            border: "1px solid var(--accent-info)",
+                            borderRadius: 1,
+                            p: "4px",
                             "&:hover": {
                               bgcolor: "var(--background-light)",
-                              transform: "translateY(-2px)",
                             },
-                            transition: "all 0.2s ease",
                           }}
                         >
-                          Details
-                        </Button>
+                          <Visibility fontSize="small" />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))
@@ -659,7 +666,7 @@ const MyServiceDetailPage = () => {
                 />
                 <TextField
                   label="Price"
-                  value={`${selectedSubscription.packagePrice.toLocaleString()} VND`}
+                  value={`${selectedSubscription?.packagePrice?.toLocaleString()} VND`}
                   fullWidth
                   InputProps={{ readOnly: true }}
                   variant="outlined"

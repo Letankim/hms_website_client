@@ -136,7 +136,15 @@
     flex-wrap: wrap;
 }
 
-@media (max-width: 600px) {
+.notification-page-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    margin: 10px 0;
+}
+
+@media (max-width: 768px) {
     .notification-modern-container {
         margin: 16px;
         padding: 16px;
@@ -176,5 +184,10 @@
         margin-left: 0;
         /* Prevent overlap on small screens */
         margin-top: 8px;
+    }
+
+    .notification-page-pagination {
+        flex-direction: column;
+        gap: 10px;
     }
 }

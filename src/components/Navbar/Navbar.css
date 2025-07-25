@@ -104,9 +104,6 @@ body {
 @media (max-width: 991px) {
     .custom-navbar-anim {
         width: 100%;
-        background: #e5f0da;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
-        border-radius: 0 0 18px 18px;
         margin-top: 0.5rem;
         padding: 1.5rem 0 1rem 0;
         display: flex;
@@ -225,7 +222,6 @@ body {
         background: #fff !important;
         opacity: 1 !important;
         pointer-events: auto !important;
-        padding-bottom: 16px !important;
         overflow-y: auto !important;
         transition: all .2s cubic-bezier(.4, 0, .2, 1);
         visibility: visible !important;
@@ -397,17 +393,17 @@ body {
         width: 100vw !important;
         max-width: 400px !important;
         min-height: 320px !important;
-        max-height: 480px !important;
+        max-height: 560px !important;
         z-index: 3001 !important;
         box-shadow: 0 8px 32px #0003 !important;
         border-radius: 16px !important;
         background: #fff !important;
         opacity: 1 !important;
         pointer-events: auto !important;
-        padding-bottom: 16px !important;
         overflow-y: auto !important;
         transition: all .2s cubic-bezier(.4, 0, .2, 1);
         visibility: visible !important;
+        padding-bottom: 0;
     }
 
     .navbar-notif-dropdown[hidden],
@@ -423,6 +419,11 @@ body {
         display: flex !important;
         pointer-events: auto !important;
         opacity: 1 !important;
+    }
+
+    .navbar-auth-buttons .navbar-avatar-wrap .navbar-avatar-btn,
+    .navbar-auth-buttons .navbar-notif-btn {
+        display: none;
     }
 }
 

@@ -25,12 +25,14 @@ import {
   Alert,
   Snackbar,
   Stack,
+  IconButton,
 } from "@mui/material";
 import {
   Work as WorkIcon,
   Search as SearchIcon,
   BarChart as BarChartIcon,
   Add as AddIcon,
+  Visibility,
 } from "@mui/icons-material";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -425,19 +427,30 @@ const MyServicesPage = () => {
         py: 4,
       }}
     >
-      <Container maxWidth="xl">
+      <Container
+        maxWidth="xl"
+        sx={{
+          py: 0,
+        }}
+      >
         {/* Header Section */}
-        <Box sx={{ textAlign: "center", mb: 6, pt: "100px" }}>
+        <Box
+          sx={{
+            textAlign: "center",
+            mb: 6,
+            pt: { xs: "100px", md: "100px" },
+          }}
+        >
           <Stack
-            direction="row"
+            direction={{ xs: "column", md: "row" }}
             alignItems="center"
             justifyContent="center"
-            spacing={2}
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, flexWrap: "wrap", gap: { xs: 1.5, md: 2 } }}
           >
             <WorkIcon sx={{ fontSize: 40, color: "var(--secondary-color)" }} />
+
             <Typography
-              variant="h3"
+              variant="h4"
               sx={{
                 fontWeight: 700,
                 background:
@@ -445,11 +458,18 @@ const MyServicesPage = () => {
                 backgroundClip: "text",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
+                fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
               }}
             >
               My Services
             </Typography>
-            <Box sx={{ display: "flex", gap: 2 }}>
+
+            {/* Button group */}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              sx={{ mt: { xs: 2, md: 0 }, justifyContent: "center" }}
+            >
               <Button
                 variant="contained"
                 startIcon={<BarChartIcon />}
@@ -459,11 +479,13 @@ const MyServicesPage = () => {
                   bgcolor: "var(--accent-info)",
                   color: "var(--text-white)",
                   "&:hover": { bgcolor: "#1976d2" },
-                  padding: "6px 16px",
+                  px: 2,
                 }}
+                fullWidth={true}
               >
-                View Statistics
+                Statistics
               </Button>
+
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
@@ -473,16 +495,24 @@ const MyServicesPage = () => {
                   bgcolor: "var(--primary-color)",
                   color: "var(--text-white)",
                   "&:hover": { bgcolor: "var(--primary-hover)" },
-                  padding: "6px 16px",
+                  px: 2,
                 }}
+                fullWidth={true}
               >
-                Add Package
+                Add
               </Button>
-            </Box>
+            </Stack>
           </Stack>
+
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              mt: 2,
+            }}
           >
             View and manage your service packages
           </Typography>
@@ -608,162 +638,172 @@ const MyServicesPage = () => {
           </Grid>
         </Grid>
 
-        {/* Services Table */}
-        <TableContainer
-          component={Paper}
-          sx={{ borderRadius: 2, boxShadow: "0 4px 12px var(--shadow-color)" }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  No
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Package Name
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Price
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Duration (Days)
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Current Subscribers
-                </TableCell>
-                <TableCell
-                  sx={{ color: "var(--text-primary)", fontWeight: 600 }}
-                >
-                  Status
-                </TableCell>
-                <TableCell
-                  sx={{
-                    color: "var(--text-primary)",
-                    fontWeight: 600,
-                    textAlign: "center",
-                  }}
-                >
-                  Action
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                skeletonRows
-              ) : packages.length === 0 ? (
+        <Box sx={{ width: "100%", overflowX: "auto" }}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              borderRadius: 2,
+              boxShadow: "0 4px 12px var(--shadow-color)",
+            }}
+          >
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={7} align="center">
-                    <Box sx={{ p: 4, textAlign: "center" }}>
-                      <WorkIcon
-                        sx={{
-                          fontSize: 80,
-                          color: "var(--text-secondary)",
-                          mb: 2,
-                        }}
-                      />
-                      <Typography
-                        variant="h5"
-                        sx={{ color: "var(--text-secondary)", mb: 1 }}
-                      >
-                        No service packages found
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: "var(--text-secondary)" }}
-                      >
-                        Try adjusting your search or date filters
-                      </Typography>
-                    </Box>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    No
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Package Name
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Price
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Duration (Days)
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Current Subscribers
+                  </TableCell>
+                  <TableCell
+                    sx={{ color: "var(--text-primary)", fontWeight: 600 }}
+                  >
+                    Status
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      color: "var(--text-primary)",
+                      fontWeight: 600,
+                      textAlign: "center",
+                    }}
+                  >
+                    Action
                   </TableCell>
                 </TableRow>
-              ) : (
-                packages.map((pkg, index) => (
-                  <TableRow key={pkg.packageId} hover>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {page * rowsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {pkg.packageName}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {pkg.price?.toLocaleString() || "N/A"} VND
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {pkg.durationDays || "N/A"}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {pkg.currentSubscribers || 0}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() =>
-                          handleConfirmStatusChange(pkg.packageId, pkg.status)
-                        }
-                        sx={{
-                          ...getStatusColor(pkg.status),
-                          textTransform: "capitalize",
-                          fontWeight: "bold",
-                          borderRadius: "12px",
-                          padding: "4px 12px",
-                          minWidth: "80px",
-                        }}
-                      >
-                        {pkg.status}
-                      </Button>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleViewDetails(pkg)}
-                        sx={{
-                          borderRadius: 0.5,
-                          color: "var(--accent-info)",
-                          borderColor: "var(--accent-info)",
-                          "&:hover": { bgcolor: "var(--background-light)" },
-                        }}
-                      >
-                        View Detail
-                      </Button>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  skeletonRows
+                ) : packages.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} align="center">
+                      <Box sx={{ p: 4, textAlign: "center" }}>
+                        <WorkIcon
+                          sx={{
+                            fontSize: 80,
+                            color: "var(--text-secondary)",
+                            mb: 2,
+                          }}
+                        />
+                        <Typography
+                          variant="h5"
+                          sx={{ color: "var(--text-secondary)", mb: 1 }}
+                        >
+                          No service packages found
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "var(--text-secondary)" }}
+                        >
+                          Try adjusting your search or date filters
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={pageSizeOptions}
-            labelRowsPerPage="Packages per page:"
-            sx={{
-              "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                {
-                  color: "var(--text-secondary)",
-                },
-              "& .MuiTablePagination-select": {
-                color: "var(--text-primary)",
+                ) : (
+                  packages.map((pkg, index) => (
+                    <TableRow key={pkg.packageId} hover>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {pkg.packageName}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {pkg.price?.toLocaleString() || "N/A"} VND
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {pkg.durationDays || "N/A"}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {pkg.currentSubscribers || 0}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() =>
+                            handleConfirmStatusChange(pkg.packageId, pkg.status)
+                          }
+                          sx={{
+                            ...getStatusColor(pkg.status),
+                            textTransform: "capitalize",
+                            fontWeight: "bold",
+                            borderRadius: "12px",
+                            padding: "4px 12px",
+                            minWidth: "80px",
+                          }}
+                        >
+                          {pkg.status}
+                        </Button>
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleViewDetails(pkg)}
+                          sx={{
+                            color: "var(--accent-info)",
+                            border: "1px solid var(--accent-info)",
+                            borderRadius: 1,
+                            p: "4px",
+                            "&:hover": {
+                              bgcolor: "var(--background-light)",
+                            },
+                          }}
+                        >
+                          <Visibility fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+        <TablePagination
+          component="div"
+          count={totalCount}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={pageSizeOptions}
+          labelRowsPerPage="Packages per page:"
+          sx={{
+            mt: 1,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            px: 2,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+              {
+                color: "var(--text-secondary)",
               },
-            }}
-          />
-        </TableContainer>
-
+            "& .MuiTablePagination-select": {
+              color: "var(--text-primary)",
+            },
+          }}
+        />
         {/* Add Package Dialog */}
         <Dialog
           open={addDialogOpen}

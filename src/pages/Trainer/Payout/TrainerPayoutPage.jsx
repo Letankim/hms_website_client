@@ -24,11 +24,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
 } from "@mui/material";
 import {
   Search as SearchIcon,
   BarChart as BarChartIcon,
   MonetizationOn as MonetizationOnIcon,
+  Visibility,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
@@ -271,11 +273,10 @@ const TrainerPayoutPage = () => {
         {/* Header Section */}
         <Box sx={{ textAlign: "center", mb: 6, pt: "100px" }}>
           <Stack
-            direction="row"
+            direction={{ xs: "column", md: "row" }}
             alignItems="center"
             justifyContent="center"
-            spacing={2}
-            sx={{ mb: 2 }}
+            sx={{ mb: 2, flexWrap: "wrap", gap: { xs: 1.5, md: 2 } }}
           >
             <MonetizationOnIcon
               sx={{ fontSize: 40, color: "var(--secondary-color)" }}
@@ -289,28 +290,41 @@ const TrainerPayoutPage = () => {
                 backgroundClip: "text",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
+                fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
               }}
             >
               My Payouts
             </Typography>
-            <Button
-              variant="contained"
-              startIcon={<BarChartIcon />}
-              onClick={handleViewStatistics}
-              sx={{
-                borderRadius: "20px",
-                bgcolor: "var(--accent-info)",
-                color: "var(--text-white)",
-                "&:hover": { bgcolor: "#1976d2" },
-                padding: "6px 16px",
-              }}
+            <Stack
+              direction={{ xs: "column", sm: "row" }}
+              spacing={1}
+              sx={{ mt: { xs: 2, md: 0 }, justifyContent: "center" }}
             >
-              View Statistics
-            </Button>
+              <Button
+                variant="contained"
+                startIcon={<BarChartIcon />}
+                onClick={handleViewStatistics}
+                sx={{
+                  borderRadius: "20px",
+                  bgcolor: "var(--accent-info)",
+                  color: "var(--text-white)",
+                  "&:hover": { bgcolor: "#1976d2" },
+                  padding: "6px 16px",
+                }}
+              >
+                View Statistics
+              </Button>
+            </Stack>
           </Stack>
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              fontSize: { xs: "1rem", sm: "1.1rem" },
+              mt: 2,
+            }}
           >
             View and manage your payout history
           </Typography>
@@ -415,142 +429,156 @@ const TrainerPayoutPage = () => {
         </Grid>
 
         {/* Payouts Table */}
-        <TableContainer
-          component={Paper}
-          sx={{ borderRadius: 2 }}
-          className="payout-table-container"
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>No</TableCell>
-                <TableCell>Amount</TableCell>
-                <TableCell>Payout Date</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Payment Method</TableCell>
-                <TableCell>Transaction Reference</TableCell>
-                <TableCell>Notes</TableCell>
-                <TableCell align="center">Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                skeletonRows
-              ) : payouts.length === 0 ? (
+
+        <Box sx={{ width: "100%", overflowX: "auto" }}>
+          <TableContainer
+            component={Paper}
+            sx={{
+              borderRadius: 2,
+              boxShadow: "0 4px 12px var(--shadow-color)",
+            }}
+          >
+            <Table>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    <Box sx={{ p: 4, textAlign: "center" }}>
-                      <MonetizationOnIcon
-                        sx={{
-                          fontSize: 80,
-                          color: "var(--text-secondary)",
-                          mb: 2,
-                        }}
-                      />
-                      <Typography
-                        variant="h5"
-                        sx={{ color: "var(--text-secondary)", mb: 1 }}
-                      >
-                        No payouts found
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: "var(--text-secondary)" }}
-                      >
-                        Try adjusting your search or date filters
-                      </Typography>
-                    </Box>
-                  </TableCell>
+                  <TableCell>No</TableCell>
+                  <TableCell>Amount</TableCell>
+                  <TableCell>Payout Date</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Payment Method</TableCell>
+                  <TableCell>Transaction Reference</TableCell>
+                  <TableCell>Notes</TableCell>
+                  <TableCell align="center">Action</TableCell>
                 </TableRow>
-              ) : (
-                payouts.map((payout, index) => (
-                  <TableRow key={payout.payoutId} hover>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {page * rowsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {payout.amount.toLocaleString()} VND
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {format(new Date(payout.payoutDate), "dd/MM/yyyy HH:mm")}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        className="status-pill"
-                        sx={{
-                          ...getStatusColor(payout.status),
-                          textTransform: "capitalize",
-                          fontWeight: "bold",
-                          borderRadius: "12px",
-                          padding: "4px 12px",
-                          minWidth: "80px",
-                        }}
-                      >
-                        {payout.status}
-                      </Button>
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {payout.paymentMethod === "bank_transfer"
-                        ? "Bank Transfer"
-                        : payout.paymentMethod}
-                    </TableCell>
-                    <TableCell sx={{ color: "var(--text-primary)" }}>
-                      {payout.transactionReference}
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        color: "var(--text-primary)",
-                        maxWidth: 200,
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {payout.notes}
-                    </TableCell>
-                    <TableCell align="center">
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => handleDetailsDialogOpen(payout)}
-                        sx={{
-                          borderRadius: 0.5,
-                          color: "var(--accent-info)",
-                          borderColor: "var(--accent-info)",
-                          "&:hover": { bgcolor: "var(--background-light)" },
-                        }}
-                      >
-                        View Detail
-                      </Button>
+              </TableHead>
+              <TableBody>
+                {loading ? (
+                  skeletonRows
+                ) : payouts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center">
+                      <Box sx={{ p: 4, textAlign: "center" }}>
+                        <MonetizationOnIcon
+                          sx={{
+                            fontSize: 80,
+                            color: "var(--text-secondary)",
+                            mb: 2,
+                          }}
+                        />
+                        <Typography
+                          variant="h5"
+                          sx={{ color: "var(--text-secondary)", mb: 1 }}
+                        >
+                          No payouts found
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "var(--text-secondary)" }}
+                        >
+                          Try adjusting your search or date filters
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={totalCount}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={pageSizeOptions}
-            labelRowsPerPage="Payouts per page:"
-            sx={{
-              "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
-                {
-                  color: "var(--text-secondary)",
-                },
-              "& .MuiTablePagination-select": {
-                color: "var(--text-primary)",
+                ) : (
+                  payouts.map((payout, index) => (
+                    <TableRow key={payout.payoutId} hover>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {page * rowsPerPage + index + 1}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {payout.amount.toLocaleString()} VND
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {format(
+                          new Date(payout.payoutDate),
+                          "dd/MM/yyyy HH:mm"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          className="status-pill"
+                          sx={{
+                            ...getStatusColor(payout.status),
+                            textTransform: "capitalize",
+                            fontWeight: "bold",
+                            borderRadius: "12px",
+                            padding: "4px 12px",
+                            minWidth: "80px",
+                          }}
+                        >
+                          {payout.status}
+                        </Button>
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {payout.paymentMethod === "bank_transfer"
+                          ? "Bank Transfer"
+                          : payout.paymentMethod}
+                      </TableCell>
+                      <TableCell sx={{ color: "var(--text-primary)" }}>
+                        {payout.transactionReference}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          color: "var(--text-primary)",
+                          maxWidth: 200,
+                          textOverflow: "ellipsis",
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {payout.notes}
+                      </TableCell>
+                      <TableCell align="center">
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDetailsDialogOpen(payout)}
+                          sx={{
+                            color: "var(--accent-info)",
+                            border: "1px solid var(--accent-info)",
+                            borderRadius: 1,
+                            p: "4px",
+                            "&:hover": {
+                              bgcolor: "var(--background-light)",
+                            },
+                          }}
+                        >
+                          <Visibility fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+        <TablePagination
+          component="div"
+          count={totalCount}
+          page={page}
+          onPageChange={handleChangePage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          rowsPerPageOptions={pageSizeOptions}
+          labelRowsPerPage="Payouts per page:"
+          sx={{
+            mt: 1,
+            bgcolor: "background.paper",
+            borderRadius: 2,
+            px: 2,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+            "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows":
+              {
+                color: "var(--text-secondary)",
               },
-            }}
-          />
-        </TableContainer>
-
+            "& .MuiTablePagination-select": {
+              color: "var(--text-primary)",
+            },
+          }}
+        />
         {/* Payout Details Dialog */}
         <Dialog
           open={detailsDialogOpen}

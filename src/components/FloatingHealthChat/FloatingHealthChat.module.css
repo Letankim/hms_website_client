@@ -860,6 +860,9 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .chat-modal-overlay {
+        padding: 10px 5px;
+    }
 
     .floating-chat-button {
         bottom: 20px;
@@ -924,6 +927,7 @@
 
     .chat-input {
         width: 100%;
+        font-size: 13px;
     }
 
     .send-button {

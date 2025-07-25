@@ -389,10 +389,6 @@ const MyReportHistory = () => {
                   ))}
                 </select>
               </div>
-              <button className="report-search-btn" onClick={fetchReports}>
-                <SearchNormal1 size="16" color="#FFF" />
-                Search
-              </button>
               <button
                 className="report-clear-filters-btn"
                 onClick={handleClearFilters}
@@ -485,7 +481,7 @@ const MyReportHistory = () => {
                             className="report-date"
                             title={formatDate(report.createdAt)}
                           >
-                            <Calendar size="14" />
+                            <Calendar size="14" color="#000" />
                             {formatDate(report.createdAt)}
                           </span>
                         </div>
@@ -581,6 +577,7 @@ const MyReportHistory = () => {
                     className="report-status-chip"
                     style={{
                       backgroundColor: getStatusColor(selectedReport.status),
+                      color: "#fff",
                     }}
                   >
                     {selectedReport.status

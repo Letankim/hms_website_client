@@ -867,6 +867,31 @@
         margin-bottom: 2rem;
     }
 
+    .user-profile-container .profile-banner {
+        height: 100px;
+    }
+
+    .user-profile-container .profile-card {
+        padding: 0;
+    }
+
+    .profile-info-section {
+        justify-content: center;
+        align-items: center;
+    }
+
+    .user-profile-container .profile-details {
+        text-align: center;
+    }
+
+    .user-profile-container .profile-badges {
+        justify-content: center;
+    }
+
+    .user-profile-container .profile-info-section {
+        padding: 0;
+    }
+
     .header-content {
         flex-direction: column;
         gap: 0.5rem;
@@ -892,12 +917,39 @@
 
     .profile-stats {
         flex-direction: row;
-        max-width: 100%;
+        gap: 0.5rem;
+        width: 100%;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: left;
+        font-size: 14px;
+    }
+
+    .user-profile-container .stat-value,
+    .user-profile-container .stat-icon {
+        font-size: 1rem;
+    }
+
+    .user-profile-container .stat-icon {
+        width: unset;
+        height: unset;
     }
 
     .quick-actions-card,
     .personal-info-card {
-        padding: 1.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .quick-actions-card .action-card,
+    .personal-info-card .action-card {
+        padding: 0.75rem;
     }
 
     .quick-actions-grid {
@@ -918,6 +970,11 @@
     .dropzone {
         padding: 2rem 1rem;
     }
+
+    .user-profile-container .section-header,
+    .user-profile-container .section-title {
+        margin-bottom: 0;
+    }
 }
 
 @media (max-width: 480px) {
@@ -926,15 +983,29 @@
     }
 
     .profile-stats {
-        flex-direction: column;
+        flex-direction: row;
         gap: 0.5rem;
+        width: 100%;
     }
 
     .stat-item {
         display: flex;
         align-items: center;
-        gap: 1rem;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.5rem;
         text-align: left;
+        font-size: 14px;
+    }
+
+    .user-profile-container .stat-value,
+    .user-profile-container .stat-icon {
+        font-size: 1rem;
+    }
+
+    .user-profile-container .stat-icon {
+        width: unset;
+        height: unset;
     }
 
     .modal-container {
@@ -950,6 +1021,27 @@
         width: 100%;
         justify-content: center;
     }
+
+    .quick-actions-card,
+    .personal-info-card {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .quick-actions-card .action-card,
+    .personal-info-card .action-card {
+        padding: 0.75rem;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .user-profile-container .section-header,
+    .user-profile-container .section-title {
+        margin-bottom: 0;
+    }
+
 }
 
 /* Focus States for Accessibility */

@@ -353,7 +353,7 @@ const UserWaterLogPage = () => {
                   className="user-water-log-clear-btn"
                   onClick={handleClearFilters}
                 >
-                  <CloseCircle size={16} color="#dc3545" />
+                  <CloseCircle size={16} color="#1976d2" />
                   Clear
                 </button>
               </div>
@@ -448,7 +448,7 @@ const UserWaterLogPage = () => {
                               className="user-water-log-view-btn"
                               onClick={() => handleViewClick(rec)}
                             >
-                              <Eye size={16} />
+                              <Eye size={16} color="#1976d2" />
                             </button>
                           </td>
                         </tr>

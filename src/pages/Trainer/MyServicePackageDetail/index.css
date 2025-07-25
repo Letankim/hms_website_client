@@ -120,6 +120,11 @@
         padding-top: 70px;
     }
 
+    .services-container .css-hhdjsd-MuiContainer-root {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
     .services-title {
         font-size: 1.6rem !important;
     }

@@ -363,7 +363,6 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.5rem;
 }
 
 .body-measurement-filter-title {
@@ -399,6 +398,7 @@
 
 .body-measurement-filter-content {
     display: block;
+    margin-top: 1.5rem;
 }
 
 .body-measurement-filter-grid {
@@ -500,13 +500,18 @@
 
 /* Results Summary */
 .body-measurement-results-summary {
-    color: var(--text-secondary);
+    text-align: center;
     margin-bottom: 2rem;
-    font-size: 1rem;
+    padding: 1rem;
+    background: var(--background-light);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
 }
 
 .body-measurement-results-summary strong {
     color: var(--text-primary);
+    font-weight: 600;
 }
 
 /* Table Section */
@@ -949,7 +954,11 @@
 
 @media (max-width: 768px) {
     .body-measurement-content {
-        padding-top: 80px;
+        padding-top: 20px;
+    }
+
+    .body-measurement-container {
+        padding-top: 100px;
     }
 
     .body-measurement-header-content {
@@ -1073,12 +1082,71 @@
         gap: 1rem;
         align-items: stretch;
     }
+
+    .body-measurement-filter-title {
+        font-size: 0.9rem;
+    }
+
+    .body-measurement-human-body-section,
+    .body-measurement-stats-section,
+    .body-measurement-filter-section,
+    .body-measurement-chart-section,
+    .body-measurement-results-summary,
+    .body-measurement-table-section {
+        margin-bottom: 1rem;
+    }
+
+    .body-measurement-table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .body-measurement-table {
+        min-width: 800px;
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--background-white);
+    }
+
+
+    .body-measurement-filter-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .body-measurement-select-container,
+    .body-measurement-clear-filters-btn {
+        width: 100%;
+    }
+
+    .body-measurement-clear-filters-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.50rem;
+        font-size: 1rem;
+        max-width: 150px;
+    }
+
+    .body-measurement-header-title {
+        font-size: 1.8rem;
+    }
+
+    .body-measurement-header-description {
+        font-size: 1rem;
+    }
 }
 
 @media (max-width: 480px) {
     .body-measurement-content {
-        padding: 0 0.75rem;
-        padding-top: 80px;
+        padding-top: 20px;
+    }
+
+    .body-measurement-container {
+        padding-top: 100px;
     }
 
     .body-measurement-human-body-card,
@@ -1104,6 +1172,62 @@
 
     .body-measurement-area-text {
         font-size: 18px;
+    }
+
+    .body-measurement-filter-title {
+        font-size: 0.9rem;
+    }
+
+    .body-measurement-human-body-section,
+    .body-measurement-stats-section,
+    .body-measurement-filter-section,
+    .body-measurement-chart-section,
+    .body-measurement-results-summary,
+    .body-measurement-table-section {
+        margin-bottom: 1rem;
+    }
+
+    .body-measurement-table-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .body-measurement-table {
+        min-width: 800px;
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--background-white);
+    }
+
+
+    .body-measurement-filter-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .body-measurement-select-container,
+    .body-measurement-clear-filters-btn {
+        width: 100%;
+    }
+
+    .body-measurement-clear-filters-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.50rem;
+        font-size: 1rem;
+        max-width: 150px;
+    }
+
+    .body-measurement-header-title {
+        font-size: 1.8rem;
+    }
+
+    .body-measurement-header-description {
+        font-size: 1rem;
     }
 }
 

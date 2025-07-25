@@ -30,6 +30,7 @@ import {
   showInfoMessage,
   showSuccessMessage,
 } from "components/ErrorHandler/showStatusMessage";
+import Swal from "sweetalert2";
 
 const statusColors = {
   open: "info",
@@ -276,7 +277,13 @@ const MyTicketManagement = () => {
       assignedTo: selectedTicket.assignedTo,
       resolvedAt: selectedTicket.resolvedAt,
     };
-
+    Swal.fire({
+      title: "Processing...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     try {
       if (selectedTicket.ticketId) {
         const updatedTicketData = {
@@ -300,6 +307,8 @@ const MyTicketManagement = () => {
       await fetchTickets();
     } catch (e) {
       showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
     }
   };
 
@@ -590,7 +599,7 @@ const MyTicketManagement = () => {
                 onClick={handleCreateNewTicket}
               >
                 <Add size="20" color="#FFF" />
-                Create New Ticket
+                <span>Create New Ticket</span>
               </button>
               <button
                 className={styles["mobile-filter-toggle"]}
@@ -810,13 +819,6 @@ const MyTicketManagement = () => {
                           title="View Details"
                         >
                           <Eye size="16" color="#FFF" />
-                        </button>
-                        <button
-                          className={`${styles["action-btn"]} ${styles["edit-btn"]}`}
-                          onClick={() => handleEditTicket(ticket)}
-                          title="Edit Ticket"
-                        >
-                          <Edit2 size="16" color="#FFF" />
                         </button>
                         <button
                           className={`${styles["action-btn"]} ${styles["delete-btn"]}`}

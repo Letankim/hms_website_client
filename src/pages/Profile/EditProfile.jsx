@@ -265,7 +265,7 @@ const EditProfile = () => {
               sx={{ fontSize: 40, color: "var(--secondary-color)" }}
             />
             <Typography
-              variant="h3"
+              variant="h4"
               sx={{
                 fontWeight: 700,
                 background:
@@ -280,7 +280,13 @@ const EditProfile = () => {
           </Stack>
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            variant="body1"
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              px: 1,
+            }}
           >
             Update your personal information to keep your profile current
           </Typography>
@@ -294,7 +300,7 @@ const EditProfile = () => {
             bgcolor: "var(--background-white)",
           }}
         >
-          <CardContent sx={{ p: 4 }}>
+          <CardContent sx={{ p: 2 }}>
             <Grid container spacing={3} direction="column">
               <Grid item xs={12}>
                 <TextField
@@ -428,66 +434,6 @@ const EditProfile = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: "var(--text-primary)", mb: 1 }}
-                >
-                  Status
-                </Typography>
-                <Chip
-                  label={formData.status || "N/A"}
-                  color={getStatusColor(formData.status)}
-                  size="small"
-                  sx={{
-                    fontWeight: 600,
-                    bgcolor:
-                      formData.status?.toLowerCase() === "active"
-                        ? "var(--accent-success)"
-                        : formData.status?.toLowerCase() === "pending"
-                        ? "#ff9800"
-                        : formData.status?.toLowerCase() === "inactive"
-                        ? "var(--accent-error)"
-                        : "var(--background-light)",
-                    color:
-                      formData.status?.toLowerCase() === "pending"
-                        ? "var(--text-primary)"
-                        : "var(--text-white)",
-                  }}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography
-                  variant="subtitle2"
-                  sx={{ color: "var(--text-primary)", mb: 1 }}
-                >
-                  Roles
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {formData.roles?.length > 0 ? (
-                    formData.roles.map((role, index) => (
-                      <Chip
-                        key={index}
-                        label={role}
-                        size="small"
-                        sx={{
-                          color: "var(--text-primary)",
-                          borderColor: "var(--accent-info)",
-                          bgcolor: "var(--background-white)",
-                        }}
-                        variant="outlined"
-                      />
-                    ))
-                  ) : (
-                    <Typography
-                      variant="body2"
-                      sx={{ color: "var(--text-secondary)" }}
-                    >
-                      No roles
-                    </Typography>
-                  )}
-                </Box>
-              </Grid>
-              <Grid item xs={12}>
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   spacing={2}
@@ -497,10 +443,15 @@ const EditProfile = () => {
                     variant="outlined"
                     onClick={handleCancel}
                     disabled={submitting}
+                    fullWidth
                     sx={{
                       fontWeight: "bold",
-                      borderRadius: 1,
+                      borderRadius: "2px !important",
                       borderWidth: 2,
+                      minHeight: 48,
+                      minWidth: 120,
+                      fontSize: "1rem",
+                      flexGrow: 1,
                       color: "var(--accent-error)",
                       borderColor: "var(--accent-error)",
                       "&:hover": {
@@ -515,12 +466,17 @@ const EditProfile = () => {
                     variant="contained"
                     onClick={handleSubmit}
                     disabled={submitting}
+                    fullWidth
                     sx={{
                       fontWeight: "bold",
+                      borderRadius: "2px !important",
+                      minHeight: 48,
+                      minWidth: 120,
+                      fontSize: "1rem",
+                      flexGrow: 1,
                       bgcolor: "var(--accent-info)",
                       color: "var(--text-white)",
                       "&:hover": { bgcolor: "var(--primary-hover)" },
-                      borderRadius: 1,
                     }}
                   >
                     {submitting ? "Saving..." : "Save"}

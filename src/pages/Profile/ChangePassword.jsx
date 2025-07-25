@@ -29,7 +29,6 @@ const ChangePassword = () => {
     severity: "success",
   });
 
-  // Redirect if user is not authenticated
   if (!user || !user.username) {
     return (
       <div className="change-password-error-container">
@@ -112,7 +111,11 @@ const ChangePassword = () => {
         {/* Header Section */}
         <div className="change-password-header">
           <div className="change-password-header-content">
-            <Lock size={40} className="change-password-header-icon" />
+            <Lock
+              size={40}
+              className="change-password-header-icon"
+              color="#45653a"
+            />
             <h1 className="change-password-header-title">Change Password</h1>
           </div>
           <p className="change-password-header-subtitle">

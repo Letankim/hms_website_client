@@ -87,10 +87,12 @@
     padding-top: 120px;
 }
 
-.user-water-log-header-content {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 0 2rem;
+.user-water-log-header-content .user-water-log-header-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
 }
 
 .user-water-log-header-info {
@@ -265,20 +267,19 @@
 }
 
 .user-water-log-clear-btn {
-    background: transparent;
-    border: 2px solid var(--accent-error);
-    color: var(--accent-error);
-    padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    height: fit-content;
-    align-self: end;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: 1px solid var(--accent-info);
+    color: var(--accent-info);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-weight: 600;
+    transition: var(--transition);
+    white-space: nowrap;
 }
 
 .user-water-log-clear-btn:hover {
@@ -511,8 +512,8 @@
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     width: 100%;
-    max-width: 500px;
-    max-height: 90vh;
+    max-width: 95%;
+    max-height: 85vh;
     overflow-y: auto;
 }
 
@@ -651,8 +652,94 @@
 }
 
 @media (max-width: 768px) {
-    .user-water-log-header-content {
-        padding: 0 1rem;
+    .user-water-log-container {
+        padding-top: 80px;
+    }
+
+    .user-water-log-header {
+        padding-top: 20px;
+        background: linear-gradient(135deg, var(--background-white) 0%, var(--secondary-light) 100%);
+    }
+
+    .user-water-log-header-content .user-water-log-header-info {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .user-water-log-stat-card,
+    .user-water-log-filters-content {
+        padding: 1rem;
+    }
+
+    .user-water-log-stats {
+        gap: 1rem;
+    }
+
+    .user-water-log-stats,
+    .user-water-log-filters-card,
+    .user-water-log-chart-card,
+    .user-water-log-table-card {
+        margin-bottom: 1rem;
+    }
+
+    .user-water-log-chart-content {
+        padding: 1rem 0;
+    }
+
+
+    .user-water-log-select-container,
+    .user-water-log-clear-btn {
+        width: 100%;
+    }
+
+    .user-water-log-clear-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0.50rem;
+        font-size: 1rem;
+        max-width: 150px;
+    }
+
+    .user-water-log-filters-header {
+        padding: 1rem;
+    }
+
+    .body-measurement-header-title {
+        font-size: 1.8rem;
+    }
+
+    .user-water-log-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .user-water-log-table {
+        width: 100%;
+        min-width: 600px;
+        border-collapse: collapse;
+        background: var(--background-white);
+    }
+
+    .user-water-log-page-size {
+        align-items: center;
+    }
+
+    .user-water-log-modal-overlay {
+        padding: 0;
+    }
+
+    .user-water-log-modal {
+        width: 95%;
+    }
+
+    .user-water-log-modal-fields {
+        gap: 10px;
+    }
+
+    .user-water-log-modal-btn {
+        padding: 0.5rem 1rem;
     }
 
     .user-water-log-content {
@@ -703,6 +790,8 @@
     .user-water-log-modal-footer {
         padding: 1rem;
     }
+
+    .user-water-log-clear-btn {}
 }
 
 @media (max-width: 480px) {

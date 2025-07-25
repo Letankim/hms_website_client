@@ -11,6 +11,7 @@ import {
   Container,
   Snackbar,
   Alert,
+  Stack,
 } from "@mui/material";
 import {
   TrendingUp,
@@ -44,7 +45,8 @@ import { showErrorFetchAPI } from "../../../components/ErrorHandler/showStatusMe
 const COLORS = {
   Active: "#10b981",
   Expired: "#f59e0b",
-  Cancelled: "#ef4444",
+  cancelled: "#ef4444",
+  paid: "#10b981",
 };
 
 const TrainerStatisticsPage = () => {
@@ -232,29 +234,19 @@ const TrainerStatisticsPage = () => {
       <Container maxWidth="lg" sx={{ p: 4 }}>
         {/* Header Section */}
         <Box sx={{ textAlign: "center", mb: 8, pt: 12 }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 2,
-              mb: 3,
-            }}
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            alignItems="center"
+            justifyContent="center"
+            spacing={2}
+            sx={{ mb: 2 }}
           >
-            <Box
-              sx={{
-                p: 2,
-                bgcolor: "linear-gradient(to right, #3b82f6, #9333ea)",
-                borderRadius: "50%",
-              }}
-            >
-              <TrendingUp className="h-10 w-10 text-white" />
-            </Box>
+            <TrendingUp className="h-10 w-10" />
             <Typography
               variant="h3"
               sx={{
                 fontWeight: "bold",
-                background: "linear-gradient(to right, #3b82f6, #9333ea)",
+                background: "linear-gradient(to right, #f47c54, #45653a)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 fontSize: { xs: "2.25rem", md: "3.5rem" },
@@ -262,238 +254,101 @@ const TrainerStatisticsPage = () => {
             >
               Trainer Statistics
             </Typography>
-          </Box>
-          <Typography
-            variant="body1"
-            color="text.secondary"
-            sx={{ maxWidth: 640, mx: "auto", fontSize: "1.25rem" }}
-          >
-            Comprehensive overview of your subscription performance and revenue
-            insights
-          </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{
+                color: "var(--text-secondary)",
+                maxWidth: 600,
+                mx: "auto",
+                px: 1,
+              }}
+            >
+              Comprehensive overview of your subscription performance and
+              revenue insights
+            </Typography>
+          </Stack>
         </Box>
 
         {/* Key Metrics Cards */}
-        <Grid container spacing={4} sx={{ mb: 8 }}>
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: 6,
-                background:
-                  "linear-gradient(to bottom right, #eff6ff, #dbeafe)",
-                border: "none",
-                borderRadius: 3,
-                minHeight: 200,
-              }}
-              className="card-container"
-            >
-              <CardContent sx={{ p: 6 }} className="card-content">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#2563eb",
-                        fontWeight: "medium",
-                        mb: 1,
-                        fontSize: "1.25rem",
-                      }}
-                    >
-                      Total Subscriptions
-                    </Typography>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: "#1e3a8a",
-                        fontWeight: "bold",
-                        fontSize: "2.5rem",
-                      }}
-                    >
-                      {stats.totalSubscriptions}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ p: 2, bgcolor: "#3b82f6", borderRadius: "50%" }}>
-                    <Users className="h-8 w-8 text-white" />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    position: "absolute",
-                    right: -20,
-                    bottom: -20,
-                    opacity: 0.1,
-                  }}
-                >
-                  <Users className="h-24 w-24" />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: 6,
-                background:
-                  "linear-gradient(to bottom right, #ecfdf5, #d1fae5)",
-                border: "none",
-                borderRadius: 3,
-                minHeight: 200,
-              }}
-              className="card-container"
-            >
-              <CardContent sx={{ p: 6 }} className="card-content">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#16a34a",
-                        fontWeight: "medium",
-                        mb: 1,
-                        fontSize: "1.25rem",
-                      }}
-                    >
-                      Total Revenue
-                    </Typography>
-                    <Typography
-                      variant="h4"
-                      sx={{
-                        color: "#14532d",
-                        fontWeight: "bold",
-                        fontSize: "2.5rem",
-                      }}
-                    >
-                      {formatCurrency(stats?.totalRevenue)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ p: 2, bgcolor: "#22c55e", borderRadius: "50%" }}>
-                    <DollarSign className="h-8 w-8 text-white" />
-                  </Box>
-                </Box>
-                <Box
-                  sx={{
-                    position: "absolute",
-                    right: -20,
-                    bottom: -20,
-                    opacity: 0.1,
-                  }}
-                >
-                  <DollarSign className="h-24 w-24" />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Card
-              sx={{
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: 6,
-                background:
-                  "linear-gradient(to bottom right, #f5f3ff, #ede9fe)",
-                border: "none",
-                borderRadius: 3,
-                minHeight: 200,
-              }}
-              className="card-container"
-            >
-              <CardContent sx={{ p: 6 }} className="card-content">
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 3,
-                  }}
-                >
-                  <Box sx={{ flex: 1, overflow: "hidden" }}>
-                    <Typography
-                      variant="h6"
-                      sx={{
-                        color: "#7c3aed",
-                        fontWeight: "medium",
-                        mb: 1,
-                        fontSize: "1.25rem",
-                      }}
-                    >
-                      Most Popular Package
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        color: "#4c1d95",
-                        fontWeight: "bold",
-                        mb: 1,
-                        fontSize: "1.5rem",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {stats.mostPopularPackage?.packageName}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "#6d28d9",
-                        fontSize: "1.125rem",
-                        textOverflow: "ellipsis",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {stats.mostPopularPackage?.subscriptionCount} subs •{" "}
-                      {formatCurrency(stats.mostPopularPackage?.totalRevenue)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ p: 2, bgcolor: "#8b5cf6", borderRadius: "50%" }}>
-                    <Package className="h-8 w-8 text-white" />
-                  </Box>
-                </Box>
-                <Button
-                  onClick={handleViewPackageDetails}
-                  variant="contained"
-                  size="small"
-                  sx={{
-                    fontSize: "1.05rem",
-                    borderRadius: 2,
-                    bgcolor: "#8b5cf6",
-                    "&:hover": { bgcolor: "#7c3aed" },
-                  }}
-                >
-                  View Details
-                  <ArrowRight className="h-6 w-6 ml-2" />
-                </Button>
-                <Box
-                  sx={{
-                    position: "absolute",
-                    right: -20,
-                    bottom: -20,
-                    opacity: 0.1,
-                  }}
-                >
-                  <Package className="h-24 w-24" />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+          {/* Total Subscriptions Card */}
+          <div className="card card-blue-gradient">
+            <div className="card-content">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-lg md:text-xl text-blue-700 font-medium mb-1">
+                    Total Subscriptions
+                  </p>
+                  <p className="text-4xl md:text-5xl text-blue-900 font-bold">
+                    {stats.totalSubscriptions}
+                  </p>
+                </div>
+                <div className="icon-circle icon-circle-blue">
+                  <Users className="lucide-icon text-white" />
+                </div>
+              </div>
+              <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
+                <Users className="lucide-icon-lg text-blue-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Total Revenue Card */}
+          <div className="card card-green-gradient">
+            <div className="card-content">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-lg md:text-xl text-green-700 font-medium mb-1">
+                    Total Revenue
+                  </p>
+                  <p className="text-4xl md:text-5xl text-green-900 font-bold">
+                    {formatCurrency(stats?.totalRevenue)}
+                  </p>
+                </div>
+                <div className="icon-circle icon-circle-green">
+                  <DollarSign className="lucide-icon text-white" />
+                </div>
+              </div>
+              <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
+                <DollarSign className="lucide-icon-lg text-green-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Most Popular Package Card */}
+          <div className="card card-purple-gradient">
+            <div className="card-content">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1 truncate">
+                  <p className="text-lg md:text-xl text-purple-700 font-medium mb-1">
+                    Most Popular Package
+                  </p>
+                  <p className="text-xl md:text-2xl text-purple-900 font-bold mb-1 truncate">
+                    {stats.mostPopularPackage?.packageName}
+                  </p>
+                  <p className="text-base md:text-lg text-purple-800 truncate">
+                    {stats.mostPopularPackage?.subscriptionCount} subs •{" "}
+                    {formatCurrency(stats.mostPopularPackage?.totalRevenue)}
+                  </p>
+                </div>
+                <div className="icon-circle icon-circle-purple ml-4">
+                  <Package className="lucide-icon text-white" />
+                </div>
+              </div>
+              <button
+                onClick={handleViewPackageDetails}
+                className="button button-purple self-start"
+              >
+                View Details
+                <ArrowRight className="lucide-icon lucide-icon-sm ml-2" />
+              </button>
+              <div className="absolute right-[-20px] bottom-[-20px] opacity-10">
+                <Package className="lucide-icon-lg text-purple-500" />
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Charts Section */}
         <Box sx={{ mb: 6 }}>
@@ -518,14 +373,11 @@ const TrainerStatisticsPage = () => {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-            {/* Pie Chart - Subscriptions by Status */}
             <Card
               sx={{
                 boxShadow: 6,
                 border: "none",
                 borderRadius: 3,
-                flex: "1 1 40%",
-                maxWidth: "50%",
               }}
               className="chart-container"
             >
@@ -541,7 +393,7 @@ const TrainerStatisticsPage = () => {
                 sx={{ pb: 2 }}
               />
               <CardContent>
-                <Box sx={{ height: 400 }}>
+                <Box sx={{ height: 400, width: "100%" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <RechartsPieChart>
                       <Pie
@@ -580,8 +432,6 @@ const TrainerStatisticsPage = () => {
                 boxShadow: 6,
                 border: "none",
                 borderRadius: 3,
-                flex: "1 1 50%",
-                maxWidth: "50%",
               }}
               className="chart-container"
             >

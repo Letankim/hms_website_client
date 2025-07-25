@@ -377,8 +377,15 @@ const MyTrainerApplicationHistory = () => {
                 </button>
               ) : (
                 <div className="ineligible-message">
-                  <Warning2 size="16" color="var(--accent-warning)" />
-                  <span>Not eligible to submit a new application</span>
+                  <Warning2
+                    size="16"
+                    color="var(--accent-warning)"
+                    onClick={() => {
+                      showInfoMessage(
+                        "Not eligible to submit a new application"
+                      );
+                    }}
+                  />
                 </div>
               )}
               <button
@@ -429,10 +436,6 @@ const MyTrainerApplicationHistory = () => {
                   <option value={50}>50</option>
                 </select>
               </div>
-              <button className="search-btn" onClick={fetchApplications}>
-                <SearchNormal1 size="16" color="#FFF" />
-                Search
-              </button>
               <button
                 className="clear-filters-btn"
                 onClick={handleClearFilters}

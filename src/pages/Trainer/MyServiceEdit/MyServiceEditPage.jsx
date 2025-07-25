@@ -243,7 +243,13 @@ const MyServiceEditPage = () => {
             spacing={2}
             sx={{ mb: 2 }}
           >
-            <WorkIcon sx={{ fontSize: 40, color: "var(--secondary-color)" }} />
+            <WorkIcon
+              sx={{
+                fontSize: { xs: 32, sm: 40 },
+                color: "var(--secondary-color)",
+                mb: { xs: 1, sm: 0 },
+              }}
+            />
             <Typography
               variant="h3"
               sx={{
@@ -260,7 +266,12 @@ const MyServiceEditPage = () => {
           </Stack>
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              px: 1,
+            }}
           >
             Update details of this service package
           </Typography>
@@ -296,7 +307,7 @@ const MyServiceEditPage = () => {
                 InputProps={{ readOnly: true }}
                 variant="outlined"
                 size="small"
-                sx={{ bgcolor: "var(--background-white)" }}
+                sx={{ bgcolor: "var(--background-white)",  display: "none" }}
               />
               <TextField
                 label="Package Name"

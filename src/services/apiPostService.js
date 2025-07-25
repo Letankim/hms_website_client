@@ -8,7 +8,6 @@ const apiClient = axios.create({
     },
 });
 
-// Add request interceptor to include Bearer token
 apiClient.interceptors.request.use(
     (config) => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -20,7 +19,6 @@ apiClient.interceptors.request.use(
     (error) => Promise.reject(error),
 );
 
-// Post service API methods
 const apiPostService = {
     getMyPosts: async (ownerId,queryParams) => {
         try {

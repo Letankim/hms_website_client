@@ -7,7 +7,7 @@ const Team = () => {
       role: "Chief Medical Officer",
       description:
         "15+ years in preventive medicine and digital health innovation",
-      image: "/logo.png?height=300&width=300",
+      image: "/logo_loading.png?height=300&width=300",
       expertise: "Medical Research",
     },
     {
@@ -23,7 +23,7 @@ const Team = () => {
       role: "Nutrition Director",
       description:
         "Certified nutritionist with expertise in personalized dietary planning",
-      image: "/logo.png?height=300&width=300",
+      image: "/logo_loading.png?height=300&width=300",
       expertise: "Nutrition Science",
     },
     {
@@ -32,14 +32,6 @@ const Team = () => {
       description:
         "Former Olympic trainer specializing in wearable device integration",
       image: "/truong-van-thang.webp",
-      expertise: "Fitness Technology",
-    },
-    {
-      name: "Nguyễn Bảo Lộc",
-      role: "Fitness Technology Specialist",
-      description:
-        "Former Olympic trainer specializing in wearable device integration",
-      image: "/logo.png?height=300&width=300",
       expertise: "Fitness Technology",
     },
   ];
@@ -132,11 +124,7 @@ const Mission = () => {
             </div>
           </div>
           <div className={styles["mission-image"]}>
-            <img
-              src="/placeholder.svg?height=500&width=600"
-              alt="Health Technology"
-              loading="lazy"
-            />
+            <img src="/home.jpg" alt="Health Technology" loading="lazy" />
           </div>
         </div>
       </div>
@@ -236,11 +224,7 @@ const Story = () => {
       <div className={styles["container"]}>
         <div className={styles["story-layout"]}>
           <div className={styles["story-image"]}>
-            <img
-              src="/placeholder.svg?height=400&width=500"
-              alt="Our Story"
-              loading="lazy"
-            />
+            <img src="/logo_loading.png" alt="Our Story" loading="lazy" />
           </div>
           <div className={styles["story-content"]}>
             <div className={styles["section-header"]}>

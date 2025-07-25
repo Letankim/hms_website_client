@@ -206,7 +206,14 @@ const GroupJoinRequests = () => {
             sx={{ mb: 2 }}
           >
             <RequestIcon
-              sx={{ fontSize: 40, color: "var(--secondary-color)" }}
+              sx={{
+                fontSize: {
+                  xs: 30,
+                  sm: 35,
+                  md: 40,
+                },
+                color: "var(--secondary-color)",
+              }}
             />
             <Typography
               variant="h3"
@@ -217,15 +224,30 @@ const GroupJoinRequests = () => {
                 backgroundClip: "text",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
+                fontSize: {
+                  xs: "1.8rem",
+                  sm: "2.4rem",
+                  md: "3rem",
+                },
               }}
             >
               {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}{" "}
               Join Requests
             </Typography>
           </Stack>
+
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              fontSize: {
+                xs: "1rem",
+                sm: "1.1rem",
+                md: "1.25rem",
+              },
+            }}
           >
             Manage join requests for{" "}
             {group ? group.groupName : `Group #${groupId}`}
@@ -424,24 +446,6 @@ const GroupJoinRequests = () => {
               <option value={20}>20</option>
               <option value={50}>50</option>
             </TextField>
-            <Button
-              variant="contained"
-              onClick={() => {
-                setPageNumber(1);
-                fetchJoinRequests();
-              }}
-              sx={{
-                fontWeight: 700,
-                px: 3,
-                boxShadow: "0 2px 6px var(--shadow-color)",
-                bgcolor: "var(--primary-color)",
-                color: "var(--text-white)",
-                "&:hover": { bgcolor: "var(--primary-hover)" },
-                borderRadius: 2,
-              }}
-            >
-              Search
-            </Button>
           </Stack>
         </Box>
 
@@ -457,7 +461,11 @@ const GroupJoinRequests = () => {
         ) : requests.length === 0 ? (
           <Box
             sx={{
-              p: 8,
+              p: {
+                xs: 3,
+                sm: 5,
+                md: 8,
+              },
               textAlign: "center",
               borderRadius: 4,
               bgcolor: "var(--background-white)",
@@ -465,21 +473,47 @@ const GroupJoinRequests = () => {
             }}
           >
             <RequestIcon
-              sx={{ fontSize: 80, color: "var(--text-secondary)", mb: 2 }}
+              sx={{
+                fontSize: {
+                  xs: 50,
+                  sm: 65,
+                  md: 80,
+                },
+                color: "var(--text-secondary)",
+                mb: 2,
+              }}
             />
             <Typography
               variant="h5"
-              sx={{ mb: 1, color: "var(--text-secondary)" }}
+              sx={{
+                mb: 1,
+                color: "var(--text-secondary)",
+                fontSize: {
+                  xs: "1.2rem",
+                  sm: "1.4rem",
+                  md: "1.5rem",
+                },
+              }}
             >
               No {statusFilter} join requests found
             </Typography>
-            <Typography variant="body1" sx={{ color: "var(--text-secondary)" }}>
+            <Typography
+              variant="body1"
+              sx={{
+                color: "var(--text-secondary)",
+                fontSize: {
+                  xs: "0.95rem",
+                  sm: "1rem",
+                  md: "1.05rem",
+                },
+              }}
+            >
               Try adjusting your search or status filters
             </Typography>
           </Box>
         ) : (
-          <Box>
-            <Table className="group-join-requests-table">
+          <Box sx={{ width: "100%", overflowX: "auto" }}>
+            <Table className="group-join-requests-table" sx={{ minWidth: 600 }}>
               <TableHead>
                 <TableRow>
                   <TableCell
@@ -551,7 +585,7 @@ const GroupJoinRequests = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      {request.userId === group.createdBy ? (
+                      {request.userId === group?.createdBy ? (
                         <Typography
                           sx={{
                             fontStyle: "italic",

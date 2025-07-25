@@ -344,15 +344,31 @@ const TrainerPayoutStatisticsPage = () => {
         }}
       >
         <Card
-          sx={{ maxWidth: 512, width: "100%", boxShadow: 6, borderRadius: 3 }}
+          sx={{
+            width: "100%",
+            maxWidth: {
+              xs: "100%",
+              sm: 480,
+              md: 512,
+            },
+            mx: "auto",
+            boxShadow: 6,
+            borderRadius: 3,
+            p: { xs: 2, sm: 4 },
+          }}
         >
-          <CardContent sx={{ pt: 4, textAlign: "center" }}>
+          <CardContent sx={{ textAlign: "center" }}>
             <ErrorIcon
               sx={{ fontSize: 64, color: "var(--accent-error)", mb: 2 }}
             />
             <Typography
               variant="h5"
-              sx={{ mb: 2, fontWeight: "bold", color: "var(--text-primary)" }}
+              sx={{
+                mb: 2,
+                fontWeight: "bold",
+                fontSize: { xs: "1.25rem", sm: "1.5rem" },
+                color: "var(--text-primary)",
+              }}
             >
               No Payout Data Available
             </Typography>
@@ -360,9 +376,9 @@ const TrainerPayoutStatisticsPage = () => {
               variant="body1"
               sx={{
                 mb: 3,
-                maxWidth: 640,
+                maxWidth: "100%",
                 mx: "auto",
-                fontSize: "1.25rem",
+                fontSize: { xs: "1rem", sm: "1.25rem" },
                 color: "var(--text-secondary)",
               }}
             >
@@ -375,8 +391,8 @@ const TrainerPayoutStatisticsPage = () => {
               size="large"
               sx={{
                 px: 4,
-                py: 1.5,
-                fontSize: "1.125rem",
+                py: 1,
+                fontSize: { xs: "1rem", sm: "1.125rem" },
                 borderRadius: 2,
                 bgcolor: "var(--primary-color)",
                 "&:hover": { bgcolor: "var(--primary-hover)" },

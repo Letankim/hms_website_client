@@ -44,12 +44,9 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Detail button styling (larger, legible, modern) */
 .MuiButton-outlined {
     border-radius: 20px !important;
-    /* Pill shape with rounded edges */
     min-width: 80px !important;
-    height: 36px !important;
     padding: 6px 12px !important;
     font-size: 0.875rem !important;
     display: flex !important;
@@ -138,7 +135,6 @@
 
     .MuiButton-outlined {
         min-width: 60px !important;
-        height: 30px !important;
         font-size: 0.75rem !important;
         padding: 4px 8px !important;
     }
@@ -181,7 +177,6 @@
 
     .MuiButton-outlined {
         min-width: 70px !important;
-        height: 34px !important;
         font-size: 0.8rem !important;
         padding: 6px 10px !important;
     }

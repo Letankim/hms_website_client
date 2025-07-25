@@ -232,7 +232,6 @@ const Login = () => {
 
           <div className="auth-header">
             <h1 className="auth-title">
-              <span className="auth-title-dot" aria-hidden="true"></span>
               Welcome Back
             </h1>
             <p className="auth-desc">

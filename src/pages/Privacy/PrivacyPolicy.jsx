@@ -447,7 +447,7 @@ export default function PrivacyPolicy() {
                 Contact Privacy Team
               </a>
               <a
-                href="/terms-of-service"
+                href="/terms-and-conditions"
                 className={styles["secondary-button"]}
               >
                 View Terms of Service

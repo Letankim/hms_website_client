@@ -49,6 +49,14 @@ const Navbar = () => {
     checkProfileCompletion();
   }, [user, navigate]);
 
+  useEffect(() => {
+    const verified = localStorage.getItem("turnstile_passed");
+    const currentPath = window.location.pathname;
+    if (!verified && currentPath !== "/verify") {
+      navigate("/verify");
+    }
+  }, [navigate]);
+
   const fetchUserProfile = async () => {
     if (!userId) return;
     try {
@@ -92,16 +100,7 @@ const Navbar = () => {
       setUserProfile(null);
       return;
     }
-    const cache = localStorage.getItem("userProfile");
-    const cacheTime = parseInt(
-      localStorage.getItem("userProfileLastFetch") || "0"
-    );
-    if (cache && Date.now() - cacheTime < NOTIF_CACHE_MINUTES * 60 * 1000) {
-      setUserProfile(JSON.parse(cache));
-      setLastFetch(cacheTime);
-    } else {
-      fetchUserProfile();
-    }
+    fetchUserProfile();
   }, [userId]);
 
   useEffect(() => {
@@ -119,6 +118,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const closeMenu = () => setMenuOpen(false);
+    setNotifDropdown(false);
     window.addEventListener("popstate", closeMenu);
     return () => window.removeEventListener("popstate", closeMenu);
   }, []);
@@ -232,11 +232,7 @@ const Navbar = () => {
     <nav className={`navbar navbar-expand-lg ${isScrolled ? "scrolled" : ""}`}>
       <div className="container">
         <NavLink className="navbar-brand" to="/" aria-label="home">
-          <img
-            src="https://3docorp.id.vn/images/users/13/3docorp_hms_20250627160032_685e5db0b07e7.png"
-            alt="3DO Logo"
-            loading="lazy"
-          />
+          <img src="/logo_loading.png" alt="3DO Logo" loading="lazy" />
         </NavLink>
         {user && (
           <div className="navbar-mobile-userbar">
@@ -251,7 +247,6 @@ const Navbar = () => {
                 borderRadius: "50%",
                 width: 38,
                 height: 38,
-                display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
@@ -388,7 +383,10 @@ const Navbar = () => {
                   alignItems: "center",
                   justifyContent: "center",
                 }}
-                onClick={() => setMenuOpen(false)}
+                onClick={() => {
+                  setMenuOpen(false);
+                  setNotifDropdown(false);
+                }}
               >
                 <span
                   className="navbar-toggler-icon-custom p-0 m-0"
@@ -601,7 +599,6 @@ const Navbar = () => {
                       borderRadius: "50%",
                       width: 38,
                       height: 38,
-                      display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       transition: "background .15s",
@@ -630,7 +627,7 @@ const Navbar = () => {
                         top: "100%",
                         width: 360,
                         maxWidth: 400,
-                        maxHeight: 480,
+                        maxHeight: 560,
                         zIndex: 3001,
                         boxShadow: "0 8px 32px #0003",
                         borderRadius: 14,
@@ -666,7 +663,6 @@ const Navbar = () => {
                         />{" "}
                         Notifications
                       </div>
-                      <hr style={{ margin: "8px 0", borderColor: "#eee" }} />
                       <div style={{ maxHeight: 370, overflowY: "auto" }}>
                         {notifLoading ? (
                           <div
@@ -802,6 +798,7 @@ const Navbar = () => {
                       </div>
                       <div
                         style={{
+                          margin: "0px 10px",
                           textAlign: "center",
                           padding: "10px 0 10px 0",
                           background: "#fff",

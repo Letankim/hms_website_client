@@ -39,7 +39,7 @@ import {
 
 const statusColors = {
   active: "success",
-  deleted: "error",
+  inactive: "error",
 };
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/bmp"];
@@ -461,7 +461,7 @@ const MyCreatedGroups = () => {
     switch (status?.toLowerCase()) {
       case "active":
         return "var(--accent-success)";
-      case "deleted":
+      case "inactive":
         return "var(--accent-error)";
       default:
         return "var(--text-light)";
@@ -687,7 +687,7 @@ const MyCreatedGroups = () => {
                 onClick={handleCreateNewGroup}
               >
                 <Add size="20" color="#fff" />
-                Create New Group
+                <span>Create New Group</span>
               </button>
               <button
                 className={styles["mobile-filter-toggle"]}
@@ -725,37 +725,9 @@ const MyCreatedGroups = () => {
                 >
                   <option value="">All Statuses</option>
                   <option value="active">Active</option>
-                  <option value="deleted">Deleted</option>
+                  <option value="inactive">Inactive</option>
                 </select>
               </div>
-
-              <div className={styles["select-container"]}>
-                <label>Per Page</label>
-                <select
-                  value={pageSize}
-                  onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPageNumber(1);
-                  }}
-                  className={styles["filter-select"]}
-                >
-                  <option value={5}>5</option>
-                  <option value={10}>10</option>
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                </select>
-              </div>
-
-              <button
-                className={styles["search-btn"]}
-                onClick={() => {
-                  setPageNumber(1);
-                  fetchGroups();
-                }}
-              >
-                <SearchNormal1 size="16" color="#fff" />
-                Search
-              </button>
 
               <button
                 className={styles["clear-filters-btn"]}
@@ -1108,7 +1080,7 @@ const MyCreatedGroups = () => {
                 className={styles["cancel-btn"]}
                 onClick={handleCloseDialog}
               >
-                <CloseCircle size="18" />
+                <CloseCircle size="18" color="#dc3545" />
                 Close
               </button>
               <button
@@ -1118,7 +1090,7 @@ const MyCreatedGroups = () => {
                   handleEditGroupDialog(selectedGroup);
                 }}
               >
-                <Edit2 size="18" />
+                <Edit2 size="18" color="#fff" />
                 Edit Group
               </button>
             </div>
@@ -1319,7 +1291,6 @@ const MyCreatedGroups = () => {
                     formErrors.status ? styles["error"] : ""
                   }`}
                 >
-                  <option value="">-- Select status --</option>
                   <option value="active">Active</option>
                   <option value="inactive">Inactive</option>
                 </select>
@@ -1366,9 +1337,9 @@ const MyCreatedGroups = () => {
                           ? newGroup.isPrivate
                           : editGroup.isPrivate
                       ) ? (
-                        <Lock size="16" />
+                        <Lock size="16" color="#fff" />
                       ) : (
-                        <Unlock size="16" />
+                        <Unlock size="16" color="#000" />
                       )}
                     </span>
                     {(

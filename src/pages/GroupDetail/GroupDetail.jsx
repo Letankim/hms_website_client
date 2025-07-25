@@ -808,12 +808,25 @@ const GroupDetail = () => {
 
   const unicodeToEmoji = (unicode) => {
     if (!unicode) return "";
-    return unicode
-      .split(" ")
-      .map((u) =>
-        String.fromCodePoint(Number.parseInt(u.replace("U+", ""), 16))
-      )
-      .join("");
+
+    try {
+      return unicode
+        .trim()
+        .split(/\s+/)
+        .map((u) => {
+          const hex = u.trim().toUpperCase().replace(/^U\+/, "");
+          const code = Number.parseInt(hex, 16);
+          if (Number.isNaN(code)) {
+            console.warn("❌ Invalid code point:", u);
+            return "";
+          }
+          return String.fromCodePoint(code);
+        })
+        .join("");
+    } catch (error) {
+      console.error("⚠️ Error converting emoji:", error);
+      return "";
+    }
   };
 
   const getUserReaction = (post) => {
@@ -1842,10 +1855,40 @@ const GroupDetail = () => {
                         {...params}
                         label="Filter by tags"
                         size="small"
+                        fullWidth
+                        sx={{
+                          "& .MuiInputBase-root": {
+                            paddingY: "4px",
+                          },
+                          "& .MuiInputBase-input": {
+                            fontSize: { xs: "0.85rem", sm: "1rem" },
+                          },
+                        }}
                       />
                     )}
-                    sx={{ minWidth: 220 }}
+                    renderTags={(value, getTagProps) =>
+                      value.map((option, index) => (
+                        <Chip
+                          label={option.tagName}
+                          size="small"
+                          {...getTagProps({ index })}
+                          sx={{
+                            maxWidth: "100%",
+                            fontSize: { xs: "0.7rem", sm: "0.85rem" },
+                            marginBottom: "4px",
+                          }}
+                        />
+                      ))
+                    }
+                    sx={{
+                      width: "100%",
+                      maxWidth: { xs: "100%", sm: 300 },
+                      "& .MuiAutocomplete-tag": {
+                        margin: "2px",
+                      },
+                    }}
                   />
+
                   <Button
                     variant="contained"
                     onClick={fetchPosts}

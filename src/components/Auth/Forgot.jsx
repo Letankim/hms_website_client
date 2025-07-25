@@ -244,7 +244,6 @@ const Forgot = () => {
 
           <div className="auth-header">
             <h1 className="auth-title">
-              <span className="auth-title-dot" aria-hidden="true"></span>
               {!showResetForm ? "Forgot Password" : "Reset Password"}
             </h1>
             <p className="auth-desc">

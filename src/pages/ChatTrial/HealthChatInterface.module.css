@@ -719,8 +719,14 @@
         padding: 1.5rem 1rem;
     }
 
-    .header-title {
-        font-size: 2rem;
+    .header-title,
+    .form-title {
+        font-size: 1.7rem;
+    }
+
+    .header-subtitle,
+    .form-description {
+        font-size: 0.8rem;
     }
 
     .health-form {
@@ -728,7 +734,6 @@
     }
 
     .form-grid {
-        grid-template-columns: 1fr;
         gap: 1rem;
     }
 
@@ -753,7 +758,7 @@
     }
 
     .chat-input-container {
-        padding: 1rem;
+        padding: 0.5rem;
         flex-direction: column;
         gap: 0.75rem;
     }
@@ -764,7 +769,7 @@
 
     .input-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
     }
 
     .send-button {
@@ -779,11 +784,26 @@
     .delete-session-btn {
         justify-content: center;
     }
+
+    .chat-input {
+        font-size: 12px;
+    }
+
+    .send-button,
+    .menu-container .menu-button {
+        padding: 0.75rem;
+    }
+
+    .submit-button {
+        padding: 0.75rem;
+    }
 }
 
 @media (max-width: 480px) {
-    .header-title {
-        font-size: 1.5rem;
+
+    .header-title,
+    .form-title {
+        font-size: 1.3rem;
     }
 
     .form-grid {
@@ -792,6 +812,28 @@
 
     .card-details {
         grid-template-columns: 1fr;
+    }
+
+    .chat-input {
+        font-size: 12px;
+    }
+
+    .header-subtitle,
+    .form-description {
+        font-size: 0.8rem;
+    }
+
+    .send-button,
+    .menu-container .menu-button {
+        padding: 0.75rem;
+    }
+
+    .form-group {
+        width: 100%;
+    }
+
+    .form-input {
+        width: 100%;
     }
 }
 
@@ -1274,7 +1316,7 @@
 @media (max-width: 768px) {
     .input-actions {
         width: 100%;
-        justify-content: space-between;
+        justify-content: flex-start;
     }
 
     .chat-controls {

@@ -494,56 +494,77 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .ticket-detail-content {
-        padding-top: 80px;
+    .ticket-detail-container {
+        padding-top: 100px;
     }
 
-    .ticket-header,
-    .ticket-details-card,
-    .responses-section,
-    .reply-section {
+    .ticket-detail-container .ticket-detail-content {
+        padding-top: 0px;
+    }
+
+    .ticket-detail-container .ticket-header,
+    .ticket-detail-container .ticket-details-card,
+    .ticket-detail-container .responses-section,
+    .ticket-detail-container .reply-section {
         padding: 1.5rem;
     }
 
-    .header-main {
+    .ticket-detail-container.header-main {
         flex-direction: column;
         gap: 1rem;
     }
 
-    .header-top {
-        flex-direction: column;
-        gap: 1rem;
+    .ticket-detail-container .ticket-header {
+        padding: 1rem;
+    }
+
+    .ticket-detail-container .header-top {
+        flex-direction: row;
+        gap: 0.5rem;
         align-items: stretch;
+        justify-content: space-between;
     }
 
-    .ticket-meta {
-        flex-direction: column;
+    .ticket-detail-container .ticket-meta {
+        flex-direction: row;
         align-items: flex-start;
         gap: 0.5rem;
     }
 
-    .details-grid {
+    .ticket-detail-container .details-grid {
         grid-template-columns: 1fr;
     }
 
-    .detail-item.full-width {
+    .ticket-detail-container .detail-item.full-width {
         grid-column: span 1;
     }
 
-    .response-header {
+    .ticket-detail-container .response-header {
         flex-direction: column;
         gap: 1rem;
         align-items: flex-start;
     }
 
-    .form-actions {
-        flex-direction: column;
+    .ticket-detail-container .form-actions {
+        flex-direction: row;
     }
 
-    .back-button,
-    .send-button {
+    .ticket-detail-container .back-button,
+    .ticket-detail-container .send-button {
         width: 100%;
         justify-content: center;
+        font-size: 14px;
+        gap: 0.25rem;
+    }
+
+    .ticket-detail-container .header-top .back-button {
+        max-width: 180px;
+        font-size: 14px;
+    }
+
+    .ticket-id {
+        display: flex;
+        align-items: center;
     }
 }
 
@@ -552,23 +573,22 @@
 }
 
 @media (max-width: 480px) {
-    .ticket-detail-content {
-        padding: 0 0.75rem;
-        padding-top: 80px;
+    .ticket-detail-container .ticket-detail-content {
+        padding-top: 0px;
     }
 
-    .ticket-header,
-    .ticket-details-card,
-    .responses-section,
-    .reply-section {
+    .ticket-detail-container .ticket-header,
+    .ticket-detail-container .ticket-details-card,
+    .ticket-detail-container .responses-section,
+    .ticket-detail-container .reply-section {
         padding: 1rem;
     }
 
-    .ticket-title {
+    .ticket-detail-container .ticket-title {
         font-size: 1.5rem;
     }
 
-    .response-content {
+    .ticket-detail-container .response-content {
         padding: 1rem;
     }
 }

@@ -644,7 +644,7 @@ const BodyMeasurementPage = () => {
                   color="var(--secondary-color)"
                   variant="Bold"
                 />
-                Body Measurement Tracker
+                Tracker
               </h2>
               {records.length > 0 && (
                 <div className="body-measurement-selector">
@@ -918,7 +918,7 @@ const BodyMeasurementPage = () => {
                   color="var(--secondary-color)"
                   variant="Bold"
                 />
-                Weight & Body Fat Trends
+                Trends
               </h2>
             </div>
             <div className="body-measurement-chart-container">
@@ -951,7 +951,7 @@ const BodyMeasurementPage = () => {
                   color="var(--secondary-color)"
                   variant="Bold"
                 />
-                Measurement Records
+                Records
               </h2>
             </div>
             {records.length === 0 && !loading ? (

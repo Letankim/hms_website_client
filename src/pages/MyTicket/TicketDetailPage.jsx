@@ -24,6 +24,7 @@ import {
   showSuccessMessage,
 } from "components/ErrorHandler/showStatusMessage";
 import { DoneAll } from "@mui/icons-material";
+import Swal from "sweetalert2";
 
 const TicketDetailPage = () => {
   const { ticketId } = useParams();
@@ -92,7 +93,13 @@ const TicketDetailPage = () => {
       showErrorMessage("Response cannot exceed 1000 characters");
       return;
     }
-
+    Swal.fire({
+      title: "Processing...",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
     try {
       const responseData = { responseText: newResponse };
       await apiTicketUserService.addResponse(ticketId, responseData);
@@ -101,6 +108,8 @@ const TicketDetailPage = () => {
       await fetchResponses();
     } catch (e) {
       showErrorFetchAPI(e);
+    } finally {
+      Swal.close();
     }
   };
 
@@ -253,7 +262,7 @@ const TicketDetailPage = () => {
                     : "N/A"}
                 </span>
                 <span className="meta-item">
-                  <Calendar size="16" />
+                  <Calendar size="16" color="#000" />
                   {formatDate(ticket.createdAt)}
                 </span>
               </div>

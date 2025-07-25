@@ -5,7 +5,7 @@ import FloatingHealthChat from "components/FloatingHealthChat/FloatingHealthChat
 const CompanyDescription = () => (
   <div className="company-description">
     <a href="https://letankim.id.vn/3do/" className="footer-logo-link">
-      <img src="/logo.png" alt="3DO TEAM Logo" className="footer-logo" />
+      <img src="/logo_loading.png" alt="3DO TEAM Logo" className="footer-logo" />
     </a>
     <p className="company-text">
       Empowering your fitness journey with innovative solutions and
@@ -62,9 +62,9 @@ const CompanyMenu = () => {
     { href: "/", label: "Home" },
     { href: "/about", label: "About Us" },
     { href: "/services", label: "Services" },
-    { href: "/blog", label: "Blog" },
+    { href: "/experience", label: "Experiences" },
+    { href: "/chat", label: "AI Support" },
     { href: "/faq", label: "FAQ" },
-    { href: "/license", label: "Licenses" },
   ];
 
   return (

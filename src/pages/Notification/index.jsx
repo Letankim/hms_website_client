@@ -226,7 +226,15 @@ const NotificationPage = () => {
           </Stack>
           <Typography
             variant="h6"
-            sx={{ color: "var(--text-secondary)", maxWidth: 600, mx: "auto" }}
+            sx={{
+              color: "var(--text-secondary)",
+              maxWidth: 600,
+              mx: "auto",
+              fontSize: {
+                xs: "1rem",
+                sm: "inherit",
+              },
+            }}
           >
             Stay updated with your latest notifications
           </Typography>
@@ -242,6 +250,10 @@ const NotificationPage = () => {
               bgcolor: "var(--background-white)",
               boxShadow: "0 2px 10px var(--shadow-color)",
               borderRadius: 2,
+              alignItems: {
+                xs: "unset",
+                sm: "center",
+              },
             }}
           >
             <TextField
@@ -258,6 +270,7 @@ const NotificationPage = () => {
               }}
               sx={{
                 minWidth: 200,
+                height: "100%",
                 "& .MuiOutlinedInput-root": {
                   bgcolor: "var(--background-white)",
                   borderRadius: 2,
@@ -531,17 +544,7 @@ const NotificationPage = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <Box
-            className={styles["notification-page-pagination"]}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 2,
-              mt: 3,
-              mb: 2,
-            }}
-          >
+          <Box className={styles["notification-page-pagination"]}>
             <Select
               value={pageSize}
               onChange={(e) => {

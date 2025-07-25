@@ -469,15 +469,6 @@ const ProfilePage = () => {
       </div>
       <div className={`auth-box multi-step ${isVisible ? "animate-in" : ""}`}>
         <div className="step-header">
-          <button
-            className="auth-home-btn"
-            onClick={handleHomeClick}
-            type="button"
-            aria-label="Go to homepage"
-          >
-            <Home2 size="20" color="#f47c54" />
-            <span>Home</span>
-          </button>
           <div className="step-progress">
             <div className="step-counter">
               <span>
@@ -996,14 +987,6 @@ const HabitsInfoStep = ({ formData }) => {
 const MealPlansInfoStep = ({ formData }) => {
   return (
     <div className="step-form info-step">
-      <div className="step-icon">
-        <Restaurant size="48" color="#4F46E5" />
-      </div>
-      <h2 className="step-subtitle">Your Kitchen, Your Rules</h2>
-      <p className="step-description">
-        We can simplify your life with customized, flexible meal plans that fit
-        your lifestyle.
-      </p>
       <div className="info-card large enhanced">
         <Restaurant size="40" color="#4F46E5" />
         <h3>Personalized Meal Planning</h3>

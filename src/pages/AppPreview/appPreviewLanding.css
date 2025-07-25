@@ -126,10 +126,15 @@ body {
     box-shadow: var(--shadow-sm);
 }
 
+
 .btn-secondary:hover {
     background: var(--background);
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
+}
+
+.app-landing .btn-secondary:hover {
+    color: "#000";
 }
 
 /* Hero Section */
@@ -969,8 +974,16 @@ body {
     }
 
     .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1.5rem;
     }
+
+    .stat-card {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
 
     .hero-trust {
         flex-direction: column;
@@ -980,6 +993,75 @@ body {
 
     .video-container {
         height: 300px;
+    }
+
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-description {
+        font-size: 16px;
+    }
+
+    .section-title-enhanced {
+        font-size: 25px;
+    }
+
+    .section-description-enhanced {
+        font-size: 14px;
+    }
+
+    .screen-title {
+        font-size: 1.25rem;
+    }
+
+    .screen-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .screen-description {
+        font-size: 0.95rem;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .feature-tag {
+        font-size: 0.875rem;
+    }
+
+    .action-title {
+        font-size: 1.1rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .screen-info,
+    .action-section {
+        padding: 1.5rem;
+    }
+
+    .info-section {
+        gap: 1.5rem;
+    }
+
+    .action-note span {
+        font-size: 12px;
+    }
+
+    .btn-primary.large,
+    .btn-secondary.large {
+        padding: 0.65rem 1rem;
+    }
+
+    .badge-enhanced {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
     }
 }
 
@@ -993,17 +1075,15 @@ body {
         height: 520px;
     }
 
-    .screen-info,
-    .action-section {
-        padding: 1.5rem;
-    }
-
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
-
     .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
     }
 
     .video-modal-overlay {
@@ -1012,6 +1092,61 @@ body {
 
     .video-container {
         height: 250px;
+    }
+
+    .screen-title {
+        font-size: 1.25rem;
+    }
+
+    .screen-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .screen-description {
+        font-size: 0.95rem;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .feature-tag {
+        font-size: 0.875rem;
+    }
+
+    .action-title {
+        font-size: 1.1rem;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .screen-info,
+    .action-section {
+        padding: 1.5rem;
+    }
+
+    .info-section {
+        gap: 1.5rem;
+    }
+
+    .action-note span {
+        font-size: 12px;
+        ;
+    }
+
+
+    .btn-primary.large,
+    .btn-secondary.large {
+        padding: 0.65rem 1rem;
+    }
+
+    .badge-enhanced {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.7rem;
     }
 }
 

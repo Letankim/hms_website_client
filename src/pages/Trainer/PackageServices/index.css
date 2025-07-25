@@ -97,6 +97,15 @@
         padding-top: 70px;
     }
 
+    .services-container .css-1i6hwdn-MuiGrid-root {
+        justify-content: center;
+    }
+
+    .services-container .css-1twiuk4-MuiContainer-root {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
     .services-title {
         font-size: 1.6rem !important;
     }

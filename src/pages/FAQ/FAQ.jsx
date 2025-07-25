@@ -1,7 +1,6 @@
 import styles from "./FAQ.module.css";
 import { useState } from "react";
 
-
 const FAQItem = ({ question, answer, isOpen, onToggle }) => {
   return (
     <div
