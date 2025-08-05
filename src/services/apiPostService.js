@@ -96,6 +96,16 @@ const apiPostService = {
         }
     },
 
+    getPostByIdForUserOfOwner: async (id) => {
+        try {
+            const response = await apiClient.get(`/CommunityPost/owner/by-id/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: 'Failed to fetch active post.' };
+        }
+    },
+
+
     createPost: async (postDto) => {
         try {
             const response = await apiClient.post('/CommunityPost',postDto);

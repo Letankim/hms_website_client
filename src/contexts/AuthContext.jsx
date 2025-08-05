@@ -103,9 +103,11 @@ export const AuthProvider = ({ children }) => {
 
         setUser(userData);
         localStorage.setItem("user", JSON.stringify(userData));
+        console.log(userData.isProfileCompleted);
+        console.log(userData.isProfileCompleted?.toString());
         localStorage.setItem(
           "isProfileCompleted",
-          userData.profileCompleted?.toString() || "false"
+          userData.isProfileCompleted?.toString() || "false"
         );
         setShouldLogout(false);
         return { success: true };

@@ -93,10 +93,6 @@ const Login = () => {
     try {
       const result = await login(email, password);
       if (!result.success) {
-        const profileCompleted = result?.data?.isProfileCompleted;
-        setIsProfileCompleted(profileCompleted);
-        localStorage.setItem("isProfileCompleted", profileCompleted);
-        navigate(profileCompleted === true ? "/" : "/provide-profile");
         showErrorFetchAPI(result);
       } else {
         showSuccessMessage("Login successful! Welcome back!");
@@ -231,9 +227,7 @@ const Login = () => {
           </button>
 
           <div className="auth-header">
-            <h1 className="auth-title">
-              Welcome Back
-            </h1>
+            <h1 className="auth-title">Welcome Back</h1>
             <p className="auth-desc">
               Sign in to continue your healthy journey and track your wellness
               goals
