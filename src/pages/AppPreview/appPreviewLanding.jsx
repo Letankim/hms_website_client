@@ -26,15 +26,15 @@ const appScreenshots = [
     title: "Smart Dashboard",
     subtitle: "Your Health at a Glance",
     description:
-      "Get a complete overview of your health journey with beautiful charts, progress tracking, and personalized insights that motivate you every day.",
-    image: "/welcome.jpg",
+      "Gain an immediate overview of your health status with real-time metrics, including categories, tracking, and insights, presented through an intuitive interface.",
+    image: "/home.jpg",
     category: "Dashboard",
     color: "#3b82f6",
     features: [
-      "Real-time Analytics",
-      "Progress Tracking",
-      "Health Score",
-      "Quick Actions",
+      "Real-time Metrics",
+      "Category Overview",
+      "Tracking Insights",
+      "Quick Navigation",
     ],
     stats: "95% accuracy",
   },
@@ -43,66 +43,66 @@ const appScreenshots = [
     title: "AI Food Scanner",
     subtitle: "Instant Nutrition Analysis",
     description:
-      "Simply point your camera at any food and get instant nutritional information, calorie count, and personalized health recommendations.",
-    image: "/home.jpg",
+      "Capture images of meals to receive instant nutritional analysis, including calorie counts and quality assessments, with options to log or retake scans.",
+    image: "/detect.jpg",
     category: "Food Tracking",
     color: "#10b981",
     features: [
       "Camera Recognition",
-      "Barcode Scanner",
-      "Nutrition Database",
-      "Portion Control",
+      "Calorie Estimation",
+      "Quality Assessment",
+      "Log Functionality",
     ],
     stats: "2M+ foods recognized",
   },
   {
     id: 3,
-    title: "Workout Companion",
-    subtitle: "Your Personal Trainer",
+    title: "Leaderboard",
+    subtitle: "Track Your Rankings",
     description:
-      "Access 1000+ exercises with video guides, track your workouts, and get personalized training plans that adapt to your progress.",
-    image: "/community.jpg",
-    category: "Fitness",
+      "View and compare your ranking among peers, track experience points, levels, and activity streaks, and engage in a competitive health community.",
+    image: "/leaderboard.jpg",
+    category: "Social",
     color: "#f59e0b",
     features: [
-      "Exercise Library",
-      "Video Guides",
-      "Progress Tracking",
-      "Custom Plans",
+      "Rank Display",
+      "Experience Tracking",
+      "Level Monitoring",
+      "Streak Overview",
     ],
-    stats: "1000+ exercises",
+    stats: "54 total users",
   },
   {
     id: 4,
-    title: "Smart Reminders",
-    subtitle: "Never Miss a Beat",
+    title: "Nutrition Analytics",
+    subtitle: "Detailed Nutrient Insights",
     description:
-      "Intelligent notifications that learn your routine and remind you about meals, workouts, water intake, and medications at perfect times.",
-    image: "/group.jpg",
-    category: "Reminders",
+      "Analyze detailed nutrient statistics, including daily, weekly, and monthly trends, with pie charts and breakdowns of carbs, protein, and fats.",
+    image: "/statis.jpg",
+    category: "Analytics",
     color: "#8b5cf6",
     features: [
-      "Smart Scheduling",
-      "Habit Tracking",
-      "Custom Alerts",
-      "Streak Counter",
+      "Nutrient Breakdown",
+      "Trend Analysis",
+      "Period Selection",
+      "Chart Visualization",
     ],
-    stats: "99% reminder success",
+    stats: "Advanced AI insights",
   },
   {
     id: 5,
     title: "Community Hub",
     subtitle: "Connect & Motivate",
     description:
-      "Join a supportive community of health enthusiasts, share your journey, participate in challenges, and celebrate achievements together.",
-    image: "/water.jpg",
+      "Engage with a network of health enthusiasts through public groups, join challenges, and view leaderboards to share and celebrate achievements.",
+    image: "/commynity.jpg",
     category: "Social",
     color: "#06b6d4",
     features: [
-      "Social Feed",
-      "Group Challenges",
+      "Group Participation",
+      "Challenge Engagement",
+      "Leaderboard Display",
       "Achievement Sharing",
-      "Expert Tips",
     ],
     stats: "500K+ active users",
   },
@@ -111,15 +111,15 @@ const appScreenshots = [
     title: "Health Analytics",
     subtitle: "Deep Insights",
     description:
-      "Comprehensive health reports with trend analysis, predictive insights, and personalized recommendations powered by advanced AI.",
-    image: "/home.jpg",
+      "Analyze essential metrics such as dietary energy, intake, water consumption, and active energy, with detailed nutrient distribution and trends over selected periods.",
+    image: "/ana.jpg",
     category: "Analytics",
     color: "#6366f1",
     features: [
-      "Trend Analysis",
-      "Health Reports",
-      "AI Predictions",
-      "Export Data",
+      "Nutrient Analysis",
+      "Trend Tracking",
+      "Distribution Charts",
+      "Period Selection",
     ],
     stats: "Advanced AI insights",
   },
@@ -368,26 +368,6 @@ const AppPreview = () => {
                 <div className="phone-frame">
                   <div className="phone-notch"></div>
                   <div className="phone-screen">
-                    <div className="status-bar">
-                      <div className="status-left">
-                        <span className="time">9:41</span>
-                      </div>
-                      <div className="status-right">
-                        <div className="signal-bars">
-                          <span></span>
-                          <span></span>
-                          <span></span>
-                          <span></span>
-                        </div>
-                        <span className="battery-percentage">
-                          <Wifi size={12} color="#4a5568" />
-                        </span>
-                        <div className="battery">
-                          <div className="battery-level"></div>
-                        </div>
-                      </div>
-                    </div>
-
                     <div
                       className="screenshot-area"
                       onTouchStart={handleTouchStart}
@@ -460,8 +440,6 @@ const AppPreview = () => {
                         </div>
                       )}
                     </div>
-
-                    <div className="home-indicator"></div>
                   </div>
                 </div>
               </div>
