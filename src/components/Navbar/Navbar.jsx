@@ -52,7 +52,12 @@ const Navbar = () => {
   useEffect(() => {
     const verified = localStorage.getItem("turnstile_passed");
     const currentPath = window.location.pathname;
-    if (!verified && currentPath !== "/verify") {
+
+    if (
+      !verified &&
+      currentPath !== "/verify" &&
+      !currentPath.startsWith("/Auth/activate")
+    ) {
       navigate("/verify");
     }
   }, [navigate]);

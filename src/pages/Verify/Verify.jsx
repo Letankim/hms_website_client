@@ -12,21 +12,18 @@ export default function Verify() {
   const navigate = useNavigate();
 
   const handleSuccess = (token) => {
-    console.log("Turnstile token:", token);
     localStorage.setItem("turnstile_passed", "true");
     setVerified(true);
     setIsVerifying(false);
   };
 
   const handleExpire = () => {
-    console.log("Turnstile expired");
     localStorage.removeItem("turnstile_passed");
     setVerified(false);
     setIsVerifying(false);
   };
 
   const handleError = (error) => {
-    console.error("Turnstile error:", error);
     localStorage.removeItem("turnstile_passed");
     setVerified(false);
     setIsVerifying(false);
