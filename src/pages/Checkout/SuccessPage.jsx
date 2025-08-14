@@ -1,14 +1,6 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  CheckCircle,
-  Sparkles,
-  ArrowRight,
-  Download,
-  Dumbbell,
-  Target,
-  View,
-} from "lucide-react";
+import { CheckCircle, Sparkles, Dumbbell, Target, View } from "lucide-react";
 import styles from "./SuccessPage.module.css";
 import apiUserPaymentService from "services/apiUserPaymentService";
 import AuthContext from "contexts/AuthContext";
