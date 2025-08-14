@@ -7,7 +7,7 @@ const Team = () => {
       role: "Chief Medical Officer",
       description:
         "15+ years in preventive medicine and digital health innovation",
-      image: "/logo_loading.png?height=300&width=300",
+      image: "/kim.png",
       expertise: "Medical Research",
     },
     {
@@ -15,7 +15,7 @@ const Team = () => {
       role: "AI Technology Lead",
       description:
         "Expert in computer vision and machine learning for health applications",
-      image: "/dang-phuoc-an.jpg",
+      image: "/an.jpg",
       expertise: "AI & Machine Learning",
     },
     {
@@ -23,7 +23,7 @@ const Team = () => {
       role: "Nutrition Director",
       description:
         "Certified nutritionist with expertise in personalized dietary planning",
-      image: "/logo_loading.png?height=300&width=300",
+      image: "/cuong.jpg",
       expertise: "Nutrition Science",
     },
     {
@@ -31,7 +31,7 @@ const Team = () => {
       role: "Fitness Technology Specialist",
       description:
         "Former Olympic trainer specializing in wearable device integration",
-      image: "/truong-van-thang.webp",
+      image: "/thang.jpg",
       expertise: "Fitness Technology",
     },
   ];
