@@ -572,7 +572,15 @@ const GroupDetail = () => {
     setJoinLoading(true);
     try {
       if (group.isJoin) {
-        await apiGroupMemberService.leaveGroup({ groupId });
+        const confirmed = window.confirm(
+          "Are you sure you want to leave this group?"
+        );
+        if (!confirmed) {
+          setJoinLoading(false);
+          return; 
+        }
+
+        await apiGroupMemberService.leaveGroup(groupId);
         setGroup((prev) => ({
           ...prev,
           isJoin: false,
@@ -580,7 +588,7 @@ const GroupDetail = () => {
         }));
         showSuccessMessage("Left group successfully!");
       } else {
-        await apiGroupMemberService.joinGroup({ groupId });
+        await apiGroupMemberService.joinGroup( groupId );
         setGroup((prev) => {
           const isPrivate = prev.isPrivate;
           return {

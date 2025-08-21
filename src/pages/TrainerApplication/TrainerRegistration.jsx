@@ -565,7 +565,7 @@ const TrainerRegistration = () => {
             </Button>
             <Button
               variant="outlined"
-              onClick={() => navigate("/my-applications")}
+              onClick={() => navigate("/profile/application-history")}
             >
               Cancel
             </Button>

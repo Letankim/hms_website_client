@@ -82,7 +82,7 @@ const ErrorMessage = ({ message, type = "error" }) => {
   if (!message) return null;
 
   return (
-    <div className={`error-message ${type}`}>
+    <div className={`error-message-profile ${type}`}>
       <span className="error-text">{message}</span>
     </div>
   );

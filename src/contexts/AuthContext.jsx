@@ -112,13 +112,13 @@ export const AuthProvider = ({ children }) => {
         setShouldLogout(false);
         return { success: true };
       } else {
-        throw new Error(response?.message || "Login failed");
+        throw new Error(response);
       }
     } catch (err) {
       setUser(null);
       localStorage.removeItem("user");
       setShouldLogout(true);
-      return { success: false, message: err?.message || "Login failed" };
+      return err;
     } finally {
       setLoading(false);
     }

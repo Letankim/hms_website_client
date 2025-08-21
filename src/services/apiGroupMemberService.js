@@ -64,6 +64,20 @@ const apiGroupMemberService = {
         }
     },
 
+    isUserInGroup: async (groupId) => {
+        try {
+            if (groupId <= 0) {
+                throw new Error('Invalid group ID. Please provide a valid group ID.');
+            }
+            const response = await apiClient.get('/groupMember/is-user-in-group',{
+                params: { groupId },
+            });
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || { message: "An unexpected error occurred while checking group membership." };
+        }
+    },
+
     joinGroup: async (groupId) => {
         try {
             const response = await apiClient.post("/groupMember/join",{ groupId });

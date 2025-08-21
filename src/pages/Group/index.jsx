@@ -115,12 +115,17 @@ const GroupPage = () => {
     setPendingActions((prev) => new Set(prev).add(groupId));
     try {
       if (isJoined) {
-        await apiGroupMemberService.leaveGroup(groupId);
-        setJoinedGroups((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(groupId);
-          return newSet;
-        });
+        const confirmed = window.confirm(
+          "Are you sure you want to leave this group?"
+        );
+        if (confirmed) {
+          await apiGroupMemberService.leaveGroup(groupId);
+          setJoinedGroups((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(groupId);
+            return newSet;
+          });
+        }
         showSuccessMessage("Left group successfully!");
       } else {
         await apiGroupMemberService.joinGroup(groupId);

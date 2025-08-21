@@ -29,6 +29,7 @@ import {
   Edit,
   Delete,
   VisibilityOff,
+  PostAdd,
 } from "@mui/icons-material";
 import { Fancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
@@ -46,9 +47,10 @@ import {
   showInfoMessage,
 } from "components/ErrorHandler/showStatusMessage";
 import Swal from "sweetalert2";
+import apiGroupMemberService from "services/apiGroupMemberService";
 
 const ViewPostDetails = () => {
-  const { groupId, postId } = useParams();
+  const { postId } = useParams();
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -73,6 +75,7 @@ const ViewPostDetails = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
+  const [isMember, setIsMember] = useState(false);
   const commentListRef = useRef();
 
   const COMMENTS_PAGE_SIZE = 10;
@@ -130,11 +133,18 @@ const ViewPostDetails = () => {
     [postId]
   );
 
-  // Initialize data
   useEffect(() => {
     const loadData = async () => {
       const postData = await fetchPost();
       if (postData && user) {
+        try {
+          const membershipResponse = await apiGroupMemberService.isUserInGroup(
+            postData.groupId
+          );
+          setIsMember(membershipResponse.data);
+        } catch (e) {
+          setIsMember(false);
+        }
         await fetchComments(1, true);
         await fetchReactionTypes();
       }
@@ -142,7 +152,6 @@ const ViewPostDetails = () => {
     loadData();
   }, [fetchPost, fetchComments, fetchReactionTypes, user]);
 
-  // Initialize Fancybox for image zoom
   useEffect(() => {
     Fancybox.bind("[data-fancybox]", {
       animated: true,
@@ -198,10 +207,14 @@ const ViewPostDetails = () => {
       setTimeout(
         () =>
           navigate("/login", {
-            state: { from: `/group/${groupId}/post/${postId}` },
+            state: { from: `/group/${post?.groupId}/post/${postId}` },
           }),
         1200
       );
+      return;
+    }
+    if (!isMember) {
+      showWarningMessage("You must be a member of this group to react.");
       return;
     }
     try {
@@ -290,6 +303,10 @@ const ViewPostDetails = () => {
 
   // Handle comment submission
   const handleAddComment = async () => {
+    if (!isMember) {
+      showWarningMessage("You must be a member of this group to comment.");
+      return;
+    }
     const commentText = newComment.trim();
     if (!commentText) {
       showWarningMessage("Comment cannot be empty.");
@@ -328,6 +345,12 @@ const ViewPostDetails = () => {
 
   // Handle comment editing
   const handleEditComment = async () => {
+    if (!isMember) {
+      showWarningMessage(
+        "You must be a member of this group to edit comments."
+      );
+      return;
+    }
     const trimmedText = editCommentText.trim();
     if (!trimmedText) {
       showWarningMessage("Comment cannot be empty.");
@@ -368,6 +391,12 @@ const ViewPostDetails = () => {
 
   // Handle comment deletion
   const handleDeleteComment = async (commentId) => {
+    if (!isMember) {
+      showWarningMessage(
+        "You must be a member of this group to delete comments."
+      );
+      return;
+    }
     try {
       Swal.fire({
         title: "Deleting comment...",
@@ -396,6 +425,10 @@ const ViewPostDetails = () => {
 
   // Handle post deletion
   const handleDeletePost = async () => {
+    if (!isMember) {
+      showWarningMessage("You must be a member of this group to delete posts.");
+      return;
+    }
     const result = await Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -415,7 +448,7 @@ const ViewPostDetails = () => {
         },
       });
       await apiPostService.deletePost(postId);
-      navigate(`/groups/${groupId}`);
+      navigate(`/groups/${post?.groupId}`);
       showSuccessMessage("Post deleted successfully.");
     } catch (e) {
       showErrorFetchAPI(e);
@@ -427,6 +460,10 @@ const ViewPostDetails = () => {
 
   // Handle post hiding
   const handleHidePost = async () => {
+    if (!isMember) {
+      showWarningMessage("You must be a member of this group to hide posts.");
+      return;
+    }
     try {
       Swal.fire({
         title: "Processing...",
@@ -460,7 +497,11 @@ const ViewPostDetails = () => {
   };
 
   const handleSharePost = async () => {
-    const postUrl = `${window.location.origin}/groups/${groupId}/post/${postId}`;
+    if (!isMember) {
+      showWarningMessage("You must be a member of this group to share posts.");
+      return;
+    }
+    const postUrl = `${window.location.origin}/groups/${post?.groupId}/post/${postId}`;
     try {
       if (navigator.clipboard && window.isSecureContext) {
         await navigator.clipboard.writeText(postUrl);
@@ -513,10 +554,10 @@ const ViewPostDetails = () => {
         </Typography>
         <Button
           variant="outlined"
-          onClick={() => navigate(`/groups/${groupId}`)}
+          onClick={() => navigate(`/groups`)}
           sx={{ mt: 2 }}
         >
-          Back to Group
+          Back to Groups
         </Button>
       </Box>
     );
@@ -564,6 +605,11 @@ const ViewPostDetails = () => {
   return (
     <Box className={styles["view-post-details-container"]}>
       <Box className={styles["main-content"]}>
+        {!isMember && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            You are not a member of this group. Interactions are limited.
+          </Alert>
+        )}
         <Card className={styles["post-card"]}>
           <CardContent sx={{ pb: 1 }}>
             {/* Post Header */}
@@ -599,7 +645,23 @@ const ViewPostDetails = () => {
                 onClose={() => setMenuAnchorEl(null)}
                 PaperProps={{ className: "post-menu" }}
               >
-                {post.userId === user?.userId && (
+                {post.userId === user?.userId && !isMember && (
+                  <Alert severity="warning" sx={{ mb: 2, p: 2, width: "100%" }}>
+                    You have left this group. Other members can still see your
+                    post.
+                  </Alert>
+                )}
+                {post.userId === user?.userId && !isMember && (
+                  <MenuItem
+                    onClick={() =>
+                      navigate(`/groups/${post?.groupId}?action=view-out-join`)
+                    }
+                  >
+                    <PostAdd sx={{ mr: 1 }} />
+                    View group
+                  </MenuItem>
+                )}
+                {post.userId === user?.userId && isMember && (
                   <MenuItem
                     onClick={() => navigate(`/my-posts/${postId}/edit`)}
                     className={styles["edit-menu-item"]}
@@ -608,7 +670,7 @@ const ViewPostDetails = () => {
                     Edit Post
                   </MenuItem>
                 )}
-                {(post.userId === user?.userId || isAdmin) && (
+                {(post.userId === user?.userId || isAdmin) && isMember && (
                   <MenuItem
                     onClick={handleDeletePost}
                     className={styles["delete-menu-item"]}
@@ -617,7 +679,7 @@ const ViewPostDetails = () => {
                     Delete Post
                   </MenuItem>
                 )}
-                {isAdmin && (
+                {isAdmin && isMember && (
                   <MenuItem
                     onClick={handleHidePost}
                     className={styles["hide-menu-item"]}
@@ -626,13 +688,15 @@ const ViewPostDetails = () => {
                     Hide Post
                   </MenuItem>
                 )}
-                <MenuItem
-                  onClick={handleSharePost}
-                  className={styles["share-menu-item"]}
-                >
-                  <ShareIcon sx={{ mr: 1 }} />
-                  Share Post
-                </MenuItem>
+                {isMember && (
+                  <MenuItem
+                    onClick={handleSharePost}
+                    className={styles["share-menu-item"]}
+                  >
+                    <ShareIcon sx={{ mr: 1 }} />
+                    Share Post
+                  </MenuItem>
+                )}
               </Menu>
             </Box>
 
@@ -857,11 +921,14 @@ const ViewPostDetails = () => {
                         : "👍"}
                     </span>
                   }
-                  onClick={(e) => setReactionAnchorEl(e.currentTarget)}
+                  onClick={(e) =>
+                    isMember && setReactionAnchorEl(e.currentTarget)
+                  }
                   className={`${styles["reaction-btn"]} ${
                     userReaction ? styles["reacted"] : ""
                   }`}
                   aria-label={userReaction ? "Change reaction" : "Add reaction"}
+                  disabled={!isMember}
                 >
                   {userReaction ? userReaction.reactionTypeName : "Like"}
                 </Button>
@@ -913,39 +980,41 @@ const ViewPostDetails = () => {
 
             {/* Comment Section */}
             <Box className={styles["comment-section"]}>
-              <Box className={styles["comment-input-container"]}>
-                <Avatar
-                  src={user?.avatar || "/placeholder-avatar.jpg"}
-                  alt="Your Avatar"
-                  className={styles["comment-avatar"]}
-                />
-                <TextField
-                  size="small"
-                  placeholder="Write a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={1}
-                  maxRows={4}
-                  className={styles["comment-input"]}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleAddComment();
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleAddComment}
-                  variant="contained"
-                  color="primary"
-                  className={styles["comment-submit-button"]}
-                  disabled={!newComment.trim()}
-                >
-                  <Send />
-                </Button>
-              </Box>
+              {isMember && (
+                <Box className={styles["comment-input-container"]}>
+                  <Avatar
+                    src={user?.avatar || "/placeholder-avatar.jpg"}
+                    alt="Your Avatar"
+                    className={styles["comment-avatar"]}
+                  />
+                  <TextField
+                    size="small"
+                    placeholder="Write a comment..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    fullWidth
+                    multiline
+                    minRows={1}
+                    maxRows={4}
+                    className={styles["comment-input"]}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleAddComment();
+                      }
+                    }}
+                  />
+                  <Button
+                    onClick={handleAddComment}
+                    variant="contained"
+                    color="primary"
+                    className={styles["comment-submit-button"]}
+                    disabled={!newComment.trim()}
+                  >
+                    <Send />
+                  </Button>
+                </Box>
+              )}
 
               <Box ref={commentListRef} sx={commentListStyles}>
                 {comments.length === 0 && !loadingComments ? (
@@ -1025,7 +1094,7 @@ const ViewPostDetails = () => {
                               >
                                 {new Date(comment.createdAt).toLocaleString()}
                               </Typography>
-                              {comment.userId === user?.userId && (
+                              {comment.userId === user?.userId && isMember && (
                                 <IconButton
                                   size="small"
                                   onClick={(e) => {
@@ -1047,7 +1116,7 @@ const ViewPostDetails = () => {
                           </>
                         )}
                       </Box>
-                      {comment.userId === user?.userId && (
+                      {comment.userId === user?.userId && isMember && (
                         <Menu
                           anchorEl={menuAnchorEl}
                           open={

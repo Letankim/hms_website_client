@@ -273,7 +273,7 @@ const Forgot = () => {
                   <div className="input-shine" aria-hidden="true"></div>
                 </div>
                 {inputErrors.email && (
-                  <span className="error-message">{inputErrors.email}</span>
+                  <span className="error-message-forgot">{inputErrors.email}</span>
                 )}
               </div>
 
@@ -388,7 +388,7 @@ const Forgot = () => {
                   </button>
                 </div>
                 {inputErrors.otpCode && (
-                  <span className="error-message">{inputErrors.otpCode}</span>
+                  <span className="error-message-forgot">{inputErrors.otpCode}</span>
                 )}
               </div>
 
@@ -427,7 +427,7 @@ const Forgot = () => {
                   <div className="input-shine" aria-hidden="true"></div>
                 </div>
                 {inputErrors.newPassword && (
-                  <span className="error-message">
+                  <span className="error-message-forgot">
                     {inputErrors.newPassword}
                   </span>
                 )}
@@ -468,7 +468,7 @@ const Forgot = () => {
                   <div className="input-shine" aria-hidden="true"></div>
                 </div>
                 {inputErrors.confirmPassword && (
-                  <span className="error-message">
+                  <span className="error-message-forgot">
                     {inputErrors.confirmPassword}
                   </span>
                 )}

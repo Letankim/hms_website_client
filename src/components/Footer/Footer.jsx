@@ -4,8 +4,12 @@ import FloatingHealthChat from "components/FloatingHealthChat/FloatingHealthChat
 
 const CompanyDescription = () => (
   <div className="company-description">
-    <a href="https://letankim.id.vn/3do/" className="footer-logo-link">
-      <img src="/logo_loading.png" alt="3DO TEAM Logo" className="footer-logo" />
+    <a href="https://hms-client-psi.vercel.app" className="footer-logo-link">
+      <img
+        src="/logo_loading.png"
+        alt="3DO TEAM Logo"
+        className="footer-logo"
+      />
     </a>
     <p className="company-text">
       Empowering your fitness journey with innovative solutions and
@@ -95,7 +99,7 @@ const AppDownload = () => (
     </p>
     <div className="app-links">
       <a
-        href="https://www.apple.com/app-store/"
+        href="https://apps.apple.com/app/hms-3do/id6749509672"
         target="_blank"
         rel="noopener noreferrer"
         className="app-link"
@@ -117,7 +121,7 @@ const Copyright = () => (
         <p>
           © Copyright 2025, All Rights Reserved by{" "}
           <a
-            href="https://letankim.id.vn/3do/"
+            href="https://hms-client-psi.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="brand-link"
@@ -129,7 +133,7 @@ const Copyright = () => (
         <p>
           Powered By{" "}
           <a
-            href="https://letankim.id.vn/3do/"
+            href="https://hms-client-psi.vercel.app/"
             target="_blank"
             rel="noopener noreferrer"
             className="brand-link"

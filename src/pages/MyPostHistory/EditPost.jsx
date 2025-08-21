@@ -15,8 +15,8 @@ import {
   Snackbar,
   Select,
   MenuItem,
-  InputLabel,
   FormControl,
+  InputLabel,
 } from "@mui/material";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -25,6 +25,7 @@ import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import apiPostService from "services/apiPostService";
 import apiTagService from "services/apiTagService";
 import { apiUploadImageCloudService } from "services/apiUploadImageCloudService";
+import apiGroupMemberService from "services/apiGroupMemberService";
 import AuthContext from "contexts/AuthContext";
 import "./EditPost.css";
 import {
@@ -36,7 +37,7 @@ import {
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/bmp"];
 
 const EditPost = () => {
-  const { postId } = useParams();
+  const { postId, groupId } = useParams(); // Include groupId from useParams
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
@@ -53,30 +54,51 @@ const EditPost = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  const [isMember, setIsMember] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        // Fetch post details
         const postRes = await apiPostService.getPostById(postId);
-        setPost(postRes.data);
-        setContent(postRes.data.content);
-        setThumbnail(postRes.data.thumbnail || "");
-        setThumbnailBase64(postRes.data.thumbnail || "");
-        setTags(postRes.data.tags || []);
-        setSelectedTagIds(postRes.data.tags?.map((tag) => tag.tagId) || []);
+        const postData = postRes.data;
+        setPost(postData);
+        setContent(postData.content);
+        setThumbnail(postData.thumbnail || "");
+        setThumbnailBase64(postData.thumbnail || "");
+        setTags(postData.tags || []);
+        setSelectedTagIds(postData.tags?.map((tag) => tag.tagId) || []);
 
+        // Fetch available tags
         const tagsRes = await apiTagService.getAllActiveTags({});
         setAvailableTags(tagsRes?.data?.tags || []);
+
+        // Check group membership only after post data is fetched
+        if (user && postData && postData.groupId) {
+          try {
+            const membershipResponse =
+              await apiGroupMemberService.isUserInGroup(
+                Number(postData.groupId)
+              );
+            setIsMember(membershipResponse.data); // Assuming response.data is boolean
+          } catch (e) {
+            showErrorFetchAPI(e);
+            setIsMember(false);
+          }
+        } else {
+          setIsMember(false);
+        }
       } catch (e) {
         showErrorFetchAPI(e);
+        setPost(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [postId]);
+  }, [postId, user]);
 
   const handleThumbnailModeChange = (event) => {
     const newMode = event.target.value;
@@ -116,6 +138,11 @@ const EditPost = () => {
   };
 
   const handleSave = async () => {
+    if (!isMember) {
+      showErrorMessage("You must be a member of this group to edit posts.");
+      return;
+    }
+
     const trimmedContent = content.trim();
     const finalTagIds = selectedTagIds || [];
 
@@ -195,7 +222,10 @@ const EditPost = () => {
       await apiTagService.addTagsToPost(postId, finalTagIds);
 
       showSuccessMessage("Post updated successfully!");
-      setTimeout(() => navigate(`/my-posts/${postId}/view`), 2000);
+      setTimeout(
+        () => navigate(`/groups/${post.groupId}/post/${postId}`),
+        2000
+      );
     } catch (e) {
       showErrorFetchAPI(e);
     } finally {
@@ -217,11 +247,44 @@ const EditPost = () => {
     );
   }
 
+  if (!post) {
+    return (
+      <Box
+        className="edit-post-container"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        minHeight="100vh"
+      >
+        <Typography variant="h6" color="error">
+          Post Not Found
+        </Typography>
+        <Typography color="text.secondary">
+          The post you're trying to edit doesn't exist.
+        </Typography>
+        <Button
+          variant="outlined"
+          onClick={() => navigate(`/groups/${groupId || ""}`)}
+          sx={{ mt: 2 }}
+        >
+          Back to Group
+        </Button>
+      </Box>
+    );
+  }
+
   return (
     <Box className="edit-post-container">
       <Typography variant="h5" fontWeight={700} mb={3}>
         Edit Post
       </Typography>
+
+      {!isMember && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You are not a member of this group. You cannot edit this post.
+        </Alert>
+      )}
 
       <Snackbar
         open={error || success}
@@ -313,6 +376,7 @@ const EditPost = () => {
                   onChange={handleThumbnailModeChange}
                   label="Thumbnail Source"
                   className="modern-select"
+                  disabled={!isMember}
                 >
                   <MenuItem value="url">Image URL</MenuItem>
                   <MenuItem value="file">Upload from Device</MenuItem>
@@ -329,6 +393,7 @@ const EditPost = () => {
                   placeholder="Enter image URL..."
                   variant="outlined"
                   className="modern-textfield"
+                  disabled={!isMember}
                 />
               ) : (
                 <TextField
@@ -338,6 +403,7 @@ const EditPost = () => {
                   variant="outlined"
                   className="modern-textfield"
                   inputProps={{ accept: ALLOWED_TYPES.join(",") }}
+                  disabled={!isMember}
                 />
               )}
               {thumbnailBase64 && (
@@ -380,6 +446,7 @@ const EditPost = () => {
                     </Box>
                   )}
                   className="modern-select"
+                  disabled={!isMember}
                 >
                   {availableTags.map((tag) => (
                     <MenuItem key={tag.tagId} value={tag.tagId}>
@@ -397,7 +464,7 @@ const EditPost = () => {
                   color="primary"
                   startIcon={<SaveIcon />}
                   onClick={handleSave}
-                  disabled={saving || post?.status !== "active"}
+                  disabled={saving || post?.status !== "active" || !isMember}
                   className="action-button"
                 >
                   {saving ? "Saving..." : "Save Changes"}
@@ -406,7 +473,9 @@ const EditPost = () => {
                   variant="outlined"
                   color="secondary"
                   startIcon={<CancelIcon />}
-                  onClick={() => navigate(`/my-posts/${postId}/view`)}
+                  onClick={() =>
+                    navigate(`/groups/${post.groupId}/post/${postId}`)
+                  }
                   className="action-button"
                 >
                   Cancel

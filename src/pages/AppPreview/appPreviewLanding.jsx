@@ -490,7 +490,15 @@ const AppPreview = () => {
                   Join thousands of users transforming their health
                 </p>
                 <div className="action-buttons">
-                  <button className="btn-primary">
+                  <button
+                    className="btn-primary"
+                    onClick={() =>
+                      window.open(
+                        "https://apps.apple.com/app/hms-3do/id6749509672",
+                        "_blank"
+                      )
+                    }
+                  >
                     <Download size={18} />
                     Download Free
                   </button>
@@ -518,7 +526,7 @@ const AppPreview = () => {
       <VideoModal
         isOpen={videoModalOpen}
         onClose={() => setVideoModalOpen(false)}
-        videoId="dQw4w9WgXcQ"
+        videoId="WNquykqNIic"
       />
     </>
   );
@@ -625,10 +633,16 @@ const Hero = () => {
               intuitive, and incredibly effective.
             </p>
             <div className="hero-actions">
-              <button className="btn-primary large">
+              <a
+                href="https://apps.apple.com/app/hms-3do/id6749509672"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-primary large"
+              >
                 <Download size={20} />
                 Start Free Trial
-              </button>
+              </a>
+
               <button
                 className="btn-secondary large"
                 onClick={() => setVideoModalOpen(true)}
@@ -658,7 +672,7 @@ const Hero = () => {
       <VideoModal
         isOpen={videoModalOpen}
         onClose={() => setVideoModalOpen(false)}
-        videoId="dQw4w9WgXcQ"
+        videoId="WNquykqNIic"
       />
     </>
   );

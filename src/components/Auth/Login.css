@@ -718,3 +718,42 @@
 .facebook-btn:hover:not(:disabled) {
     box-shadow: 0 4px 15px rgba(66, 103, 178, 0.3);
 }
+
+.social-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.social-btn .social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.google-btn {
+    background-color: #fff;
+    color: #444;
+    border: 1px solid #ddd;
+}
+
+.google-btn:hover {
+    background-color: #f7f7f7;
+}
+
+.facebook-btn {
+    background-color: #4267b2;
+    color: #fff;
+    border: none;
+}
+
+.facebook-btn:hover {
+    background-color: #365899;
+}

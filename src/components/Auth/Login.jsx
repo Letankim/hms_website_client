@@ -348,33 +348,31 @@ const Login = () => {
           </div>
 
           <div className="social-login-section">
+            {/* GOOGLE */}
             <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-              <div className="social-btn-wrapper">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleFailure}
-                  locale="en"
-                  width="100%"
-                  useOneTap={false}
-                  theme="outline"
-                  size="large"
-                  text="continue_with"
-                  shape="rectangular"
-                  logo_alignment="left"
-                  style={{
-                    backgroundColor: "#4267b2",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "10px 20px",
-                    cursor: "pointer",
-                    fontSize: "16px",
-                  }}
-                  disabled={loading}
-                />
-              </div>
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleFailure}
+                useOneTap={false}
+                render={(renderProps) => (
+                  <button
+                    type="button"
+                    onClick={renderProps.onClick}
+                    disabled={loading || renderProps.disabled}
+                    className="social-btn google-btn"
+                  >
+                    <img
+                      src="https://www.svgrepo.com/show/355037/google.svg"
+                      alt="Google logo"
+                      className="social-icon"
+                    />
+                    Sign in with Google
+                  </button>
+                )}
+              />
             </GoogleOAuthProvider>
 
+            {/* FACEBOOK */}
             <FacebookLogin
               appId="589418934210916"
               onSuccess={handleFacebookSuccess}
@@ -383,27 +381,15 @@ const Login = () => {
               fields="name,email,picture"
               render={(renderProps) => (
                 <button
-                  className="social-btn facebook-btn"
                   type="button"
                   onClick={renderProps.onClick}
                   disabled={loading || renderProps.disabled}
-                  aria-label="Continue with Facebook"
-                  style={{
-                    backgroundColor: "#4267b2",
-                    display: "flex",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "10px 20px",
-                    cursor: "pointer",
-                    fontSize: "14px",
-                  }}
+                  className="social-btn facebook-btn"
                 >
                   <img
                     src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
-                    alt=""
+                    alt="Facebook logo"
                     className="social-icon"
-                    aria-hidden="true"
                   />
                   Continue with Facebook
                 </button>

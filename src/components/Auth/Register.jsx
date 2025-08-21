@@ -17,7 +17,7 @@ const ErrorMessage = ({ message, type = "error" }) => {
   if (!message) return null;
 
   return (
-    <div className={`error-message ${type}`}>
+    <div className={`error-message-register ${type}`}>
       <span className="error-text">{message}</span>
     </div>
   );
@@ -568,11 +568,15 @@ const AccountDetailsStep = ({
         <Shield size="16" color="#4F46E5" />
         <p>
           By registering, you agree to our{" "}
-          <a href="/terms-and-conditions" className="terms-link">
+          <a
+            href="/terms-and-conditions"
+            target="_blank"
+            className="terms-link"
+          >
             Terms of Service
           </a>{" "}
           and{" "}
-          <a href="/privacy-policy" className="terms-link">
+          <a href="/privacy-policy" target="_blank" className="terms-link">
             Privacy Policy
           </a>
         </p>

@@ -20,9 +20,11 @@ import apiPostService from "services/apiPostService";
 import "./MyPostHistory.css";
 import {
   showErrorFetchAPI,
+  showInfoMessage,
   showSuccessMessage,
 } from "components/ErrorHandler/showStatusMessage";
 import AuthContext from "contexts/AuthContext";
+import apiGroupMemberService from "services/apiGroupMemberService";
 
 // Debounce function
 const debounce = (func, delay) => {
@@ -36,7 +38,6 @@ const debounce = (func, delay) => {
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "active", label: "Active" },
-  { value: "deleted", label: "Deleted" },
 ];
 
 const pageSizeOptions = [5, 10, 20, 50];
@@ -172,10 +173,24 @@ const MyPostHistory = () => {
     }
   };
 
-  const handleConfirmDelete = (postId) => {
-    setPostToDelete(postId);
-    setDeleteDialogOpen(true);
-    document.body.style.overflow = "hidden";
+  const handleConfirmDelete = async (post) => {
+    try {
+      const membershipResponse = await apiGroupMemberService.isUserInGroup(
+        Number(post?.groupId)
+      );
+
+      if (membershipResponse.data) {
+        setPostToDelete(post?.postId);
+        setDeleteDialogOpen(true);
+        document.body.style.overflow = "hidden";
+      } else {
+        showInfoMessage(
+          "You are no longer a member of this group. Please rejoin to manage your posts."
+        );
+      }
+    } catch (e) {
+      showErrorFetchAPI(e);
+    }
   };
 
   const handleConfirmDeleteDialogClose = (confirm) => {
@@ -602,7 +617,7 @@ const MyPostHistory = () => {
                         </button>
                         <button
                           className="action-btn delete-btn"
-                          onClick={() => handleConfirmDelete(post.postId)}
+                          onClick={() => handleConfirmDelete(post)}
                           title="Delete Post"
                           disabled={post.status !== "active"}
                         >

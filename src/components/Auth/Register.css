@@ -581,27 +581,49 @@
 }
 
 /* Enhanced Error Messages */
-.error-message {
+.error-message-register {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 0.5rem;
-    padding: 0.75rem;
-    background: var(--error-light);
-    border: 1px solid var(--error-color);
-    border-radius: var(--border-radius);
+    margin-top: 0rem;
+    padding: 0.25rem;
     font-size: 0.875rem;
     color: var(--error-color);
     animation: slideInDown 0.3s ease-out;
 }
 
-.error-message.warning {
+.error-message-register.warning {
     background: var(--warning-light);
     border-color: var(--warning-color);
     color: var(--warning-color);
 }
 
-.error-message.info {
+.error-message-register.info {
+    background: var(--primary-light);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.error-message-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0rem;
+    padding: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--error-color);
+    animation: slideInDown 0.3s ease-out;
+    margin-bottom: 10px;
+}
+
+.error-message-profile.warning {
+    background: var(--warning-light);
+    border-color: var(--warning-color);
+    color: var(--warning-color);
+}
+
+.error-message-profile.info {
     background: var(--primary-light);
     border-color: var(--primary-color);
     color: var(--primary-color);

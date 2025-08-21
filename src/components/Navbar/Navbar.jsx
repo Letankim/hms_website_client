@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState, useRef } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import AuthContext from "contexts/AuthContext";
 import apiUserService from "services/apiUserService";
 import apiNotificationService from "services/apiNotificationService";
@@ -31,6 +31,7 @@ const Navbar = () => {
   const userId = user?.userId;
   const avatarRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const checkProfileCompletion = () => {
@@ -51,16 +52,17 @@ const Navbar = () => {
 
   useEffect(() => {
     const verified = localStorage.getItem("turnstile_passed");
-    const currentPath = window.location.pathname;
+    const currentPath = location.pathname.toLowerCase();
 
-    if (
-      !verified &&
-      currentPath !== "/verify" &&
-      !currentPath.startsWith("/Auth/activate")
-    ) {
-      navigate("/verify");
+    const isVerifyPage = currentPath === "/verify";
+    const isActivatePage =
+      currentPath === "/auth/activate" ||
+      currentPath.startsWith("/auth/activate/");
+
+    if (!verified && !isVerifyPage && !isActivatePage) {
+      navigate("/verify", { replace: true });
     }
-  }, [navigate]);
+  }, [location, navigate]);
 
   const fetchUserProfile = async () => {
     if (!userId) return;
