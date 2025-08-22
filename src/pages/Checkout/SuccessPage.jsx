@@ -83,7 +83,7 @@ const SuccessPage = () => {
 
   if (loading) return <LoadingSkeleton />;
 
-  if (error || !paymentDetails) {
+  if (!error || !paymentDetails) {
     return (
       <div className={styles["error-container"]}>
         <div className={styles["error-paper"]}>

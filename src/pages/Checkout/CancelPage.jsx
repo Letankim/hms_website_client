@@ -146,7 +146,7 @@ const CancelPage = () => {
               <div className={styles["header-text"]}>
                 <h1 className={styles["main-title"]}>Payment Canceled</h1>
                 <p className={styles["main-subtitle"]}>
-                  Your payment for {paymentDetails.packageName} was not
+                  Your payment for {paymentDetails?.packageName} was not
                   completed.
                 </p>
               </div>
@@ -158,29 +158,29 @@ const CancelPage = () => {
             <div className={styles["details-paper"]}>
               <div className={styles["details-stack"]}>
                 <div className={styles["detail-item"]}>
-                  <strong>Payment ID:</strong> {paymentDetails.paymentId}
+                  <strong>Payment ID:</strong> {paymentDetails?.paymentId}
                 </div>
                 <div className={styles["detail-item"]}>
-                  <strong>Package:</strong> {paymentDetails.packageName}
+                  <strong>Package:</strong> {paymentDetails?.packageName}
                 </div>
                 <div className={styles["detail-item"]}>
                   <strong>Amount:</strong>{" "}
-                  {paymentDetails.amount.toLocaleString()} VND
+                  {paymentDetails?.amount.toLocaleString()} VND
                 </div>
                 <div className={styles["detail-item"]}>
                   <strong>Payment Method:</strong>{" "}
-                  {paymentDetails.paymentMethod || "Bank Transfer"}
+                  {paymentDetails?.paymentMethod || "Bank Transfer"}
                 </div>
                 <div className={styles["detail-item"]}>
-                  <strong>Status:</strong> {paymentDetails.status}
+                  <strong>Status:</strong> {paymentDetails?.status}
                 </div>
                 <div className={styles["detail-item"]}>
                   <strong>Cancellation Reason:</strong>{" "}
-                  {paymentDetails.cancellationReason || "No reason provided"}
+                  {paymentDetails?.cancellationReason || "No reason provided"}
                 </div>
                 <div className={styles["detail-item"]}>
-                  <strong>Trainer:</strong> {paymentDetails.trainerFullName} (
-                  {paymentDetails.trainerEmail})
+                  <strong>Trainer:</strong> {paymentDetails?.trainerFullName} (
+                  {paymentDetails?.trainerEmail})
                 </div>
               </div>
             </div>

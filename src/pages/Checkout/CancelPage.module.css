@@ -257,7 +257,7 @@
 
 .header-content {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: 24px;
     width: 100%;
     color: white;
