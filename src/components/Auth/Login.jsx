@@ -1,4 +1,6 @@
-import { useState, useContext, useEffect } from "react";
+"use client";
+
+import { useState, useContext, useEffect, useRef } from "react";
 import { Eye, EyeSlash, Home2 } from "iconsax-react";
 import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import FacebookLogin from "@greatsumini/react-facebook-login";
@@ -63,6 +65,8 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+  const googleLoginRef = useRef(null);
+  const facebookLoginRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -176,6 +180,39 @@ const Login = () => {
 
   const handleRegister = () => {
     navigate("/register");
+  };
+
+  const handleCustomGoogleLogin = () => {
+    if (googleLoginRef.current) {
+      const googleLoginElement =
+        googleLoginRef.current.querySelector('div[role="button"]') ||
+        googleLoginRef.current.querySelector("iframe");
+      if (googleLoginElement) {
+        googleLoginElement.click();
+      }
+    }
+  };
+
+  const handleCustomFacebookLogin = () => {
+    if (facebookLoginRef.current) {
+      const fbLoginElement =
+        facebookLoginRef.current.querySelector("button") ||
+        facebookLoginRef.current.querySelector('div[role="button"]');
+      if (fbLoginElement) {
+        fbLoginElement.click();
+      }
+    } else if (window.FB) {
+      window.FB.login(
+        (response) => {
+          if (response.authResponse) {
+            handleFacebookSuccess(response.authResponse);
+          } else {
+            handleFacebookFailure();
+          }
+        },
+        { scope: "email" }
+      );
+    }
   };
 
   return (
@@ -350,51 +387,51 @@ const Login = () => {
           <div className="social-login-section">
             {/* GOOGLE */}
             <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-              <GoogleLogin
-                onSuccess={handleGoogleSuccess}
-                onError={handleGoogleFailure}
-                useOneTap={false}
-                render={(renderProps) => (
-                  <button
-                    type="button"
-                    onClick={renderProps.onClick}
-                    disabled={loading || renderProps.disabled}
-                    className="social-btn google-btn"
-                  >
-                    <img
-                      src="https://www.svgrepo.com/show/355037/google.svg"
-                      alt="Google logo"
-                      className="social-icon"
-                    />
-                    Sign in with Google
-                  </button>
-                )}
-              />
+              <div style={{ display: "none" }} ref={googleLoginRef}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleFailure}
+                  useOneTap={false}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleCustomGoogleLogin}
+                disabled={loading}
+                className="social-btn google-btn"
+              >
+                <img
+                  src="https://www.svgrepo.com/show/355037/google.svg"
+                  alt="Google logo"
+                  className="social-icon"
+                />
+                Sign in with Google
+              </button>
             </GoogleOAuthProvider>
 
             {/* FACEBOOK */}
-            <FacebookLogin
-              appId="589418934210916"
-              onSuccess={handleFacebookSuccess}
-              onFail={handleFacebookFailure}
-              autoLoad={false}
-              fields="name,email,picture"
-              render={(renderProps) => (
-                <button
-                  type="button"
-                  onClick={renderProps.onClick}
-                  disabled={loading || renderProps.disabled}
-                  className="social-btn facebook-btn"
-                >
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
-                    alt="Facebook logo"
-                    className="social-icon"
-                  />
-                  Continue with Facebook
-                </button>
-              )}
-            />
+            <div style={{ display: "none" }} ref={facebookLoginRef}>
+              <FacebookLogin
+                appId="589418934210916"
+                onSuccess={handleFacebookSuccess}
+                onFail={handleFacebookFailure}
+                autoLoad={false}
+                fields="name,email,picture"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleCustomFacebookLogin}
+              disabled={loading}
+              className="social-btn facebook-btn"
+            >
+              <img
+                src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png"
+                alt="Facebook logo"
+                className="social-icon"
+              />
+              Continue with Facebook
+            </button>
           </div>
 
           <div className="auth-footer">

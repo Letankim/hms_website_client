@@ -76,7 +76,13 @@ import "@fancyapps/ui/dist/fancybox/fancybox.css";
 import { apiUploadImageCloudService } from "services/apiUploadImageCloudService";
 import { DeleteIcon, EditIcon, Share2 } from "lucide-react";
 
-import { People, InfoCircle, Calendar, SearchNormal1 } from "iconsax-react";
+import {
+  People,
+  InfoCircle,
+  Calendar,
+  SearchNormal1,
+  Edit,
+} from "iconsax-react";
 import {
   showErrorFetchAPI,
   showErrorMessage,
@@ -241,7 +247,13 @@ const LeftSidebar = ({ user, groupId }) => {
   );
 };
 
-const RightSidebar = ({ group, members, isAdmin, onMembersClick }) => {
+const RightSidebar = ({
+  group,
+  members,
+  isAdmin,
+  onMembersClick,
+  navigate,
+}) => {
   if (!group) return null;
 
   return (
@@ -250,7 +262,6 @@ const RightSidebar = ({ group, members, isAdmin, onMembersClick }) => {
         <InfoCircle size="24" color="#1f2937" />
         <h3>Group Info</h3>
       </div>
-
       <div className={styles["sidebar-content"]}>
         <div className={styles["group-info-card"]}>
           <div className={styles["group-avatar-section"]}>
@@ -280,6 +291,26 @@ const RightSidebar = ({ group, members, isAdmin, onMembersClick }) => {
               </div>
             </div>
           </div>
+
+          {isAdmin && (
+            <div className={styles["group-actions"]}>
+              <button
+                className={styles["edit-group-button"]}
+                onClick={() =>
+                  navigate(
+                    "/my-groups/view#action=edit?group=" + group?.groupId
+                  )
+                }
+              >
+                <Edit
+                  size={18}
+                  className={styles["edit-group-icon"]}
+                  color="#fff"
+                />
+                <span>Edit Group</span>
+              </button>
+            </div>
+          )}
 
           <div className={styles["group-privacy"]}>
             <div className={styles["privacy-badge"]}>
@@ -577,7 +608,7 @@ const GroupDetail = () => {
         );
         if (!confirmed) {
           setJoinLoading(false);
-          return; 
+          return;
         }
 
         await apiGroupMemberService.leaveGroup(groupId);
@@ -588,7 +619,7 @@ const GroupDetail = () => {
         }));
         showSuccessMessage("Left group successfully!");
       } else {
-        await apiGroupMemberService.joinGroup( groupId );
+        await apiGroupMemberService.joinGroup(groupId);
         setGroup((prev) => {
           const isPrivate = prev.isPrivate;
           return {
@@ -2021,31 +2052,30 @@ const GroupDetail = () => {
                                     </Typography>
                                   </Box>
                                 </Box>
-                                <>
-                                  {isAdmin && (
-                                    <Box>
-                                      <IconButton
-                                        size="small"
-                                        aria-label="More options"
-                                        onClick={(e) =>
-                                          handleMoreMenuOpen(e, post.postId)
-                                        }
-                                        className={styles["post-menu-button"]}
-                                      >
-                                        <MoreHoriz fontSize="small" />
-                                      </IconButton>
-                                      <Menu
-                                        anchorEl={moreMenuAnchorEl[post.postId]}
-                                        open={Boolean(
-                                          moreMenuAnchorEl[post.postId]
-                                        )}
-                                        onClose={() =>
-                                          handleMoreMenuClose(post.postId)
-                                        }
-                                        PaperProps={{
-                                          className: "post-menu",
-                                        }}
-                                      >
+                                <Box>
+                                  <IconButton
+                                    size="small"
+                                    aria-label="More options"
+                                    onClick={(e) =>
+                                      handleMoreMenuOpen(e, post.postId)
+                                    }
+                                    className={styles["post-menu-button"]}
+                                  >
+                                    <MoreHoriz fontSize="small" />
+                                  </IconButton>
+                                  <Menu
+                                    anchorEl={moreMenuAnchorEl[post.postId]}
+                                    open={Boolean(
+                                      moreMenuAnchorEl[post.postId]
+                                    )}
+                                    onClose={() =>
+                                      handleMoreMenuClose(post.postId)
+                                    }
+                                    PaperProps={{ className: "post-menu" }}
+                                  >
+                                    {/* Nếu là Admin thì có Delete + Hide */}
+                                    {isAdmin && (
+                                      <>
                                         <MenuItem
                                           onClick={() => handleDeletePost(post)}
                                           className={styles["delete-menu-item"]}
@@ -2060,59 +2090,36 @@ const GroupDetail = () => {
                                           <VisibilityOff sx={{ mr: 1 }} />
                                           Hide Post
                                         </MenuItem>
-                                      </Menu>
-                                    </Box>
-                                  )}
-                                </>
-                                <>
-                                  {isAdmin == false && (
-                                    <Box>
-                                      <IconButton
-                                        size="small"
-                                        aria-label="More options"
-                                        onClick={(e) =>
-                                          handleMoreMenuOpen(e, post.postId)
-                                        }
-                                        className={styles["post-menu-button"]}
+                                      </>
+                                    )}
+
+                                    {/* Nếu không phải Admin thì vẫn có Share */}
+                                    {!isAdmin && (
+                                      <MenuItem
+                                        onClick={() => handleSharePost(post)}
+                                        className={styles["share-menu-item"]}
                                       >
-                                        <MoreHoriz fontSize="small" />
-                                      </IconButton>
-                                      <Menu
-                                        anchorEl={moreMenuAnchorEl[post.postId]}
-                                        open={Boolean(
-                                          moreMenuAnchorEl[post.postId]
-                                        )}
-                                        onClose={() =>
-                                          handleMoreMenuClose(post.postId)
+                                        <Share2 sx={{ mr: 1 }} />
+                                        Share Post
+                                      </MenuItem>
+                                    )}
+
+                                    {/* Nếu là chủ bài viết (dù Admin hay không) thì có Edit */}
+                                    {post.userId === user.userId && (
+                                      <MenuItem
+                                        onClick={() =>
+                                          navigate(
+                                            `/my-posts/${post.postId}/edit`
+                                          )
                                         }
-                                        PaperProps={{
-                                          className: "post-menu",
-                                        }}
+                                        className={styles["edit-menu-item"]}
                                       >
-                                        <MenuItem
-                                          onClick={() => handleSharePost(post)}
-                                          className={styles["share-menu-item"]}
-                                        >
-                                          <Share2 sx={{ mr: 1 }} />
-                                          Share Post
-                                        </MenuItem>
-                                        {post.userId === user.userId && (
-                                          <MenuItem
-                                            onClick={() =>
-                                              navigate(
-                                                `/my-posts/${post.postId}/edit`
-                                              )
-                                            }
-                                            className={styles["edit-menu-item"]}
-                                          >
-                                            <EditIcon />
-                                            Edit Post
-                                          </MenuItem>
-                                        )}
-                                      </Menu>
-                                    </Box>
-                                  )}
-                                </>
+                                        <EditIcon sx={{ mr: 1 }} />
+                                        Edit Post
+                                      </MenuItem>
+                                    )}
+                                  </Menu>
+                                </Box>
                               </Box>
                               {post?.tags && post?.tags?.length > 0 && (
                                 <Box sx={{ display: "flex", gap: 1, mb: 1.5 }}>
@@ -2535,6 +2542,7 @@ const GroupDetail = () => {
         members={members}
         isAdmin={isAdmin}
         onMembersClick={handleOpenMembersDialog}
+        navigate={navigate}
       />
 
       {/* Members Dialog */}

@@ -24,7 +24,7 @@ import {
 } from "iconsax-react";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import DOMPurify from "dompurify";
 import AuthContext from "contexts/AuthContext";
 import apiGroupService from "services/apiGroupService";
@@ -44,7 +44,6 @@ const statusColors = {
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/bmp"];
 
-// Custom debounce function
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -56,6 +55,7 @@ const debounce = (func, delay) => {
 const MyCreatedGroups = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
@@ -95,6 +95,64 @@ const MyCreatedGroups = () => {
   const [editorData, setEditorData] = useState("");
   const [formErrors, setFormErrors] = useState({});
   const [showFilters, setShowFilters] = useState(false);
+
+  // Parse URL to extract action and group ID
+  const parseUrlParams = useCallback(() => {
+    const hash = location.hash.replace("#", "");
+    const params = new URLSearchParams(hash.split("?")[1] || "");
+    const action = hash.split("?")[0].split("=")[1] || "";
+    const groupId = params.get("group");
+    return { action, groupId: groupId ? parseInt(groupId, 10) : null };
+  }, [location]);
+
+  const fetchGroupDetails = useCallback(async (groupId) => {
+    if (!groupId || isNaN(groupId)) {
+      showErrorMessage("Invalid group ID.");
+      return null;
+    }
+    setLoading(true);
+    try {
+      const res = await apiGroupService.getMyGroupActiveById(groupId);
+      if (res.statusCode === 200 && res.data) {
+        return res.data;
+      } else {
+        showErrorMessage("Group not found.");
+        return null;
+      }
+    } catch (e) {
+      showErrorFetchAPI(e);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Handle URL-based edit action
+  useEffect(() => {
+    const { action, groupId } = parseUrlParams();
+    if (action === "edit" && groupId) {
+      const loadGroupForEdit = async () => {
+        const group = await fetchGroupDetails(groupId);
+        if (group) {
+          setEditGroup({
+            groupId: group.groupId,
+            thumbnail: group.thumbnail || "",
+            groupName: group.groupName || "",
+            description: group.description || "",
+            status: group.status || "active",
+            isPrivate: group.isPrivate || false,
+          });
+          setEditorData(group.description || "");
+          setImagePreview(group.thumbnail || null);
+          setImageFile(null);
+          setFormErrors({});
+          setEditDialogOpen(true);
+          document.body.style.overflow = "hidden";
+        }
+      };
+      loadGroupForEdit();
+    }
+  }, [parseUrlParams, fetchGroupDetails]);
 
   const fetchGroups = useCallback(async () => {
     if (!user) {
@@ -157,33 +215,7 @@ const MyCreatedGroups = () => {
     }
   };
 
-  const validateForm = (editorData) => {
-    const errors = {};
-
-    if (!editorData?.groupName?.trim()) {
-      errors.groupName = "Group name is required";
-    } else if (
-      editorData.groupName.length < 3 ||
-      editorData.groupName.length > 255
-    ) {
-      errors.groupName = "Group name must be between 3 and 255 characters";
-    }
-
-    if (!editorData?.description.trim()) {
-      errors.description = "Description is required";
-    } else if (editorData.description.length > 2000) {
-      errors.description = "Description cannot exceed 2000 characters";
-    }
-
-    const status = editorData.status?.trim().toLowerCase();
-    if (status && !["active", "inactive"].includes(status)) {
-      errors.status = "Status must be 'active' or 'inactive'";
-    }
-
-    return errors;
-  };
-
-  const validateAddForm = (groupData) => {
+  const validateForm = (groupData) => {
     const errors = {};
 
     if (!groupData?.groupName?.trim()) {
@@ -210,7 +242,7 @@ const MyCreatedGroups = () => {
   };
 
   const handleCreateGroup = async () => {
-    const errors = validateAddForm(newGroup);
+    const errors = validateForm(newGroup);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       showErrorMessage("Please fill in all required fields.");
@@ -296,6 +328,8 @@ const MyCreatedGroups = () => {
         document.body.style.overflow = "auto";
         resetEditForm();
         await fetchGroups();
+        // Clear URL parameters after successful edit
+        navigate("/my-groups/view", { replace: true });
       } else {
         showErrorMessage("Failed to update group.");
       }
@@ -408,10 +442,12 @@ const MyCreatedGroups = () => {
 
   const handleCloseError = () => {
     setShowError(false);
+    setError(null);
   };
 
   const handleCloseSuccess = () => {
     setShowSuccess(false);
+    setSuccessMessage(null);
   };
 
   const handleCloseDialog = () => {
@@ -430,6 +466,7 @@ const MyCreatedGroups = () => {
     setEditDialogOpen(false);
     resetEditForm();
     document.body.style.overflow = "auto";
+    navigate("/my-groups/view", { replace: true }); // Clear URL parameters
   };
 
   const handleClearFilters = () => {
@@ -480,7 +517,6 @@ const MyCreatedGroups = () => {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    // Previous button
     if (pageNumber > 1) {
       pages.push(
         <button
@@ -493,7 +529,6 @@ const MyCreatedGroups = () => {
       );
     }
 
-    // First page
     if (startPage > 1) {
       pages.push(
         <button
@@ -513,7 +548,6 @@ const MyCreatedGroups = () => {
       }
     }
 
-    // Visible pages
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <button
@@ -528,7 +562,6 @@ const MyCreatedGroups = () => {
       );
     }
 
-    // Last page
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
@@ -548,7 +581,6 @@ const MyCreatedGroups = () => {
       );
     }
 
-    // Next button
     if (pageNumber < totalPages) {
       pages.push(
         <button

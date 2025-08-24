@@ -1372,3 +1372,37 @@
 .group-post-actions {
     border-top: 1px solid var(--border-light);
 }
+
+.group-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.edit-group-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--primary-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.edit-group-button:hover {
+    background-color: var(--primary-color-dark, #0e6bc5);
+    transform: translateY(-1px);
+}
+
+.edit-group-button:active {
+    transform: translateY(0);
+}
+
+.edit-group-icon {
+    margin-right: 4px;
+}
